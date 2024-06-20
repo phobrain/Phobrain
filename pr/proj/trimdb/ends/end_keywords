@@ -1,0 +1,14 @@
+/*
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+
+DROP INDEX IF EXISTS pr.keywords_picid_idx;
+CREATE INDEX keywords_picid_idx ON pr.keywords USING btree (id, coder);
+
+REVOKE ALL ON TABLE pr.keywords FROM PUBLIC;
+REVOKE ALL ON TABLE pr.keywords FROM pr;
+GRANT ALL ON TABLE pr.keywords TO pr;
+

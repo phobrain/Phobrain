@@ -1,0 +1,29 @@
+/*
+ *  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+
+//sourceCompatibility = 1.8
+
+dependencies {
+  implementation project(':shared')
+  implementation project(':db')
+  implementation files('../lib/postgresql-42.3.1.jar')
+  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
+  implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+}
+
+task fatJar(type: Jar) {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    manifest {
+        attributes 'Implementation-Title': 'TrainingPairs',  
+                'Implementation-Version': '1.0',
+       	        'Main-Class': 'org.phobrain.traind.TrainingPairs'
+    }
+    archiveBaseName = project.name + '-all'
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+

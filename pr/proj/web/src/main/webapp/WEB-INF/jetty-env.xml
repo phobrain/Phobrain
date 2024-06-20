@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://www.eclipse.org/jetty/configure_9_3.dtd">
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <New id="prDataSource" class="org.eclipse.jetty.plus.jndi.Resource">
+   <Arg></Arg>
+   <Arg>jdbc/pr</Arg>
+   <Arg>
+    <New class="com.mchange.v2.c3p0.ComboPooledDataSource">
+       <Set name="driverClass">org.postgresql.Driver</Set>
+       <Set name="jdbcUrl">jdbc:postgresql:pr</Set>
+       <Set name="user">pr</Set>
+       <Set name="password">@@pr</Set>
+    </New>
+   </Arg>
+  </New>
+
+</Configure>

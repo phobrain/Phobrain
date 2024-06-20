@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ *  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<web-app version="3.0" 
+xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+         http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+    <display-name>Phobrain</display-name>
+    <description>
+	A new life form
+    </description>
+
+    <resource-ref>
+      <description>DataSource</description>
+      <res-ref-name>jdbc/pr</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+    </resource-ref>
+
+    <error-page>
+      <location>/errors.html</location>
+    </error-page>
+
+    <servlet>
+        <servlet-name>getsession</servlet-name>
+        <servlet-class>org.phobrain.servlet.GetSession</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>getsession</servlet-name>
+        <url-pattern>/getsession</url-pattern>
+    </servlet-mapping>
+
+    <!-- servlet>
+        <servlet-name>getnext</servlet-name>
+        <servlet-class>org.phobrain.servlet.GetNext</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>getnext</servlet-name>
+        <url-pattern>/getnext</url-pattern>
+    </servlet-mapping -->
+
+    <servlet>
+        <servlet-name>getmext</servlet-name>
+        <servlet-class>org.phobrain.servlet.GetMult</servlet-class>
+        <async-supported>true</async-supported>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>getmext</servlet-name>
+        <url-pattern>/getmext</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>logap</servlet-name>
+        <servlet-class>org.phobrain.servlet.LogApproval</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>logap</servlet-name>
+        <url-pattern>/logap</url-pattern>
+    </servlet-mapping>
+
+    <!-- servlet>
+        <servlet-name>getmob</servlet-name>
+        <servlet-class>org.phobrain.servlet.GetMob</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>getmob</servlet-name>
+        <url-pattern>/getmob</url-pattern>
+    </servlet-mapping -->
+    <servlet>
+        <servlet-name>kqext</servlet-name>
+        <servlet-class>org.phobrain.servlet.KQServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>kqext</servlet-name>
+        <url-pattern>/kqext</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>getkext</servlet-name>
+        <servlet-class>org.phobrain.servlet.Metadata</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>getkext</servlet-name>
+        <url-pattern>/getkext</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>renext</servlet-name>
+        <servlet-class>org.phobrain.servlet.ReNext</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>renext</servlet-name>
+        <url-pattern>/renext</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>images</servlet-name>
+        <servlet-class>org.phobrain.servlet.TagResourceServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>images</servlet-name>
+        <url-pattern>/images/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>home</servlet-name>
+        <servlet-class>org.phobrain.servlet.FileSystemResourceServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>home</servlet-name>
+        <url-pattern>/home/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>comment</servlet-name>
+        <servlet-class>org.phobrain.servlet.CommentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>comment</servlet-name>
+        <url-pattern>/home/comment</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>status</servlet-name>
+        <servlet-class>org.phobrain.servlet.Status</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>status</servlet-name>
+        <url-pattern>/mnb</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>crd</servlet-name>
+        <servlet-class>org.phobrain.servlet.CrdServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>crd</servlet-name>
+        <url-pattern>/crd</url-pattern>
+    </servlet-mapping>
+
+</web-app>

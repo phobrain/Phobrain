@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+set -e
+
+echo "== $0"
+echo "   Updating pr.picture color values"
+echo
+echo "   =====>  Prerequisites"
+echo "             in ../pairs/:"
+echo "              run.<v|h>
+echo "           in ../histogram/:"
+echo "              run_pairtop_angles_only_tbl.sh <v|h>"
+echo
+echo sleeping 5
+sleep 5
+
+IMAGE_DESC_DIR="`phobrain_property.sh image.desc.dir`"
+
+ANGLE="$IMAGE_DESC_DIR"/2_hist/pair_angle
+
+echo "    image_desc: $IMAGE_DESC_DIR"
+echo "    angle:      $ANGLE"
+echo
+
+time java -Xmx4g -jar build/libs/update-all-1.0.jar \
+  $IMAGE_DESC_DIR/center_radii_AB \
+  $IMAGE_DESC_DIR/center_radii_RGB \
+  $IMAGE_DESC_DIR/center_ang_AB \
+  $ANGLE/v_b10_d_rgb2_len \
+  $ANGLE/h_b10_d_rgb2_len \
+  $ANGLE/v_b11_d_rgb3_len \
+  $ANGLE/h_b11_d_rgb3_len \
+  $ANGLE/v_b12_d_rgb32_len \
+  $ANGLE/h_b12_d_rgb32_len
+
+echo "== $0 DONE"

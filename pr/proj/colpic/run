@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: MIT-0
+#
+
+
+time java -Xmx64g -jar build/libs/colpic-all-1.0.jar $*

@@ -1,0 +1,38 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+
+== Phobrain Project
+
+Files:
+
+    0README    This file.
+
+    INSTALL    Setup instructions.
+
+    bak.sh      Pre-git tar of source, saving training data.
+
+    bin/        Convenience utils; add to your path.
+
+    db/         Scripts for creating/dumping database.
+
+    jetty/      http2 -? not used
+
+    jetty-base/ Web site structure.
+
+    misc/       Files copied from non-pr places for tar-type archive. 
+                Also the current, generated master photo list 
+                    misc/real_img_orient
+                    Format: <archive>/<filename> <v|h>
+
+    ml/         python for ml
+
+    proj/       Java source code for web server and auxiliary utils.
+
+    startj.sh   A web server start script.
+
+    web/        Website content.
+

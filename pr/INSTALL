@@ -1,0 +1,349 @@
+
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+=== pr/INSTALL
+
+1.  Prerequisites for install
+
+        Java
+        Gradle
+        Postgres
+        Jetty
+
+    Needed for importing new pics:
+
+        ImageMagick
+        keras
+
+2.  PHOBRAIN_LOCAL, HOME_DIR
+
+    Unless PHOBRAIN_LOCAL is set in the environment, ~/phobrain_local/ is expected.
+    Phobrain system-wide directories are set here via *.sh scripts with single 'echo'
+    statements. This needs more organization and a query interface, with a one-dir
+    default for importing few-enough pics.
+
+    E.g. for now,
+
+        $ vi ~/phobrain_local/*.sh
+
+3.  Unpack archive
+
+        % cd HOME_DIR
+        % tar -xzf <archive_file>
+
+4.  Database setup
+
+    If you want the database to use a separate account:
+
+        root# adduser pb_acct
+        root# usermod -aG sudo pb_acct
+
+    See if postgres is already installed, e.g. by default. 
+    Example install for Ubuntu 22.04:
+
+        $ sudo apt update
+        $ sudo apt install postgresql postgresql-contrib
+    
+    Config, here for postgres 14:
+
+        $ sudo vi /etc/postgresql/14/main/postgresql.conf
+
+        -- my blind guesses on an 8G machine:
+
+        shared_buffers = 1GB                    # min 128kB
+                                                # (change requires restart)
+        huge_pages = try                        # on, off, or try
+                                                # (change requires restart)
+        temp_buffers = 128MB                    # min 800kB
+        work_mem = 512MB                        # min 64kB
+        maintenance_work_mem = 512MB            # min 1MB
+
+    Start db:
+
+        $ sudo service postgresql start
+
+    Create user pr: 
+
+        $ sudo -u postgres createuser --interactive --pwprompt
+        Enter name of role to add: pr
+        Enter password for new role:
+        Shall the new role be a superuser? (y/n) n
+        Shall the new role be allowed to create databases? (y/n) n
+        Shall the new role be allowed to create more new roles? (y/n) n
+
+        [if applicable, same for <server acct>]
+
+    Create database pr:
+
+        $ sudo -u postgres createdb -O pr pr
+
+        If using a server acct:
+
+            $ sudo -u postgres psql
+            postgres=# grant pr to <server acct>;
+            postgres=# \q
+
+5.  Phobrain 'pr' database initial setup.
+
+    Time: 5 mins.
+
+        % cd pr/db
+        % psql -d pr
+        > \i setup.sql
+
+    If loading phobrain classic:
+
+        > \i approved_pair_dump.sql
+
+4.  Import photos.
+
+    If using Bill/Phobrain pics, obtain
+
+        <IMAGES_DIR>/[1..]/                # E.g. images/1/img_0001_sm.jpg
+                                                  
+    Else:
+
+        Images: Create/populate <IMAGES_DIR>/<archive> dirs.
+        Split images into archives, pics in each contain a unique sequence num 
+              for archive in the file name. E.g. images/1/img_0001.jpg.
+
+    Metadata: Create <IMAGE_DESC>/ dirs:  TODO: put in setup/check script.
+
+        0_color
+        1_base
+        2_hist
+        3_jpg
+
+    Import photos (compiles programs as needed), here for images/1/
+
+        $ cd pr/proj
+        $ ./1_mk_arch.sh 1
+
+5. Calculate pair relations: 
+
+            - histogram distances
+            - ML (using VGG16 imagenet vectors and selected histograms)
+            - Latent-geometry distances/alignments using ML-derived 
+              'pairing vectors'.
+
+        $ cd pr/proj
+        $ ./2_mk_histo_pairs.sh
+        $ ./3_mk_ml_prs.sh
+        $ ./4_mk_pr_db.sh
+
+        $ psql -d pr
+        psql> \i pr.xxx.sql
+                ...
+
+
+
+4.  Load image metadata to picture and keywords tables in db.
+    Time: 15 minutes.
+
+    TODO: hard-coded INSERT_ vals in the src determine whether to insert
+    into picture table and/or keywords table. Keywords-only is for active
+    keyword revisions.
+
+    # original phobrain only:
+    % cd ../import    ; gradle fatJar ; ./run.orig_phobrain
+
+    # non-phobrain data:
+    cd pr/proj/import ; [TODO: fix src INSERT_ values]
+                       gradle fatJar ; for each archive ./run.sh <archnum>
+
+        -- example: arch10
+
+        phootriot@phobrain-2:~/pr/proj/import$ gradle fatJar
+        import$ ./run.sh all ~ 10
+        ...
+        INSERTED PICS: 1673
+ 
+5.  If non-phobrain load, make real_img_orient (can be done w/ db query after 
+    import in previous step). Format: <arch#>/fname t|f [t,f=vertical]
+    TODO: automate
+
+6.  Build color histogram-based input (distance/angle) for 
+
+      - training neural nets for the pairs_[vh]_dump.sql file 
+        (the file is created in proj/corr/)
+      - hi/lo selection into pairtop_[vh]_dump.sql
+
+    Picture list from $HOME/real_img_orient.
+
+    Time: on 64GB i9: 
+            1hr for v=11062 pics
+            2hr for h=17435 pics
+
+    % cd pr/proj/boofcv
+    # check script:
+    % ./run.full_pairs_tbl v
+    % ./run.full_pairs_tbl h
+
+        -- example run i9
+
+        phootriot@phobrain-2:~/pr/proj/boofcv$ ./run.full_pairs_tbl v
+        MASTER TBL BUILD v, rename ang, and move to 
+                        /home/phootriot/image_desc/pair and 
+                        /home/phootriot/image_desc/angle/
+        Some _dist files with distributions will remain here. Do not examine.
+        You made this decision, not me, at Thu 24 Oct 2019 08:30:52 AM PDT
+        Start: Thu 24 Oct 2019 08:30:52 AM PDT
+        USING /home/phootriot/real_img_orient
+        ... just v's:
+        Thu 24 Oct 2019 08:30:52 AM PDT
+        Thu 24 Oct 2019 09:21:11 AM PDT
+        ... just v's:
+
+
+7.  Generate NN estimates for:
+
+        - all pairs for proj/corr/ building pairs_[vh]_dump.sql
+        - top 200 pics per picX for: picX_on_left and picX_on_right
+          for proj/pairtop/ building pairtop_nn_[vh].sql
+          These are 'sorted down' to remove dupes in building the sql.
+
+    Latest NN progs:
+
+        #phobrain@phobrain-gpu1:/hdd/phobrain/keras/hp2/bsym.py, pdir.py
+        phootriot@phobrain-2:/home/phootriot/ml/keras/hp2/bsym.py, pdir[v].py
+        phootriot@phobrain-2:/home/phootriot/ml/keras/pp2/p2.py, pred.py
+
+    Result: 
+
+        1. Python-gen'd .pairs (pred/pdir.py) with DO_ALL=True
+           so that every pair is calced and saved and can be compared, 
+           N^2 logical table size, but halving rows and thus index size 
+           by having .pairs format: 
+           
+                [id1 id2 val12 val21]
+
+                id1,id2->val12 = left, right
+                id2,id1->val21 = right, left
+
+           Input for: proj/corr/run.[hv]: 
+
+                _cmd_ _col_name_base_ <dir(s)>
+
+                posneg d0 
+                        <dir w/ best pos preds (python-gen'd .pairs)>
+                        <dir w/ best neg preds>
+                avg dx  <dir w/ closest pos==neg accuracy preds>
+                avg kwd <dir w/ fave kwd (ml/keras/pp2/) accuracy preds>
+
+        2. Python-gen'd .pairs (pred/pdir.py) with DO_ALL=False
+           so that every pair is calced, but only the 200 best for
+           each picX for: picX_on_left and picX_on_right.
+
+           .pairs format: 
+
+                [id1 id2 val]  
+                
+                id1,2 always left, right
+
+            Input for: 
+            
+                proj/pairtop/run.[vh] nn 
+                
+            producing
+
+                pairtop_nn_[vh].sql
+
+            Dupes from python are 'sorted down' by the cmd line sort's
+            unique option (called from java; used for optimized speed with 
+            big datasets) to remove dupes in building the sql.
+            Unlike the pairs tables, the actual order doesn't matter.
+
+    Time: 2-6 days
+
+    % cd /hdd/phobrain/keras/hp2
+    v|h:
+      % vi bsym.py ...
+      % vi pdir.py ...
+
+8.  proj/corr/ 
+
+    Generates
+
+      - pairs_[vh] tables backup-sql-for-loading files, 
+      - distances from avg/centers of color spaces for proj/update/ 
+                  revision of picture table.
+      - ../pairtop/tmp_corr_[vh] files for proj/pairtop/
+
+    [Picture list from db.]
+
+    Time: v: 32m52.217s @ 8418 pics,  47pos,40neg nets
+          h: 16m45.179s @ 12717 pics, 1pos,1neg net
+          
+    % cd pr/proj/corr ; gradle fatJar
+    % ./run.pair 
+
+    postgres> \i pairs_v_dump.sql
+    postgres> \i pairs_h_dump.sql
+       COPY 80854686
+       Time: 136571.157 ms
+       CREATE INDEX
+       Time: 291010.808 ms
+       CREATE INDEX
+       Time: 413008.382 ms
+
+9.  Update picture table with values from color space calcs, e.g.
+    distance to an average of histogram coords over all pics.
+    Time: 5 min
+
+    % cd pr/proj/update
+    % gradle fatJar ; run.sh
+
+10. Prepare any desired NN .pairs files for pairtop_[vh]. Same as 7.
+    except in pdir.py DO_ALL=False. only top choices are used, after
+    merging NN predictions in whatever ways seem interesting. Might
+    wind up just using pairs_[vh].d0* vals in the end.
+
+12. Run pairtop and load resulting pairtop_[vh]_dump.sql files.
+    Depends on proj/pairtop/tmp_corr_[vh] files placed by proj/corr.
+
+12. Amber config
+
+    TODO - setup as in pr/web/moldesc.html
+
+    Fake config:
+
+      % mkdir -p amber14/proj/tap
+      % touch amber14/proj/mdinfo
+      % touch amber14/proj/restrt_rms.rst
+      % touch amber14/proj/angles.dat
+
+11. Server config
+
+    % sudo mkdir /var/phobrain    
+    % sudo cp pr/misc/phogit.properties /var/phobrain/
+    % sudo vi /var/phobrain/phogit.properties
+      # set HOME_DIR
+      # if real amber, set amber dirs/files
+    % vi pr/jetty-base/resources/logback.xml
+      # set appender file name, rollingPolicy fileNamePattern
+      # SOLUTION TO: LOG NOT APPEARING?
+
+    % mkdir <HOME_DIR>/logs
+    % mkdir <HOME_DIR>/meta       # keyword-based pic:pics lists
+    % mkdir <HOME_DIR>/graphs
+
+12. Build and run
+
+    % cd pr/proj/web
+    % ./mk.sh
+
+13. Run
+
+    # still in pr/proj/web
+
+    % vi jet.sh
+      # set PHOB_HOME to dir with images/ and meta/
+      # set JETTY_DIST to dir with jetty distribution untarred
+    % nohup jet.sh &
+
+
+

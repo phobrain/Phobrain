@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<head>
+  <link rel="canonical" href="http://phobrain.com"/>
+  <link rel="icon" href="favicon.ico"/>
+  <!-- base href="http://phobrain.com" target="_top"/-->
+  <meta name="robots" content="noindex,nofollow"/>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+  <title>Phobrain Slideshow</title>
+
+  <script src="js/jquery/jquery-1.11.3.min.js"></script>
+  <script src="js/bootstrap/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css"
+         href="js/bootstrap/bootstrap.min.css" />
+
+  <link rel="stylesheet" type="text/css"
+         href="css/footer.css" />
+  <link rel="stylesheet" type="text/css"
+         href="css/phobasic.css" />
+
+<script>
+<!--
+
+function getHTTP()
+{
+  var xmlHttp;
+  try {
+    // Firefox, Opera 8.0+, Safari
+    xmlHttp = new XMLHttpRequest();
+  } catch (e) {
+    // Internet Explorer
+    try {
+      xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        throw("Your browser does not support AJAX!");
+      }
+    }
+  }
+  return xmlHttp;
+}
+
+function getUrlVars() {
+  var vars = {};
+  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+    vars[key] = value;
+  });
+  return vars;
+}
+
+function setCookie(cname, cvalue) {
+  var d = new Date();
+  var exdays = 5000;
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  var expires = "expires="+d.toUTCString();
+  document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0; i<ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1);
+    if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+  }
+  return "";
+}
+
+Base64 = (function () {
+    var digitsStr = 
+    //   0       8       16      24      32      40      48      56     63
+    //   v       v       v       v       v       v       v       v      v
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-";
+    var digits = digitsStr.split('');
+    var digitsMap = {};
+    for (var i = 0; i < digits.length; i++) {
+        digitsMap[digits[i]] = i;
+    }
+    return {
+        fromInt: function(int32) {
+            var result = '';
+            while (true) {
+                result = digits[int32 & 0x3f] + result;
+                int32 >>>= 6;
+                if (int32 === 0)
+                    break;
+            }
+            return result;
+        },
+        toInt: function(digitsStr) {
+            var result = 0;
+            var digits = digitsStr.split('');
+            for (var i = 0; i < digits.length; i++) {
+                result = (result << 6) + digitsMap[digits[i]];
+            }
+            return result;
+        }
+    };
+})();
+
+function getCoords(elem) { // crossbrowser version
+  var box = elem.getBoundingClientRect();
+
+  var body = document.body;
+  var docEl = document.documentElement;
+
+  var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+  var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+  var clientTop = docEl.clientTop || body.clientTop || 0;
+  var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+  var top  = box.top +  scrollTop - clientTop;
+  var left = box.left + scrollLeft - clientLeft;
+
+  return { top: Math.round(top), left: Math.round(left) };
+}
+
+navigator.browserSpecs = (function(){
+    var ua= navigator.userAgent, tem, 
+    M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return {name:'IE',version:(tem[1] || '')};
+    }
+    if(M[1]=== 'Chrome'){
+        tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+        if(tem!= null) return {name:tem[1].replace('OPR', 'Opera'),version:tem[2]};
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return {name:M[0],version:M[1]};
+})();
+
+(function($){
+    $.fn.isActive = function(){
+        return $(this.get(0)).hasClass('open')
+    }
+})(jQuery)
+
+//%%%%%%%% start photoriot
+
+var ADMIN_PIX = 300; // for selector/footer plus 20px
+
+function getSessionKey()
+{
+  var k = getUrlVars()["k"];
+  if (k == null  ||  k.length == 0) {
+    k = "m"; 
+  }
+  var v = getUrlVars()["v"];
+  if (v == null  ||  v.length == 0) {
+    console.log("!!! defaulting view to all");
+    v = "0"; // all
+  }
+  return "pairlist_" + k + "_" + v;
+}
+
+function getTileKey() 
+{
+  return getSessionKey() + "_tile";
+}
+
+function getCmdModeKey()
+{
+  return getSessionKey() + "_cmode";
+}
+
+function getVDepthKey() {
+  return getSessionKey() + "_vdepth";
+}
+
+var isAndroid = false;
+var isIphone = false;
+
+function adjustPageElements()
+{
+  var ua = navigator.userAgent.toLowerCase();
+  isAndroid = ua.indexOf("android") > -1;
+  isIphone = ua.indexOf("iphone") > -1;
+
+  if (isIphone || isAndroid) {
+    document.getElementById("body").style.height = "800px";
+    document.getElementById("wrapper").style.height = "800px";
+    document.getElementById("home").innerHTML = "Home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+    var heights = [
+      ["phob_home", 50],
+      ["drop_left", 50],
+      ["home", 50],
+
+      ["rain_about", 50],
+      ["drop_right", 50],
+      ["about", 50],
+
+      ["yplus", 100],
+      ["gplus", 100],
+
+      ["foot_credit", 50]
+    ];
+    for (var i=0; i<heights.length; i++) {
+      var x = document.getElementById(heights[i][0]);
+      if (x == null) {
+        alert("Internal error: no " + heights[i][0]);
+      } else {
+        var size = heights[i][1];
+        if (isIphone) size = parseInt(size *= 0.6);
+        x.style.fontSize = size + "px";
+      }
+    }
+
+    var buttons = [
+      //["menu_squareb", 50, 40],
+      ["ico_square",  50, 40],
+      ["ico_port",  60, 40],
+      ["ico_land",  110, 40],
+      ["ico_land2",  60, 40],
+
+      ["menu_twopb",  100, 40],
+      //["twop",    60, 40],
+
+      ["menu_twolb",  110, 40],
+      //["twol",   110, 40],
+
+      ["menu_twolsb",  80, 40],
+      //["twols",   80, 40],
+    ];
+    for (var i=0; i<buttons.length; i++) {
+      var b = document.getElementById(buttons[i][0]);
+      if (b == null) {
+        alert("Internal error: no " + buttons[i][0]);
+      } else {
+        b.style.width = buttons[i][1] + "px";
+        b.style.height = buttons[i][2] + "px";
+      }
+    }
+
+  }
+}
+
+function gotoPic()
+{
+    var x = prompt("pairNum (1.." + 
+		pairs.length + ", now " + (pairIndex+1) + ")", 
+		pairs.length);
+    if (x==null  ||  x === "") return;
+    var y = parseInt(x);
+    if (y < 1) {
+      alert("Can't go lower.");
+      return;
+    }
+    if (y > pairs.length) {
+      alert("Max is " + pairs.length);
+      return;
+    }
+    if (isNaN(y)) {
+      alert("isNaN");
+      return;
+    }
+    pairIndex = y - 1;
+    loadImages();
+}
+
+
+var DEFAULT_TILE = 2; // 2 landscape; portraits work too
+var tileId = DEFAULT_TILE;  
+var cmdMode = 1; 
+
+function toggleCmd()
+{
+  console.log("toggleCmd tileId " + tileId + " cmdMode " + cmdMode);
+
+  if (tileId == 0) {
+    return;
+  }
+  switch (cmdMode) {
+    case 1:
+      //document.getElementById("menu_cmd_mode").innerHTML = 'Browse Mode';
+      document.getElementById("cmdTd").style.display = '';
+      cmdMode = 2;
+      break;
+    case 2:
+      //document.getElementById("menu_cmd_mode").innerHTML = 'Search Mode';
+      document.getElementById("cmdTd").style.display = 'none';
+      cmdMode = 1;
+      break;
+  }
+  setCookie(getCmdModeKey(), cmdMode);
+  adjustCmdTds(tileId);
+}
+
+
+function adjustCmdTds(row)
+{
+  console.log("adjustCmdTds: " + row);
+
+  if (cmdMode == 1) {
+    document.getElementById("cmdTd").style.width = "0px";
+    document.getElementById("showTd").style.width = "50%";
+    document.getElementById("kwdTd").style.width = "50%";
+    return;
+  }
+  var winWidth = window.innerWidth; // disbelief factor
+  var cmdlen = 0;
+  if (cmdMode == 2) {
+    var name = navigator.browserSpecs.name;
+    if (name == 'Chrome') {
+      if (row == 0) cmdlen = 110;
+      else cmdlen = 200;
+    } else if (name == 'Firefox') {
+      if (row == 0) cmdlen = 140;
+      else cmdlen = 240;
+    } else if (isIphone) {
+      if (row == 0) cmdlen = 110;
+      else cmdlen = 200;
+  document.getElementById("cmdTd").style.width =  "";
+  document.getElementById("showTd").style.width = "";
+  document.getElementById("kwdTd").style.width =  "";
+return;
+    } else {
+      if (row == 0) cmdlen = 120; 
+      else cmdlen = 230;
+    }
+    if (isIphone || isAndroid) {
+      cmdlen *= 2;
+    }
+    if (row > 0  &&  window.location.hostname == 'localhost') {
+      cmdlen += Math.floor(2 * cmdlen / 5); // add 2
+    }
+  }
+  var sidelen = Math.floor(0.99 * (winWidth - cmdlen) / 2);
+
+  console.log("adjustCmdTds: win, cmd, side " + 
+        winWidth + " " + cmdlen + " " + sidelen);
+  document.getElementById("cmdTd").style.width = cmdlen + "px";
+  document.getElementById("showTd").style.width = sidelen + "px";
+  document.getElementById("kwdTd").style.width = sidelen + "px";
+}
+
+function setTile(row, reload)
+{
+console.log("setTile " + row);
+
+  switch (row) {
+    case 0:
+      document.getElementById("menu_squareb").className = 'greyBut';
+      document.getElementById("menu_twopb").className = 'blackBut';
+      document.getElementById("menu_twolb").className = 'blackBut';
+      document.getElementById("menu_twolsb").className = 'blackBut';
+      document.getElementById("menu_cmd_mode").className = 'greyBut';
+      break;
+    case 1:
+      document.getElementById("menu_squareb").className = 'blackBut';
+      document.getElementById("menu_twopb").className = 'greyBut';
+      document.getElementById("menu_twolb").className = 'blackBut';
+      document.getElementById("menu_twolsb").className = 'blackBut';
+      document.getElementById("menu_cmd_mode").className = 'blackBut';
+      break;
+    case 2:
+      document.getElementById("menu_squareb").className = 'blackBut';
+      document.getElementById("menu_twopb").className = 'blackBut';
+      document.getElementById("menu_twolb").className = 'greyBut';
+      document.getElementById("menu_twolsb").className = 'blackBut';
+      document.getElementById("menu_cmd_mode").className = 'blackBut';
+      break;
+    case 3:
+      document.getElementById("menu_squareb").className = 'blackBut';
+      document.getElementById("menu_twopb").className = 'blackBut';
+      document.getElementById("menu_twolb").className = 'blackBut';
+      document.getElementById("menu_twolsb").className = 'greyBut';
+      document.getElementById("menu_cmd_mode").className = 'blackBut';
+      break;
+  }
+
+  if (row == tileId) {
+    return;
+  }
+
+  setCookie(getTileKey(), row); // redundant when called from fresh session load
+
+  md = null;
+  mdK = null;
+
+  for (var i=0; i<imgRcvd.length; i++) {
+    vDepth[i] = 0;
+    imgRcvd[i] = null;
+    imgRcvdPrev[i] = null;
+  }
+
+  if (isIphone || isAndroid) {
+    switch (row) {
+      case 0:
+      case 1:
+        document.getElementById("body").style.height =    "800px";
+        document.getElementById("wrapper").style.height = "800px";
+        break;
+      case 2:
+        document.getElementById("body").style.height =    "600px";
+        document.getElementById("wrapper").style.height = "600px";
+        break;
+      case 3:
+        document.getElementById("body").style.height =    "1400px";
+        document.getElementById("wrapper").style.height = "1400px";
+        break;
+      default: break;
+    }
+  }
+  if (row == 0  ||  tileId == 0) {
+    adjustCmdTds(row);
+  }
+
+  // only with tr1+
+  var yplus = document.getElementById("yplus");
+
+  if (row == 0) {
+    tileId = 0;
+
+    screens = 1;
+
+    document.getElementById("spacer").style.height = "10px";
+
+    yplus.style.display = 'none';
+
+  } else if (tileId != row) {
+    var oldTileId = tileId;
+    tileId = row;
+
+    screens = 2;
+
+    yplus.style.display = '';
+
+  }
+}
+
+
+var inImage = 0;
+var myScroll;
+
+$(document).ready(function() {
+  //resizeImg();
+  //$(window).resize(resizeImg);
+
+  //myScroll = new IScroll('#wrapper'); // prevent horiz scroll
+
+  $("#image0").on("mouseenter", function() { inImage++; });
+  $("#image0").on("mouseleave", function() { inImage--; });
+  $("#image1").on("mouseenter", function() { inImage++; });
+  $("#image1").on("mouseleave", function() { inImage--; });
+  $("#image2").on("mouseenter", function() { inImage++; });
+  $("#image2").on("mouseleave", function() { inImage--; });
+  $("#image3").on("mouseenter", function() { inImage++; });
+  $("#image3").on("mouseleave", function() { inImage--; });
+  $("#image4").on("mouseenter", function() { inImage++; });
+  $("#image4").on("mouseleave", function() { inImage--; });
+
+//$( "#invisButton" ).dblclick(function() {
+//  alert( "Handler for .dblclick() called." );
+//});
+});
+
+var servletRoot = "/pr";  // set in proj/web/build.gradle
+
+var screens = 2;
+
+///----
+
+var sessionID = "none";
+var browserID = "";
+
+function getSessionId()
+{
+  var t = browserID;
+  browserID = prompt("SHA1:", browserID);
+  if (browserID == null) {
+    browserID = t;
+    return;
+  }
+
+  sessionID = "init";
+
+  var xmlHttp;
+  try {
+    xmlHttp = getHTTP();
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+        sessionID = xmlHttp.responseText;
+        console.log("sessionID " + sessionID);
+      } else if (xmlHttp.status == 401) {
+        console.log("401: " + xmlHttp.responseText);
+        alert("Unknown user");
+      } else if (xmlHttp.status == 500) {
+        alert("Server error, try reloading page.");
+      }
+      loadPairs();
+    }
+  };
+
+  var d = new Date();
+  var userName = "ripplay";
+  var url = servletRoot + "/getsession";
+  var params = "tzoff=" + d.getTimezoneOffset() + 
+               "&hour=" + d.getHours() + 
+               "&browser=" + browserID + 
+               "&version=" + navigator.appVersion + 
+               "&platform=" + navigator.platform + 
+               "&lang=" + navigator.language + 
+               "&useragent=" + navigator.userAgent + 
+               "&username=" + userName + 
+               "&session=ripplay";
+  try {
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                             "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+var pairs = null;
+var pairIndex = 0;
+
+function loadPairs()
+{
+  var xmlHttp;
+  try {
+    xmlHttp = getHTTP();
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+
+        //console.log(xmlHttp.responseText);
+
+        //clearTimeout(timer);
+        pairs = JSON.parse(xmlHttp.responseText);
+        if (pairs.length == 0) {
+          alert("No pairs");
+          return;
+        }
+        pairIndex = 0;
+        loadImages();
+// QQQ
+      } else if (xmlHttp.status == 500) {
+        alert("Server error, try again, if still occurs, try reloading page.");
+      }
+    }
+  }
+  var url = servletRoot + "/renext";
+  var params = "sess=" + sessionID + "\n";
+  try {
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                             "application/x-www-form-urlencoded");
+    //alert("PARAMS: " + params);
+    xmlHttp.send(params);
+
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+}
+function showDog() {
+  var newimg = new Image();
+  newimg.onload=function() {
+    // when image is loaded, make it visible
+    var img = document.getElementById("imageP");
+    img.src = newimg.src;
+    img.width = window.innerWidth;
+    img.setAttribute("height", "auto");
+    img.setAttribute("vertical-align", "top");
+    img.setAttribute("float", "right");
+    fade(img);
+  };
+  // start load of image into memory
+  newimg.src = "dog_eyes2.jpg";
+}
+
+
+function showView() {
+  document.getElementById("thepreview").style.display = 'none';
+  document.getElementById("theshow").style.display = '';
+}
+
+var vDepth = [0, 0, 0, 0, 0];
+var imgRcvd = [null, null, null, null, null];
+var imgRcvdPrev = [null, null, null, null, null];
+
+var nToggleLast = 0;
+var togL = '';
+var togR = '';
+var togTimes = [];
+var lastTogTime = null;
+
+function toggleLast(screen, side) {
+
+  if ($('#drop1').isActive()  ||  $('#drop2').isActive()) {
+    console.log("toggleLast: dropdown is active/skip");
+    return;
+  }
+
+  console.log("toggleLast " + screen + " " + side);
+
+  if (side === 'l') {
+    togL = 'l';
+  } else if (side === 'r') {
+    togR = 'r';
+  } else {
+    togL = 'l';
+    togR = 'r';
+  }
+
+  md = null;
+  mdK = null;
+
+  var t0 = lastTogTime;
+  if (t0 == null) {
+    t0 = prevTime;
+  }
+  lastTogTime = new Date();
+  togTimes.push(lastTogTime - t0);
+  if (screen == -1) {
+    var ii = 0; // 1-1
+    if (tileId == 3) ii = 2; // 3-1
+    for (var i=0; i<2; i++) {
+      ii++;
+      if ((vDepth[ii] == 0  &&  imgRcvdPrev[ii] == null)  ||
+          (vDepth[ii] == 1  &&  imgRcvd[ii] == null)) {
+        alert("No pictures to go back to " + ii);
+        return;
+      }
+      nToggleLast++;
+      if (vDepth[ii] == 0) {
+        vDepth[ii] = 1;
+      } else {
+        vDepth[ii] = 0;
+      }
+
+    }
+    drawTwo();
+    return;
+  } else {
+
+    if ((vDepth[screen] == 0  &&  imgRcvdPrev[screen] == null)  ||
+        (vDepth[screen] == 1  &&  imgRcvd[screen] == null)) {
+      alert("No picture to go back to " + screen);
+      return;
+    }
+    if (vDepth[screen] == 0) {
+      vDepth[screen] = 1;
+    } else {
+      vDepth[screen] = 0;
+    }
+
+    nToggleLast++;
+
+    if (screen == 0) {
+      drawOne();
+    } else {
+      drawTwo();
+    }
+  }
+}
+
+function togTimesStr() {
+  if (togTimes.length == 0) {
+    return "____";
+  }
+  var str = "";
+  for (var i=0; i<togTimes.length; i++) {
+    str += Base64.fromInt(togTimes[i]);
+    str += ",";
+  }
+  return str;
+}
+
+var mdown_time = null;
+
+function mdown() {
+  mdown_time = new Date();
+}
+
+var bothToggleDown = null;
+
+function bothToggle() {
+  if (tileId == 0) {
+    toggleLast(0, 'm');
+    return;
+  }
+
+  if (bothToggleDown == null) {
+    return;
+  }
+
+  var dt = new Date() - bothToggleDown;
+  if (dt < 1000) {
+    toggleLast(-1, 'm');
+  } else { // go back to last new
+
+    for ( var i=1; i<vDepth.length; i++) {
+      vDepth[i] = 0;
+    }
+    drawTwo();
+  }
+
+  bothToggleDown = null;
+}
+
+var md = null;
+
+function getMD()
+{
+alert("getMD - not impl");
+return;
+console.log("getMD retry " + retry0Ct);
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+         md = JSON.parse(xmlHttp.responseText);
+         console.log("md " + md);
+         showMD();
+      } else if (xmlHttp.status == 401) {
+        console.log("401: " + xmlHttp.responseText);
+        alert("Unknown user");
+      } else if (xmlHttp.status == 500) {
+        alert("Server error, try reloading page.");
+      }
+    }
+  };
+  try {
+    var params = "sess=" + sessionID;
+    switch (tileId) {
+      case 0: 
+        params += "&p1=x&p2=x\n"; break;
+      case 1: 
+      case 2: 
+        params += "&p1=1." + vDepth[1] +
+                  "&p2=2." + vDepth[2] + "\n";
+        break;
+      case 3:
+        params += "&p1=1." + vDepth[3] +
+                  "&p2=2." + vDepth[4] + "\n";
+        break;
+      default:
+        alert("unexp tileId: " + tileId);
+        break;
+    }
+
+console.log("md params: " + params);
+    var url = servletRoot + "/getkext";
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+var mouseDownNextToPlus = false;
+var mouseDownOnCredit = false;
+
+var mdK = null;
+var retry0Ct = 0;
+
+function showMD() {
+return;
+  if (!mouseDownNextToPlus  &&  !mouseDownOnCredit) return;
+
+  if (tileId == 0) {
+    if (md == null) {
+console.log("md is null retry " + retry0Ct);
+      retry0Ct++;
+      if (retry0Ct > 2) {
+        retry0Ct = 0;
+        return;
+      }
+      getMD();
+      return;
+    }
+    retry0Ct = 0;
+  } else {
+    var ii = 1;
+    if (tileId == 3) ii = 3;
+
+    var ps = "0." + vDepth[ii] + "1." + vDepth[ii+1];
+    if (md == null  ||  ps != mdK) {
+      mdK = ps;
+      getMD();
+      return;
+    }
+  }
+  var content;
+  if (mouseDownOnCredit) {
+    content = md.credit;
+  } else {
+    content = md.kw;
+  }
+  //console.log("content [" + content.trim() + "]");
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "<span style=\"text-align:right; color:rgba(255,255,255,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;\">" + content.trim() + "</span>";
+}
+
+function hideKwds() {
+  mouseDownNextToPlus = false;
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "&nbsp;";
+}
+
+function hideCredit() {
+  mouseDownOnCredit = false;
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "&nbsp;";
+}
+
+function logApproval(status)
+{
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+         console.log("approval " + xmlHttp.responseText);
+      } else if (xmlHttp.status == 401) {
+        console.log("401: " + xmlHttp.responseText);
+        alert("Unknown user");
+      } else if (xmlHttp.status == 500) {
+        alert("Server error, try reloading page.");
+      }
+    }
+  };
+  try {
+    var params = "sess=" + sessionID +
+		"&p1=_" + pairs[pairIndex].ap.id1 +
+        "&p2=_" + pairs[pairIndex].ap.id2 +
+        "&st=" + status + "\n";
+
+console.log(params);
+    var url = servletRoot + "/logap";
+    xmlHttp.onreadystatechange=function() {
+      if(xmlHttp.readyState==4) {
+        if (xmlHttp.status != 200) {
+          alert("failed: " + xmlHttp.status + " " + xmlHttp.responseText);
+        }
+      }
+    };
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+
+function resizeImg0() {
+
+console.log("resizeImg0");
+
+  var tot_height = window.innerHeight;
+  var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
+
+  var td = document.getElementById("td0");
+  td.setAttribute("height", avail_height);
+
+  var img = document.getElementById("image0");
+
+  if (isAndroid || isIphone) {
+    img.style.opacity = "1.0";
+    return;
+  }
+
+  if (img.height > avail_height) {
+
+    console.log("resize height " + img.height + " to " + avail_height + 
+                " tot_height " + window.innerHeight);
+
+    var scaled_width = (avail_height / img.height) * img.width;
+
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = scaled_width;
+    canvas.height = avail_height;
+    var tmp = new Image();
+    tmp.src = img.src;
+    context = canvas.getContext( '2d' );
+    context.drawImage( tmp, 0, 0, scaled_width, avail_height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+
+  }
+  img.onmousedown = disableDragging; // for FF 
+  img.style.opacity = "1.0";
+}
+
+
+
+
+
+var mouseCount = 0;
+var prevT = null;
+var prevX = null, prevY;
+var rMax = 0;
+//var rates = [];
+var dotList = [];
+var dTot = 0;
+var maxVel = 0;
+var distMaxVel = 0;
+var timeMaxVel = 0;
+var lastVel = 0;
+var lastAcc = 0;
+var maxAcc = 0;
+var minAcc = 0;
+var maxJerk = 0;
+var maxX = 0;
+var minX = 0;
+var maxY = 0;
+var minY = 0;
+var lastX = 0;
+var lastY = 0;
+var accumX = 0;
+var accumY = 0;
+var lastClickX = 0;
+var lastClickY = 0;
+
+var picCount = 0;
+var pixInPic = 0;
+var pixOutPic = 0;
+var prevTime;
+var startNext;
+var imageLoaded = -1;
+
+function disableDragging(e) {
+  e.preventDefault();
+}
+
+
+function setImg(imgsrc, img, avail_height)
+{
+  if (img == null) {
+    alert("NO image");
+    return;
+  }
+console.log("Type: " + Object.prototype.toString.call(imgsrc));
+  if (imgsrc.height == avail_height) {
+    console.log("no resize");
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = imgsrc.width;
+    canvas.height = avail_height;
+    var context = canvas.getContext( '2d' );
+    context.drawImage( imgsrc, 0, 0, imgsrc.width, imgsrc.height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );;
+    return;
+  }
+
+  console.log("resize height " + imgsrc.height +
+            " to " + avail_height +
+            " tot_height " + window.innerHeight);
+
+  var scaled_width = (avail_height / imgsrc.height) * imgsrc.width;
+
+  var canvas = document.createElement( 'canvas' );
+  canvas.width = scaled_width;
+  canvas.height = avail_height;
+  var context = canvas.getContext( '2d' );
+  context.drawImage( imgsrc, 0, 0, scaled_width, avail_height);
+  var tmp = canvas.toDataURL( 'image/jpeg', 0.92 );
+  img.src = tmp;
+  img.onmousedown = disableDragging; // for FF
+  img.style.opacity = "1.0";
+  console.log("resized");
+}
+
+function drawOne()
+{
+
+  // when image is loaded, make it visible
+  var now = new Date();
+  imageLoaded = now - startNext;
+
+  var img = document.getElementById("image0");
+
+  var newimg;
+  if (vDepth[0] == 0) {
+    newimg = imgRcvd[0];
+  } else {
+    newimg = imgRcvdPrev[0];
+  }
+
+  showView();
+
+  if (isAndroid || isIphone) {
+    img.src = newimg.src;
+    //var canvas = document.createElement( 'canvas' );
+    //canvas.width = newimg.width;
+    //canvas.height = newimg.height;
+    //context = canvas.getContext( '2d' );
+    //context.drawImage( newimg, 0, 0, newimg.width, newimg.height);
+    //img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+  } else {
+console.log("maybe resize");
+    // resizeImage() inline for newimg use TODO consolidate
+    var tot_height = window.innerHeight;
+    var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
+    var td = document.getElementById("td0");
+    td.setAttribute("height", avail_height);
+
+    if (newimg.height <= avail_height) {
+console.log("use as-is");
+      img.src = newimg.src;
+    } else {
+
+      console.log("inline resize height " + newimg.height + " to " + 
+		avail_height + " tot_height " + window.innerHeight);
+
+      var scaled_width = (avail_height / newimg.height) * newimg.width;
+
+      var canvas = document.createElement( 'canvas' );
+      canvas.width = scaled_width;
+      canvas.height = avail_height;
+      context = canvas.getContext( '2d' );
+      context.drawImage( newimg, 0, 0, scaled_width, avail_height);
+      img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+    }
+  }
+  img.onmousedown = disableDragging; // for FF 
+  img.style.opacity = "1.0";
+
+  document.getElementById("tr0").style.display = '';
+  document.getElementById("tr1").style.display = 'none';
+  document.getElementById("tr2").style.display = 'none';
+
+  prevTime = new Date();
+  picCount++;
+}
+
+
+var waitingDisplays = 0;
+var minHeightTile2 = 99999999;
+
+var useLastTileId2Height = false;
+var lastTileId2Height = null;
+
+function decrementDisplayCountdown()
+{
+console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId);
+  if (waitingDisplays == 0) {
+    alert("Error, decrementing 0");
+    return;
+  }
+  // not thread safe
+  waitingDisplays--;
+  if (waitingDisplays > 0) {
+    return;
+  }
+
+  drawTwo();
+}
+
+function drawTwo()
+{
+console.log("drawTwo");
+
+  if (isAndroid || isIphone) {
+    var height = 0.6 * window.innerWidth;
+    if (tileId == 2) height *= 0.6;
+    height = parseInt(height);
+
+    var start = 1;
+    if (tileId > 2) start = 3;
+      
+    for (var i=start; i<start+2; i++) {
+      var img2draw;
+console.log("vdepth " + i + " " + vDepth[i]);
+      if (vDepth[i] == 0) {
+          img2draw = imgRcvd[i];
+      } else {
+          img2draw = imgRcvdPrev[i];
+      }
+      if (img2draw == null) {
+        console.log("null 2draw");
+      } else {
+        var img = document.getElementById("image" + i);
+        if (img == null) alert("NO image " + i);
+        setImg(img2draw, img, height);
+        //img.src = img2draw.src;
+      }
+    }
+  } else {
+    // resizeImage() inline for newimg use TODO consolidate
+    var tot_height = window.innerHeight;
+
+    var avail_height = tot_height - ADMIN_PIX;
+    if (tileId != 2) {
+      avail_height += 60;
+    }
+    var remaining_width = 0;
+
+    if (tileId == 2) {
+      if (useLastTileId2Height) {
+        avail_height = lastTileId2Height;
+        useLastTileId2Height = false; 
+      } else {
+        var imgRcvd1, imgRcvd2;
+        if (vDepth[1] == 0) {
+          imgRcvd1 = imgRcvd[1];
+        } else {
+          imgRcvd1 = imgRcvdPrev[1];
+        }
+        if (vDepth[2] == 0) {
+          imgRcvd2 = imgRcvd[2];
+        } else {
+          imgRcvd2 = imgRcvdPrev[2];
+        }
+        if (imgRcvd1 == null  ||  imgRcvd2 == null) {
+          console.log("default scaling");
+          avail_height /= 1.45;
+          avail_height = Math.floor(avail_height);
+        } else {
+/*
+          var max_ht = imgRcvd1.height;
+          if (imgRcvd2.height > max_ht) {
+            max_ht = imgRcvd2.height;
+          }
+*/
+          var tot_width = imgRcvd1.width * avail_height / imgRcvd1.height;
+          tot_width += imgRcvd2.width * avail_height / imgRcvd2.height;;
+          var avail_width = window.innerWidth;
+          avail_width -= 60; // clickable margins
+          remaining_width = 60;
+console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
+" = " + tot_width + " W " + avail_width + " " + window.innerWidth +
+" avail_height " + avail_height);
+          if (tot_width > avail_width) {
+            var ws = avail_width / tot_width;
+            avail_height *= ws;
+            avail_height = Math.floor(avail_height);
+console.log("avail_height " + avail_height);
+          }
+        }
+/*
+        if (avail_height < minHeightTile2) {
+          minHeightTile2 = avail_height;
+        } else {
+          avail_height = minHeightTile2;
+        }
+*/
+        lastTileId2Height = avail_height;
+      }
+    } else if (tileId == 3) {
+      avail_height /= 2;
+    }
+
+    switch (tileId) {
+      case 1:
+      case 2:
+        document.getElementById("td1").setAttribute("height", avail_height);
+        document.getElementById("td2").setAttribute("height", avail_height);
+        if (remaining_width > 0) {
+          var t = remaining_width / 2;
+          document.getElementById("tr1_td_start").setAttribute("width", t);
+          document.getElementById("tr1_td_end").setAttribute("width", t);
+        }
+        break;
+      case 3:
+        document.getElementById("td3").setAttribute("height", avail_height);
+        document.getElementById("td4").setAttribute("height", avail_height);
+        break;
+    }
+
+    var ii = 1;
+    if (tileId == 3) ii = 3;
+    for (var i=ii; i<ii+2; i++) {
+      var imgsrc;
+      if (vDepth[i] == 0) {
+          imgsrc = imgRcvd[i];
+      } else {
+          imgsrc = imgRcvdPrev[i];
+      }
+      if (imgsrc == null) {
+        console.log("src null " + i);
+      } else {
+
+        var img = document.getElementById("image" + i);
+
+        setImg(imgsrc, img, avail_height);
+        if (tileId == 3) {
+console.log("SET td" + i + " to match img width " + img.width);
+          document.getElementById("td" + i).setAttribute("width", img.width);
+        }
+      }
+    }
+
+  }
+  // final reveal
+  document.getElementById("tr0").style.display = 'none';
+  if (tileId == 1) { 
+    document.getElementById("tr1").style.display = '';
+    document.getElementById("tr2").style.display = 'none';
+    document.getElementById("spacer").style.height = "10px";
+  } else if (tileId == 2) {
+    document.getElementById("tr1").style.display = '';
+    document.getElementById("tr2").style.display = 'none';
+    document.getElementById("spacer").style.height = "40px";
+  } else if (tileId == 3) {
+    document.getElementById("tr1").style.display = 'none';
+    document.getElementById("tr2").style.display = '';
+    document.getElementById("spacer").style.height = "10px";
+  }
+  showView();
+  prevTime = new Date();
+}
+
+
+function loadImages()
+{
+  document.getElementById("progress").innerHTML = 
+	(pairIndex+1) + "/" + pairs.length + "&nbsp;&nbsp;&nbsp;" +
+	pairs[pairIndex].ap.id1 + " " + pairs[pairIndex].ap.id2;
+  loadImage(1);
+  loadImage(2);
+}
+ 
+
+function loadImage(screen) // screen in 1,2 or 3,4
+{
+console.log("loadImage " + screen + " " + pairIndex);
+
+  md = null;
+  mdK = null;
+ 
+  waitingDisplays++;
+
+  var newimg = new Image();
+  newimg.onerror=function(evt) { 
+    alert("Image load problem: try refreshing page or returning to Home and choosing a view"); 
+    decrementDisplayCountdown();
+  }
+  newimg.onload=function() {
+    if (newimg.height == 1  &&  newimg.width == 1) {
+      decrementDisplayCountdown();
+
+      // empty.jpg
+      var conf = confirm("DONE with view. You can start over, switch orientation to " + ( tileId == 1 ? "horizontal" : "vertical" ) + ", or go back and enter another view. Start over?");
+      if (conf) {
+        getSessionId(false);
+      }
+      return;
+    }
+console.log("loaded " + screen + " " + newimg.width + "x" + newimg.height);
+
+    // when image is loaded, make it visible
+    var now = new Date();
+    imageLoaded = now - startNext;
+
+    imgRcvdPrev[screen] = imgRcvd[screen];
+    imgRcvd[screen] = newimg;
+    vDepth[screen] = 0;
+    decrementDisplayCountdown();
+  }
+
+
+  var url;
+  if (screen == 1  ||  screen == 3) {  
+    console.log("loadImage " + screen + " " + pairs[pairIndex].ap.id1);
+    url = "/pr/images/" + pairs[pairIndex].hash0;
+  } else {
+    console.log("loadImage " + screen + " " + pairs[pairIndex].ap.id2);
+    url = "/pr/images/" + pairs[pairIndex].hash1;
+  }
+  newimg.src = url;
+}
+
+
+function iClick(scrn)
+{
+}
+
+function yplus()
+{
+  switch (tileId) {
+    case 0:
+      alert("yplus not impl");
+      return;
+    case 1:
+    case 2:
+    case 3:
+      if (pairIndex == 0) {
+        alert("At beginning");
+        return;
+      }
+      pairIndex--;
+      loadImages();
+      break;
+    default:
+      alert("yplus not impl " + tileId);
+  }
+}
+
+function gplus()
+{
+  switch (tileId) {
+    case 1:
+    case 2:
+    case 3:
+      if (pairIndex == pairs.length - 1) {
+        alert("At end");
+        return;
+      }
+      pairIndex++;
+      loadImages();
+      break;
+    default:
+      alert("gplus not impl");
+  }
+}
+
+
+var mouseDown = 0;
+
+/*
+
+(function() {
+  document.onmousemove = handleMouseMove;
+  function handleMouseMove(event) {
+    var dot, eventDoc, doc, body, pageX, pageY;
+
+    var now = new Date();
+
+    event = event || window.event; // IE-ism
+
+    // If pageX/Y aren't available and clientX/Y are,
+    // calculate pageX/Y - logic taken from jQuery.
+    // (This is to support old IE)
+    if (event.pageX == null && event.clientX != null) {
+      eventDoc = (event.target && event.target.ownerDocument) || document;
+      doc = eventDoc.documentElement;
+      body = eventDoc.body;
+
+      event.pageX = event.clientX +
+              (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+              (doc && doc.clientLeft || body && body.clientLeft || 0);
+      event.pageY = event.clientY +
+              (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+              (doc && doc.clientTop  || body && body.clientTop  || 0 );
+    }
+    // Use event.pageX / event.pageY here
+    //var rate = 0;
+    lastX = event.pageX;
+    lastY = event.pageY;
+    accumX += lastX;
+    accumY += lastY;
+    if (lastX > maxX) {
+      maxX = lastX;
+    } else if (lastX < minX) {
+      minX = lastX;
+    }
+    if (lastY > maxY) {
+      maxY = lastY;
+    } else if (lastY < minY) {
+      minY = lastY;
+    }
+
+    if (inImage) {
+      pixInPic++;
+
+      if (mouseDown) {
+        var dot = document.createElement('div');
+        dot.className = "dot";
+        dot.style.left = lastX + "px";
+        dot.style.top = lastY + "px";
+        document.body.appendChild(dot);
+        dotList.push(dot);
+      }
+    } else {
+      pixOutPic++;
+    }
+
+    if (prevX != null  &&  prevT != null) {
+      var dT = 1 + (now - prevT); // avoid 0
+
+      var x = prevX - lastX;
+      var y = prevY - lastY;
+      var dist = Math.sqrt( x*x + y*y);
+      dTot += dist;
+      var rate;
+      rate = Math.round(100 * dist / dT);
+      if (rate > maxVel) {
+        maxVel = rate;
+        distMaxVel = dTot;
+        if (prevTime) {
+          timeMaxVel = now - prevTime;
+        } else {
+          timeMaxVel = -1;
+        }
+      }
+      var acc = rate - lastVel;
+      if (acc > maxAcc) {
+        maxAcc = acc;
+      }
+      if (acc < minAcc) {
+        minAcc = acc;
+      }
+      var jerk = acc - lastAcc;
+      if (jerk > maxJerk) {
+        maxJerk = jerk;
+      }
+
+      lastVel = rate;
+      lastAcc = acc;
+    }
+    //rates.push(rate);
+
+    prevT = now;
+    prevX = lastX;
+    prevY = lastY;
+    mouseCount++;
+  }
+})();
+*/
+
+document.addEventListener('DOMContentLoaded', function () {
+    // ...
+  document.body.onmousedown = function() { 
+    ++mouseDown;
+  }
+  document.body.onmouseup = function() {
+    if (mouseDown > 0) {
+      --mouseDown;
+    }
+  }
+});
+
+// -->
+</script>
+</head>
+
+<!-- NEUTRAL GREY BACKGROUND -->
+<body id="body">
+
+<div id="wrapper">
+
+<!-- DRAW PAGE -->
+
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<div id="drop1" class="dropdown">
+<button id="phob_home" class="basicButton dropdown-toggle" type="button" 
+ data-toggle="dropdown"> 
+Phob &#9662; </button>
+ <ul id="drop_left" class="dropdown-menu">
+  <li> <a id="home" class="blackBut" style="padding:5px;" href="index.html">Home</a></li>
+  <li> <button onClick="getSessionId()" class="blackBut">New</button></li>
+  <li> <button id="goto" onclick="gotoPic()" class="blackBut">Goto</button></li>
+  <!-- li> <button onclick="toggleCmd();" class="blackBut">
+	<span id="menu_cmd_mode" style="font-size:14pt;white-space:nowrap;">
+	Search Mode
+        </span>
+       </button></li -->
+ </ul>
+</div>
+</td>
+<td>
+<span id="progress" style="text-align: left; color:rgba(255,255,255,0.4);font-size: 16pt; font-family:'Courier New',Courier,monospace;">
+kwd
+</span>
+</td>
+<td style="text-align:right">
+<button title="RESET SESSION" onclick="getSessionId(false);" onmousedown="mdown();" class="invisBut">RESET</button>
+</td>
+<td style="text-align:right">
+<div id="drop2" class="dropdown">
+<button id="rain_about" class="basicButton dropdown-toggle" type="button"
+ data-toggle="dropdown">
+&#9662; rain</button>
+ <ul id="drop_right" class="dropdown-menu">
+  <li> <a id="about" class="blackBut" style="padding:5px;" href="explain.html">About&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+  <!-- li> 
+<table><tbody><tr>
+ <td id="desc_td1" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+  Browse mode:
+ </td>
+ <td id="desc_td2" style="padding:5px;text-align:left; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+  Click on a photo to associate the next pair using that photo's keywords.
+ </td>
+</tr> <tr>
+ <td id="desc_td3" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+  Search mode:
+ </td>
+ <td id="desc_td4" style="padding:5px;text-align:left; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+  Use +-c|+ options to associate the next pair.
+ </td>
+</tr></tbody></table>
+        </li -->
+ </ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+
+<div id="content">
+<div id="thepreview">
+  <img id="imageP" src="noimage" alt="preview?">
+</div>
+
+<div id="theshow" 
+ style="display=false;text-align:center; margin-left:auto; margin-right:auto;">
+<center>
+<table ><tbody>
+ <tr><td id="spacer"><p></p></td></tr>
+
+ <tr id="tr0" style="display:none;">
+  <td style="width:30%;" onclick="toggleLast(0, 'l');"> </td>
+  <td id="td0">
+    <img id="image0" title="draw on pic to see next pic"
+     onmousedown="mdown();" 
+     draggable="false" 
+     src="noimage" alt="photo?">
+  </td>
+  <td style="width:30%;" onclick="toggleLast(0, 'r');"> </td>
+ </tr>
+
+ <tr id="tr1">
+  <td id="tr1_td_start" style="width:30px;" onclick="toggleLast(1, 'l');"> </td>
+  <td id="td1" style="padding:2px;">
+    <img id="image1" 
+     onmousedown="mdown();" onmouseout="mdown_time=null;"
+     onclick="iClick(1);" 
+     draggable="false" src="noimage" alt="photo?">
+  </td>
+  <td id="td2" style="padding:2px;">
+    <img id="image2" 
+     onmousedown="mdown();" onmouseout="mdown_time=null;"
+     onclick="iClick(2);" 
+     draggable="false" src="noimage" alt="photo?">
+  </td>
+  <td id="tr1_td_end" style="width:30px;" onclick="toggleLast(2, 'r');"> </td>
+ </tr>
+
+ <tr id="tr2" style="display:none;">
+  <td style="width:100%;">
+   <table style="width:100%;"><tbody>
+    <tr><td><table style="width:100%;"><tbody><tr>
+     <td style="width:100px;" onclick="toggleLast(3, 'l');"> </td>
+     <td id="td3" style="text-align:center;padding:2px;" >
+      <img id="image3" 
+       onmousedown="mdown();" onmouseout="mdown_time=null;"
+       onclick="iClick(3);" draggable="false" src="noimage" alt="photo?">
+     </td>
+     <td style="width:100px;" onclick="toggleLast(3, 'r');"> </td>
+    </tr></tbody></table></td></tr>
+    <tr><td><table style="width:100%;"><tbody><tr>
+     <td style="width:100px;" onclick="toggleLast(4, 'l');"> </td>
+     <td id="td4" style="text-align:center;padding:2px;" >
+      <img id="image4" 
+       onmousedown="mdown();" onmouseout="mdown_time=null;"
+       onclick="iClick(4);" draggable="false" src="noimage" alt="photo?">
+     </td>
+     <td style="width:100px;" onclick="toggleLast(4, 'r');"> </td>
+    </tr></tbody></table></td></tr>
+   </tbody></table>
+  </td>
+ </tr>
+</tbody></table>
+</center
+</div>
+</div>
+<div id="footer">
+
+<button style="width:100%;background:transparent;border:none;"
+   title="toggle both"
+   onclick="this.blur();"
+   onmousedown="bothToggleDown=new Date();"
+   onmouseup="bothToggle();"> &nbsp;
+</button> <br />
+
+<table id="cmds" style="width:100%; text-align:center;"><tbody>
+<tr>
+ <td id="showTd" 
+   title="show info"
+   onmousedown="mouseDownNextToPlus=true; showMD();"
+   onmouseup="hideKwds();"
+   onmouseleave="hideKwds();"> &nbsp;</td>
+ <td id="cmdTd" style="display: none; width:130px; text-align:center;">
+
+  <button id="yplus" title="color match" 
+   style="font-size:50px; color:yellow;" 
+   onmousedown="mdown();" 
+   onmouseup="yplus();">
+&lt;
+  </button>
+
+  <button id="gplus" title="keyword match" 
+   style="font-size:50px; color:green;" 
+   onmousedown="mdown();"
+   onmouseup="gplus();">
+&gt;
+  </button>
+ </td>
+ <td style="text-align:left;" 
+   title="show info"
+   onmousedown="mouseDownNextToPlus=true; showMD();"
+   onmouseup="hideKwds();"
+   onmouseleave="hideKwds();"> 
+	<span id="kwdTd" style="vertical-align:40%;font-size:50px;"> &nbsp;</span></td>
+</tr>
+</tbody></table>
+<br>
+<p id="foot_credit" onmousedown="mouseDownOnCredit=true; showMD();"  
+   onmouseup="hideCredit();"
+   onmouseleave="hideCredit();"
+   title="show photo credit"
+   style="color:rgba(255,255,255,0.4);font-size: 16pt; font-family:'Courier New',Courier,monospace; text-align:right;">
+  &copy; 2015,2016,2017 Photoriot.</p>
+<!-- INITIALIZE -->
+
+<script>
+<!--
+try {
+  adjustPageElements()
+  adjustCmdTds(1);
+  toggleCmd();
+  getSessionId(true);
+} catch (e) {
+  alert(e);
+}
+// -->
+</script>
+</div>
+</div>
+</body>
+</html>

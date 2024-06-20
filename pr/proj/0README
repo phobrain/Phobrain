@@ -1,0 +1,80 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+=== pr/proj/0README
+
+pr/proj/ - Source dir for Phobrain/java.
+
+-- Scripts to compile/run setup/import pics:
+
+    # Add a batch of photos in an images/<archnum>/ dir
+            using scripts in
+            mk_arch_scripts/
+
+    1_mk_arch.sh <archnum>
+
+    # Make N^2 pair comparisons using histograms and neural nets
+            using scripts in
+            mk_prs_scripts/
+            - Long-running, good for initial and adding big batch
+            - TODO: add import via background trickle-in of new pics
+
+    2_mk_all_prs.sh         
+
+--- Java programs and shared code, compiled using gradle
+
+  web/ - Servlet-based web server, launch using jetty: web/jet.sh
+
+  lib/ - external jars
+
+  db/,
+  shared/ - do I have to spell it out?
+
+  build.gradle, 
+  settings.gradle - gradle glue
+
+  colpic/ - per-pic color calcs for proj/import/
+
+  import/ - populate pr.picture, pr.picture_prop, and pr.keywords tables, 
+            1-1 on pic except _prop. Later will run proj/update/ to 
+            summarize pr.pairs_[vh] data into pr.picture fields to complete.
+  
+            Run by proj/1_mk_arch.sh 
+
+  histogram/ - color/histogram calcs
+            histos used directly for ML, and histo-histo distances also calced
+            has interactive mode for precalc histos, then searching similar pics
+            Plan: clean up and generalize.
+
+  pairs/ - build pairs_[vh]_dump.sql and ../pairtop/tmp_corr_[vh] files
+            from histograms data and nn results. 
+         
+            - pr.pairs_[vh] tbls are all-pairs, N^2.
+            - by convention, the d0 field is an average over all or a subset
+              of nn's. d1.. can be added experimentally, but typically
+              pr.pairtop_nn_[vh] table entries are used.
+
+            - Unused for NN: a 2-stage filter, where the best negative predictors
+              vote against pics based on their weight being higher than a
+              constant, 0.6 is likely to stick.
+
+  pairtop/ - assemble pairtop_[col|nn]_[vh]_dump.sql files with top pairs
+             from nn predictions in 'keras/pp2/' (p4.py, predtool.py).
+  
+  update/ - finishes job of proj/import/ by using pr.pairs_[vh] and histogram
+            data to update pics.
+
+  trimdb/ - make db dump files with limited number of pics, selecting
+            for high pairability.
+
+ML prep for python-world (still in pr/ml/keras/ as of 2022_03_30):
+
+  proj/traind/ - gen training pairs
+  (boofcv for histos)  
+  # unused, can readd if ml keywording in impl: proj/kvec/ - calc keyword vecs
+  # kpicd - unused, copies pics to dirs named by kwd; maybe use soft links
+
+--

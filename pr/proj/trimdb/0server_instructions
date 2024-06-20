@@ -1,0 +1,23 @@
+
+== Here, fixme
+
+    $ cd <trimdir>
+    $ ../untrim.sh
+        ==
+        for i in pr.* ; do 
+            sed -e 's:trim_::g' $i > x; mv x $i; echo done: $i; done
+        for i in trim_* ; do 
+            sed -e 's:public:pr:g' -e 's:trim_::g' $i > x; mv x $i; echo done: $i; done
+
+== On server:
+
+  0. $ df -h
+  1. $ cd dbX/ where dumps scp'd to
+  2. $ psql -d pr
+  3. pr=> \i ../drop_db.sql
+  4. $ df -h
+  5. pr=> \i ../load_db.sql
+  6. $ df -h
+
+See trimdb/0README for copy/paste drop_db.sql, load_db.sql scripts.
+

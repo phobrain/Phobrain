@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+
+set -e
+
+echo "== $0 running v, h"
+
+time {
+
+    ./run.d0.v &
+    ./run.d0.h
+    wait
+
+}

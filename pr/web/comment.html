@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head>
+<!--
+ *  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<link rel="canonical" href="http://phobrain.com"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+<title>Comments</title>
+<style>
+body {margin: 50px;}
+input[type="submit"] {
+  margin-top: 10px; 
+  display: block;
+}
+</style>
+</head>
+<body bgcolor="#fffaf0">
+<a href="explain.html">
+<p style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+Back</p>
+</a>
+
+<style>
+A{text-decoration:none}
+h1{
+font-size:50px;
+text-shadow:0px 0px 10px #fff;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+}
+p{
+font-size:18;
+}
+td {
+    text-align: left;
+}
+</style>
+
+<table>
+<tr><td><h1>Comments</h1></td></tr>
+<tr><td>
+<p>Thanks for your feedback!
+I am eager to get comments and afraid of getting spammed by hackers, <br>
+so I have put a limit of 10 comments from each IP address. </p>
+
+<p>Once I have read comments, I will reset the counter, so hopefully I can keep up :-).</p>
+<br>
+</td></tr>
+
+<tr><td>
+<form id="comment" method='post' action = "comment">
+ <table>
+  <tr>
+    <td>NAME:</td><td> <input size="25" type='text' name='name' id='name' /> </td>
+  </tr>
+  <tr>
+    <td>Email:</td><td> <input  size="25" type='text' name='email' id='email' /> </td>
+  </tr>
+  <tr>
+    <td> Comment:</td>
+    <td>
+      <textarea rows="10" cols="80" form="comment" name='comment' id='comment'></textarea><br />
+
+  <!-- input type='hidden' name='articleid' id='articleid' value='<? echo $_GET["id"]; ?>' / -->
+    </td>
+  </tr>
+  <tr><td> <input type='submit' value='Submit' style="font-size:12px;background:#ddd;border-radius: 5px;"/>  </td></tr>
+ </table>
+</form>
+</td></tr>
+</table>
+<p><a href="privacy_policy.html"><i>Privacy</i></a> &copy; 2015 Photoriot.</p>
+</body>
+</html>

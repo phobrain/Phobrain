@@ -1,0 +1,22 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+When (especially startup) errors missing from log: 
+
+    $ tail nohup.out
+        ... Console stderr/stdout captured to|        /home/epqe/logs/2022_09_16.jetty.log
+    Look in that log.
+
+Configured via jar copy:
+
+$ ls ~/pr/jetty-base/lib/ext/
+    postgresql-9.4-1203.jdbc42.jar
+    c3p0-0.9.5.2.jar
+    mchange-commons-java-0.2.19.jar
+
+Web:
+
+    src/web.xml

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: MIT-0
+ 
+TODO: get log path from outside git tree, maybe an install dialog
+    and put it in /var/phobrain, but how to provide/inject/fetch here?
+
+  LOGBACK Configuration File
+  http://logback.qos.ch/manual/configuration.html
+  -->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/home/epqe/logs/jetty.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>/home/epqe/logs/jetty_%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%d{MM/dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="info">
+    <!-- appender-ref ref="STDOUT" / -->
+    <appender-ref ref="FILE" />
+  </root>
+</configuration>

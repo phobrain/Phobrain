@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: MIT-0
+#
+
+set -e
+
+IMAGE_DIR=`../../bin/phobrain_property.sh image.dir`
+IMAGE_DESC_DIR=`../../bin/phobrain_property.sh image.desc.dir`
+
+IN_DIR="$IMAGE_DIR/$1"
+
+OUT_DIR="$IMAGE_DESC_DIR"/0_color
+
+echo "== $0  input: $IN_DIR  output: $OUT_DIR"
+
+./run $IN_DIR $OUT_DIR

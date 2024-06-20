@@ -1,0 +1,63 @@
+<html><head>
+<!--
+ *  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+<title>Server Log</title>
+<style>
+body {margin: 50px;}
+</style>
+</head>
+<body>
+
+<style>
+h1{
+font-size:50px;
+text-shadow:0px 0px 10px #fff;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+}
+A{text-decoration:none}
+p{
+font-size:18;
+}
+td {
+    text-align: left;
+}
+</style>
+
+<h1>Server Logs</h1>
+<p>Like most websites, our servers automatically record the page requests 
+made when you visit our sites. These "server logs" typically include your 
+web request, Internet Protocol address, browser type, browser language, 
+the date and time of your request and one or more cookies that may uniquely 
+identify your browser.</p>
+<p>Here are examples of the two types of log message where such information is most commonly recorded:
+
+<h3>Creating a Session</h3>
+<pre>
+04:31:53.169 142.254.51.92 | hour=4 | tzoff=420 | lang=en-US | platform=MacIntel | browser=Netscape | version=5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36
+</pre>
+<ul>
+<li>'04:31:53.169' is the time of the interaction;</li>
+<li>'142.254.51.92' is the Internet Protocol address assigned to the user by the user's ISP; depending on the user's service, a different address may be assigned to the user by their service provider each time they connect to the Internet; </li>
+<li>'hour=, tzoff=, lang=, platform=, browser= and version=' indicate values returned by your browser.</li>
+</ul>
+
+<h3>Responding to a Picture</h3>
+<pre>
+04:32:03.937 session qaSupU img9767.jpg rating: 3  next: img2007.jpg n: 59
+</pre>
+<ul>
+<li>'04:32:03.937' is the time of the interaction;</li>
+<li>'qaSupU' indicates session id, tied to session/browser information;</li>
+<li>'img9767.jpg' is the image that was just shown;</li>
+<li>'rating: 3' indicates the user response;</li>
+<li>'next: img2007.jpg' indicates the next image to be served;
+<li>'n: 59' indicates this is the 59th image in this session.
+</ul>
+</body>
+</html>

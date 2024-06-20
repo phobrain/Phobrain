@@ -1,0 +1,16 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+proj/update/0README
+
+     - update pr.picture table with aggregated
+       pair data from color histograms and
+       neural networks.
+
+       Run after pr/pairs/run.[vh]:
+
+           $ ./update.all 
+           $ ./update.d0

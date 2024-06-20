@@ -1,0 +1,15 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+1. traind - generate training/test data from pair_local and approved_pairs
+
+   $ gradle fatJar
+   $ ./run v v
+   $ ./run h h
+
+   Move results to dirs in ml/java2ml/pairs/..
+
+

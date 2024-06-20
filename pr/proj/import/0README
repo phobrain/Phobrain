@@ -1,0 +1,30 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+=== proj/import/0README
+
+Called by pr/proj/mk_arch_scripts/
+
+=== old notes, proj scripts supersede
+
+Import pics:
+
+    pr=> \i pr/db/import_tbls.sql
+    pr/proj/import$ ./run.all
+
+Make master text version of picture table for non-db preprocessing
+progs (boofcv, ml).
+
+    pr/proj/import$ ./make_real_img_orient.sh 
+    Gen ./real_img_orient
+    Made ./real_img_orient pics: 34682 V: 13682  H: 21000
+
+Put it somewhere:
+
+    mv real_img_orient ../../misc/
+
+Run ../update/ after running ../corr/ to get NN and color-angle-related values 
+    in picture table.

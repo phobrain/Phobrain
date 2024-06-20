@@ -1,0 +1,158 @@
+package com.phobrain.util;
+
+
+/*
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: MIT-0
+ */
+/*
+**  Color distance formulae.
+**
+*/
+
+public class ColorUtil {
+
+    private static final double CLOSE_TO_ZERO = 0.001; // arbitrary
+
+    /*
+    **  Color distance Delta E 1994  http://www.easyrgb.com/
+    */
+
+    public static double cdE94(int l1, int a1, int b1,
+                               int l2, int a2, int b2) {
+
+        double dL = l1 - l2;
+        double dA = a1 - a2;
+        double dB = b1 - b2;
+
+        double xC1 = Math.sqrt( a1 * a1 + b1 * b1 );
+        double xC2 = Math.sqrt( a2 * a2 + b2 * b2 );
+        double xDL = l2 - l1;
+        double xDC = xC2 - xC1;
+        double xDE = Math.sqrt( xDL * xDL + dA * dA + dB * dB );
+        double xDH;
+        if (Math.sqrt(xDE) > Math.sqrt(Math.abs(xDL)) +
+                             Math.sqrt(Math.abs(xDC))) {
+            xDH = Math.sqrt( xDE * xDE - xDL * xDL - xDC * xDC );
+        } else {
+            xDH = 0.0d;
+        }
+        double xSC = 1.0d + 0.045 * xC1;
+        double xSH = 1.0d + 0.015 * xC1;
+        xDC /= xSC;
+        xDH /= xSH;
+
+        return Math.sqrt( xDL * xDL +
+                          xDC * xDC +
+                          xDH * xDH );
+    }
+
+    /*
+    **  Color distance Delta E 2000 http://www.easyrgb.com/
+    */
+    private final static double CONST = Math.pow( 25.0, 7.0);
+
+    private final static double WHT_L = 1.0;
+    private final static double WHT_C = 1.0;
+    private final static double WHT_H = 1.0;
+
+    public static double cdE2k(int l1, int a1, int b1,
+                               int l2, int a2, int b2) {
+
+        double xC1 = Math.sqrt( a1 * a1 + b1 * b1 );
+        double xC2 = Math.sqrt( a2 * a2 + b2 * b2 );
+        double xCX = ( xC1 + xC2 ) / 2.0;
+        double xCX7 = Math.pow( xCX, 7.0);
+
+        double xGX = 0.5 * ( 1.0 - Math.sqrt( xCX / ( xCX7 + CONST) ) );
+
+        double xNN = ( 1.0 + xGX ) * a1;
+        xC1 = Math.sqrt( xNN * xNN + b1 * b1 );
+        double xH1 = cieLab2Hue( xNN, b1 );
+
+        xNN = ( 1.0 + xGX ) * a2;
+        xC2 = Math.sqrt( xNN * xNN + b2 * b2 );
+        double xH2 = cieLab2Hue( xNN, b2 );
+
+        double xDL = l2 - l1;
+        double xDC = xC2 - xC1;
+        double xDH = 0.0;
+        boolean gtZero = xC1 * xC2 > CLOSE_TO_ZERO;
+        if ( gtZero ) { 
+            xNN = Math.round( xH2 - xH1 );  // ORIG ROUNDS to 12 -?
+        }
+        if ( gtZero ) {
+            if ( Math.abs( xNN ) <= 180.0 ) {
+                xDH = xH2 - xH1;
+            } else {
+                if ( xNN > 180.0 ) xDH = xH2 - xH1 - 360.0;
+                else               xDH = xH2 - xH1 + 360.0;
+            }
+        }
+        xDH = 2.0 * Math.sqrt( xC1 * xC2 ) 
+                  * Math.sin( Math.toRadians( xDH / 2.0 ));
+
+        double xLX = ( l1 + l2 ) / 2.0;
+        double xCY = ( xC1 + xC2 ) / 2.0;
+
+        double xHX = xH1 + xH2;
+        if ( gtZero ) {
+            xNN = Math.abs( xNN );
+            if ( xNN > 180.0 ) {
+                if ( xH2 + xH1 < 360.0 ) xHX = xH1 + xH2 + 360.0;
+                else                     xHX = xH1 + xH2 - 360.0;
+            } else {
+                xHX = xH1 + xH2;
+            }
+            xHX /= 2.0;
+        }
+
+        double xTX = 1.0 - 0.17 * Math.cos( Math.toRadians( xHX - 30.0 ) ) +
+                           0.24 * Math.cos( Math.toRadians( 2.0 * xHX ) ) +
+                           0.32 * Math.cos( Math.toRadians( 3.0 * xHX + 6.0 ) ) -
+                           0.20 * Math.cos( Math.toRadians( 4.0 *xHX - 63.0 ) );
+
+        double t = ( xHX - 275.0 ) / 25.0;
+        t *= t * -1.0;
+        double xPH = 30.0 * Math.exp( t );
+
+        double xCY7 = Math.pow( xCY, 7.0 );
+        double xRC = 2.0 * Math.sqrt( xCY7 / ( xCY7 + CONST ) );
+
+        t = xLX - 50.0;
+        t *= t;
+        double xSL = 1.0 + ( 0.015 * t ) 
+                           / Math.sqrt( 20.0 + t );
+
+        double xSC = 1.0 + 0.045 * xCY;
+        double xSH = 1.0 + 0.015 * xCY * xTX;
+        double xRT = -1.0 * Math.sin( Math.toRadians( 2.0 * xPH ) ) * xRC;
+        
+        xDL /= ( WHT_L * xSL );
+        xDC /= ( WHT_C * xSC );
+        xDH /= ( WHT_H * xSH );
+
+        return Math.sqrt( xDL * xDL + xDH * xDH + xRT * xDC * xDH );
+    }
+
+    private static double cieLab2Hue( double a, double b ) {
+
+        if (Math.abs(b) < CLOSE_TO_ZERO) {
+            if ( a >= 0.0 ) return 0.0;
+            return 180.0;
+        }
+        if (Math.abs(a) < CLOSE_TO_ZERO) {
+            if ( b > 0.0 ) return 90.0;
+            return 270.0;
+        }
+
+        double bias = 0.0;
+        if (a < 0.0) {
+            bias = 180.0;
+        } else if ( a > 0.0  &&  b < 0.0 ) {
+            bias = 360.0;
+        }
+        return Math.toDegrees( Math.atan ( b / a )) + bias;
+     }       
+}

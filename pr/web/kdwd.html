@@ -1,0 +1,730 @@
+<html lang="en">
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<head>
+  <link rel="canonical" href="http://phobrain.com"/>
+  <link rel="icon" href="favicon.ico"/>
+  <!-- base href="http://phobrain.com" target="_top"/-->
+  <meta name="robots" content="noindex,nofollow"/>
+  <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+
+  <title>Phobrain Plus</title>
+
+  <script src="css/footer.css" type="text/css"></script>
+  <script src="js/jquery/jquery-1.11.3.min.js"></script>
+
+<style>A{text-decoration:none}</style>
+
+<script>
+<!--
+
+
+function getHTTP()
+{
+  var xmlHttp;
+  try {
+    // Firefox, Opera 8.0+, Safari
+    xmlHttp = new XMLHttpRequest();
+  } catch (e) {
+    // Internet Explorer
+    try {
+      xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        throw("Your browser does not support AJAX!");
+      }
+    }
+  }
+  return xmlHttp;
+}
+
+function getUrlVars() {
+var vars = {};
+var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+vars[key] = value;
+});
+return vars;
+}
+
+function addListener(type, callback)
+{
+  if (document.addEventListener) {
+    document.addEventListener(type, callback, false);
+  } else if (document.attachEvent) {
+    document.attachEvent("on" + type, callback, false);
+  }
+}
+
+function removeListener(type, callback)
+{
+  if (document.removeEventListener) {
+    document.removeEventListener(type, callback, false);
+  } else if (document.detachEvent) {
+    document.detachEvent("on" + type, callback, false);
+  }
+}
+
+// e.g. 
+// <div id="fubar" 
+//  style="left:200px; top:100px; width:500px; height:80px;"
+//  onmouseup="handleUp(event);"> MeasureBar</div>
+//
+// function handleUp(e)
+// {
+//   var e = new MouseEvent(e);
+//   removeListener("mouseup", handleUp); // if listener added
+//   offsetX = e.x - parseInt(fubar.style.left);
+//
+// function handleDown(e)
+// {
+//   var e = new MouseEvent(e);
+//   addListener("mouseup", handleUp);
+//
+function MouseEvent(e)
+{
+  if (e) {
+    this.e = e;
+  } else {
+    this.e = window.event;
+  }
+  if (e.pageX) {
+    this.x = e.pageX;
+  } else {
+    this.x = e.clientX;
+  }
+  if (e.pageY) {
+    this.y = e.pageY;
+  } else {
+    this.y = e.clientY
+  }
+  if (e.target) {
+    this.target = e.target;
+  } else {
+    this.target = e.srcElement;
+  }
+}
+
+// start photoriot
+
+$(document).ready(resizeImg);
+
+$(window).resize(resizeImg);
+
+var mdown_time = null;
+
+function mdown() {
+  mdown_time = new Date();
+}
+
+
+var servletRoot = "/pr";  // set in proj/web/build.gradle
+var SEP = "&"
+
+
+function resizeImg() {
+
+  var tot_height = window.innerHeight;
+  var avail_height = tot_height - 170; // for selector/footer plus 10px
+
+  var td = document.getElementById("td");
+  td.setAttribute("height", avail_height);
+
+  var img = document.getElementById("image");
+  if (img.height > avail_height) {
+
+    console.log("resize height " + img.height + " to " + avail_height + 
+                " tot_height " + window.innerHeight);
+
+    var scaled_width = (avail_height / img.height) * img.width;
+
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = scaled_width;
+    canvas.height = avail_height;
+    var tmp = new Image();
+    tmp.src = img.src;
+    context = canvas.getContext( '2d' );
+    context.drawImage( tmp, 0, 0, scaled_width, avail_height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+
+  }
+  img.style.opacity = "1.0";
+
+}
+
+function setCookie(cname, cvalue) {
+    var d = new Date();
+    var exdays = 5000;
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
+
+var method = null;
+var mode = 'count';
+
+function toggleMeth()
+{
+  if (mode === 'count') {
+    document.getElementById("ctButton").innerHTML = method;
+    mode = 'method';
+  } else {
+    document.getElementById("ctButton").innerHTML = "(" + (picCount+1) + ")";
+    mode = 'count';
+  }
+}
+
+function getSessionKey()
+{
+  var k = getUrlVars()["k"];
+  if (k == null  ||  k.length == 0) {
+      k = "l"; 
+  }
+  var v = getUrlVars()["v"];
+  if (v == null  ||  v.length == 0) {
+      v = "0"; // all
+  }
+  return "expt_" + k + "_" + v;
+}
+
+var sessionID = "none";
+function getSessionId(rating)
+{
+  //console.log("getSessionId " + rating);
+  //sessionID = "init";
+
+  var k = getUrlVars()["k"];
+  if (k == null  ||  k.length == 0) {
+      k = "l"; 
+  }
+  var v = getUrlVars()["v"];
+  if (v == null  ||  v.length == 0) {
+      v = "0"; // all
+  }
+  var "expt_" + sessionKey = k + "_" + v;
+  var k2 = getCookie(sessionKey);
+  if (k2 != null  &&  k2.length > 0) {
+      sessionID = k2;
+  }
+
+  var d = new Date();
+  var lastDate = getCookie("lastDate");
+  if (lastDate != null  &&  lastDate.length > 0) {
+      var d2 = new Date(lastDate);
+      if (d.getTime() - d2.getTime() < 5000) {
+          sessionID = "none"; // get fresh session since user is refreshing
+      }
+  }
+  setCookie("lastDate", d.toString());
+
+  var cmd = getUrlVars()["cmd"];
+  if (cmd != null  &&  cmd.length > 0) {
+      sessionID = "none"; // get fresh session for cmd
+  }
+
+  if (rating == -1  ||  sessionID === "none") {
+
+    lastLine = null;
+    lastLine2 = null;
+
+    var xmlHttp;
+    try {
+      xmlHttp = getHTTP();
+    } catch (e) {
+      alert(e);
+      return false;
+    }
+    xmlHttp.onreadystatechange=function() {
+      if(xmlHttp.readyState==4) {
+        if (xmlHttp.status == 200) {
+          sessionID = xmlHttp.responseText;
+          //setCookie("session", sessionID);
+          var k = getSessionKey();
+          setCookie(k, sessionID);
+          console.log("sessionID/k " + sessionID + "/" + k);
+        } else if (xmlHttp.status == 401) {
+          console.log("401: " + xmlHttp.responseText);
+          alert("Unknown user");
+        } else if (xmlHttp.status == 500) {
+          alert("Server error, try reloading page.");
+        }
+        //nextImage(rating);
+        showDog();
+      }
+    };
+    //var userName = prompt("Session ID", "");
+    var userName = "kwooser";
+    var params = "tzoff=" + d.getTimezoneOffset() + SEP +
+               "hour=" + d.getHours() + SEP +
+               "browser=" + navigator.appName + SEP +
+               "version=" + navigator.appVersion + SEP +
+               "platform=" + navigator.platform + SEP +
+               "lang=" + navigator.language + SEP +
+               "useragent=" + navigator.userAgent + SEP +
+               "username=" + userName + SEP +
+               "session=" + sessionID + SEP +
+               "k=" + k + SEP +
+               "v=" + v + SEP +
+               "cmd=" + cmd;
+    if (rating == -1) {
+      params = params + "&new=x";
+    }
+    try {
+      var url = servletRoot + "/getsession";
+      xmlHttp.open("POST", url, true);
+      xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+      xmlHttp.send(params);
+    } catch (e) {
+      alert(e);
+      return false;
+    }
+  } else {
+    showDog();
+  }
+  return true;
+}
+
+function fade(element) {
+    var op = 1;  // initial opacity
+    var timer = setInterval(function () {
+        if (op <= 0.1){
+            clearInterval(timer);
+            nextImage(0);
+            //element.style.display = 'none';
+        }
+        element.style.opacity = op;
+        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+        op -= op * 0.3;
+    }, 50);
+}
+
+function showDog() {
+  var newimage = new Image();
+  newimage.onload=function() {
+    // when image is loaded, make it visible
+    var img = document.getElementById("image");
+    img.src = newimage.src;
+    img.width = window.innerWidth;
+    img.setAttribute("height", "auto");
+    img.setAttribute("vertical-align", "top");
+    img.setAttribute("float", "right");
+    fade(img);
+  };
+  // start load of image into memory
+  newimage.src = "dog_eyes2.jpg";
+}
+
+var lastLine = null;
+var lastLine2 = null;
+
+var nToggleLast = 0;
+var lastNewImgSrc = null;
+
+//var togTimes = [];
+//var lastTogTime = null;
+
+function prevPic()
+{
+  nToggleLast++;
+
+  if (lastLine2 == null) {
+    alert("no prev pic");
+    return;
+  }
+  var s = "/pr/images/" + lastLine2[0];
+  document["image"].src = s;
+  resizeImg();
+  document.getElementById("imgButton").innerHTML = lastLine2[1]; 
+  document.getElementById("kwdButton").innerHTML = lastLine2[2]; // kwds
+  var x = lastLine2;
+  lastLine2 = lastLine;
+  lastLine = x;
+}
+
+var lastID;
+var picCount = 0;
+var prevID = 0;
+var prevTime;
+var startNext;
+var imageLoaded = -1;
+
+function nextImage(rating)
+{
+  startNext = new Date();
+  var clickTime = -1;
+  if (mdown_time != null) {
+    var now = new Date();
+    clickTime = now - mdown_time;
+    mdown_time = null;
+  }
+  var vecX = 0;
+  var vecY = 0;
+  if (mouseCount > 0) {
+console.log("acc " + accumX + "/" + accumY + " " + mouseCount + "\n" +
+lastClickX + "/" + lastClickY);
+    vecX = (accumX / mouseCount) - lastClickX;
+    vecY = (accumY / mouseCount) - lastClickY;
+    mouseCount = 1;
+  }
+
+  //console.log("rating " + rating);
+  var interval = 0;
+  if (prevTime) {
+    interval = new Date() - prevTime;
+    //if (interval > 3000) {
+    //  prevTime = new Date().getTime();
+    //  getSessionId(rating); // calls this again
+    //  return true;
+    //}
+  }
+
+
+  var xmlHttp;
+  try {
+    xmlHttp = getHTTP();
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+
+        //console.log(xmlHttp.responseText);
+        if (xmlHttp.responseText == "DONE\n") {
+            console.log("DONE");
+            alert("All images seen, get new ID to start over, or reload page to see this message again.");
+        } else {
+            // split responseText into: [filename|kwds]
+            var s = xmlHttp.responseText.split('%');
+            if (s.indexOf("html") != -1) {
+                alert("Logged out: Reload page and log in again.");
+                return;
+            }
+            lastLine2 = lastNewImgSrc;
+            lastLine = s;
+            lastNewImgSrc = s;
+
+            console.log(xmlHttp.responseText); // file
+            //console.log(s[1]); // kwds
+            document.getElementById("imgButton").innerHTML = s[1]; 
+            document.getElementById("kwdButton").innerHTML = s[2]; // kwds
+            method = s[3];
+            if (mode === 'count') {
+              document.getElementById("ctButton").innerHTML = 
+                "(" + (picCount+1) + ")";
+            } else {
+              document.getElementById("ctButton").innerHTML = method;
+            }
+
+            // jquery reset any setting from before
+            $('#image').removeAttr('height');
+            $('#image').removeAttr('width');
+
+            var newimage = new Image();
+            newimage.onload=function() {
+              // when image is loaded, make it visible
+              var now = new Date();
+              imageLoaded = now - startNext;
+              document["image"].src = newimage.src;
+              resizeImg();
+              prevTime = new Date();
+            }
+            // start load of image into memory
+            newimage.src = "/pr/images/" + s[0];
+
+            prevID = lastID;
+            lastID = s[1];
+            picCount++;
+        }
+      } else if (xmlHttp.status == 500) {
+        alert("Server error, try again, if still occurs, try reloading page.");
+      }
+    }
+  }
+/*
+  var rTot = 0;
+  if (rates.length > 0) {
+    rates.forEach(function(item, index, array) {
+        rTot += item;
+    });
+//alert("rtot " + rTot + " len " + rates.length);
+    rTot = Math.round(rTot / rates.length);
+    alert("avg " + rTot + " max " + rMax + " N " + rates.length);
+    rates = [];
+    rMax = 0;
+  }
+*/
+
+  dTot = Math.round(dTot);
+
+  var url = servletRoot + "/getnext";
+  var params = "sess=" + sessionID + SEP +
+               "ct=" + picCount + SEP +
+               "prev=" + prevID + SEP +
+               "pic=" + lastID + SEP +
+               "rating=" + rating + SEP +
+               "time=" + interval + SEP +
+               "time2=" + timeMaxVel + SEP +
+               "dist=" + dTot + SEP +
+               "dist2=" + Math.round(distMaxVel) + SEP +
+               "maxv=" + maxVel + SEP +
+               "maxa=" + maxAcc + SEP +
+               "mina=" + minAcc + SEP +
+               "maxj=" + maxJerk + SEP +
+               "dx=" + (maxX - minX) + SEP +
+               "dy=" + (maxY - minY) + SEP +
+               "vecx=" + Math.round(vecX) + SEP +
+               "vecy=" + Math.round(vecY) + SEP +
+               "ctm=" + clickTime + SEP +
+               "ltm=" + imageLoaded + SEP +
+               "ntog=" + nToggleLast + SEP +
+               "tgs=na&togt=____" + SEP +
+               "loc=na&pp=0&po=0&dc=0&da=0&dd=0";
+
+  nToggleLast = 0;
+  dTot = 0;
+  maxVel = 0;
+  lastVel = 0;
+  distMaxVel = 0;
+  timeMaxVel = 0;
+  maxAcc = 0;
+  minAcc = 0;
+  lastAcc = 0;
+  maxJerk = 0;
+  lastClickX = lastX;
+  lastClickY = lastY;
+  maxX = lastX;
+  minX = lastX;
+  maxY = lastY;
+  minY = lastY;
+  accumX = lastX;
+  accumY = lastY;
+
+  try {
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                             "application/x-www-form-urlencoded");
+    //alert("PARAMS: " + params);
+    xmlHttp.send(params);
+
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+}
+
+var mouseCount = 0;
+var prevT = null;
+var prevX = null, prevY;
+var rMax = 0;
+var rates = [];
+var dTot = 0;
+var maxVel = 0;
+var distMaxVel = 0;
+var timeMaxVel = 0;
+var lastVel = 0;
+var lastAcc = 0;
+var maxAcc = 0;
+var minAcc = 0;
+var maxJerk = 0;
+var maxX = 0;
+var minX = 0;
+var maxY = 0;
+var minY = 0;
+var lastX = 0;
+var lastY = 0;
+var accumX = 0;
+var accumY = 0;
+var lastClickX = 0;
+var lastClickY = 0;
+
+(function() {
+    document.onmousemove = handleMouseMove;
+    function handleMouseMove(event) {
+        var dot, eventDoc, doc, body, pageX, pageY;
+
+        var now = new Date();
+
+        event = event || window.event; // IE-ism
+
+        // If pageX/Y aren't available and clientX/Y are,
+        // calculate pageX/Y - logic taken from jQuery.
+        // (This is to support old IE)
+        if (event.pageX == null && event.clientX != null) {
+            eventDoc = (event.target && event.target.ownerDocument) || document;
+            doc = eventDoc.documentElement;
+            body = eventDoc.body;
+
+            event.pageX = event.clientX +
+              (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+              (doc && doc.clientLeft || body && body.clientLeft || 0);
+            event.pageY = event.clientY +
+              (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+              (doc && doc.clientTop  || body && body.clientTop  || 0 );
+        }
+        // Use event.pageX / event.pageY here
+        //var rate = 0;
+        lastX = event.pageX;
+        lastY = event.pageY;
+        accumX += lastX;
+        accumY += lastY;
+        if (lastX > maxX) {
+            maxX = lastX;
+        } else if (lastX < minX) {
+            minX = lastX;
+        }
+        if (lastY > maxY) {
+            maxY = lastY;
+        } else if (lastY < minY) {
+            minY = lastY;
+        }
+
+        if (prevX != null  &&  prevT != null) {
+            var dT = 1 + (now - prevT); // avoid 0
+            // if (dT == 1) { alert("DT: " + dT); }
+
+            var x = prevX - lastX;
+            var y = prevY - lastY;
+            var dist = Math.sqrt( x*x + y*y);
+            dTot += dist;
+            var rate;
+            rate = Math.round(100 * dist / dT);
+            if (rate > maxVel) {
+              maxVel = rate;
+              distMaxVel = dTot;
+              if (prevTime) {
+                timeMaxVel = now - prevTime;
+              } else {
+                timeMaxVel = -1;
+              }
+            }
+            var acc = rate - lastVel;
+            if (acc > maxAcc) {
+              maxAcc = acc;
+            }
+            if (acc < minAcc) {
+              minAcc = acc;
+            }
+            var jerk = acc - lastAcc;
+            if (jerk > maxJerk) {
+              maxJerk = jerk;
+            }
+
+            lastVel = rate;
+            lastAcc = acc;
+        }
+        //rates.push(rate);
+
+        prevT = now;
+        prevX = lastX;
+        prevY = lastY;
+        mouseCount++;
+    }
+})();
+
+// -->
+</script>
+</head>
+
+<!-- NEUTRAL GREY BACKGROUND -->
+<body bgcolor="#909090">
+
+<div id="wrapper">
+
+<!-- DRAW PAGE -->
+
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<a href="index.html">
+<button style="color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;text-align:right;">Home</button>
+</a>
+<button id="ctButton" onclick="toggleMeth();" style="margin:auto;color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;">Count</button>
+<button id="imgButton" style="margin:auto;color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;">Image</button>
+<button id="kwdButton" style="margin:auto;color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;">Kwd</button>
+</td>
+<td style="text-align:right">
+<button title="RESET SESSION" onclick="picCount=0;getSessionId(-1);" onmousedown="mdown();" 
+style="color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;text-align:right;">New Session</button>
+</td>
+</tr>
+</table>
+</div>
+<div id="content">
+<center>
+<table><tbody>
+<tr><td id="td" style="height:600px">
+<img id="image" onclick="prevPic();" name=image2 src="noimage" alt="photo?">
+</td></tr>
+</tbody></table>
+</center>
+</div>
+<div id="footer">
+<center>
+<style>
+button {
+    cursor: pointer;
+    border: 1px transparent;
+    background-color: transparent;
+}
+</style>
+
+<button id="minus" title="different" style="font-size:50px; color:red;" 
+onmousedown="mdown();" 
+onmouseup="nextImage(1);">
+-
+</button>
+
+<button id="bar" title="random" style="font-size:40px; color:blue;" 
+onmousedown="mdown();"
+onmouseup="nextImage(2);">
+|
+</button>
+
+<button id="plus" title="similar?" style="font-size:50px; color:green;" 
+onmousedown="mdown();"
+onmouseup="nextImage(3);">
++
+</button>
+<br>
+<a href="index.html">
+<p style="color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;" align="right">&copy; 2015-2023 Photoriot.</p>
+</a>
+</center>
+<!-- INITIALIZE -->
+
+<script>
+<!--
+try {
+  getSessionId(0);
+} catch (e) {
+  alert(e);
+}
+// -->
+</script>
+</div>
+</div>
+</body>
+</html>

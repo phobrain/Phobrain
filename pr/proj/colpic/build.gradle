@@ -1,0 +1,26 @@
+
+/*
+
+SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+
+SPDX-License-Identifier: MIT-0
+
+*/
+
+
+dependencies {
+  implementation project(':shared')
+  //implementation group: 'org.boofcv', name: 'all', version: '0.23'
+}
+
+task fatJar(type: Jar) {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    manifest {
+        attributes 'Implementation-Title': 'ColPic Jar',  
+                //'Implementation-Version': version,
+       	        'Main-Class': 'org.phobrain.colpic.ColPic'
+    }
+    archiveBaseName = project.name + '-all'
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}

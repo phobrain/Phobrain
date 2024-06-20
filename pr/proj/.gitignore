@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2021 Bill Ross <phobrain@sonic.net>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+**/build/
+**/.gradle/**
+
+nohup.out
+
+# misc
+.DS_Store
+.jar
+.war
+.zip
+.tz
+.tgz
+.gz

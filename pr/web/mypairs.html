@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+ *  SPDX-FileCopyrightText: 2017-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<head>
+  <link rel="canonical" href="http://phobrain.com"/>
+  <link rel="icon" href="favicon.ico"/>
+  <!-- base href="http://phobrain.com" target="_top"/-->
+  <meta name="Description" content="Photo association with neural nets.">
+  <meta name="robots" content="noindex"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+  <title>Phobrain Pairs Workbench</title>
+
+  <link rel="stylesheet" type="text/css"
+         href="css/footer.css" />
+  <link rel="stylesheet" type="text/css"
+         href="css/phobasic.css" />
+
+<script>
+<!--
+
+
+function setCookie(cname, cvalue) {
+  var d = new Date();
+  var exdays = 5000;
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  var expires = "expires="+d.toUTCString();
+  document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0; i<ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1);
+    if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+  }
+  return "";
+}
+
+
+function getCoords(elem) { // crossbrowser version
+  var box = elem.getBoundingClientRect();
+
+  var body = document.body;
+  var docEl = document.documentElement;
+
+  var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+  var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+  var clientTop = docEl.clientTop || body.clientTop || 0;
+  var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+  var top  = box.top +  scrollTop - clientTop;
+  var left = box.left + scrollLeft - clientLeft;
+
+  return { top: Math.round(top), left: Math.round(left) };
+}
+
+navigator.browserSpecs = (function(){
+    var ua= navigator.userAgent, tem, 
+    M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return {name:'IE',version:(tem[1] || '')};
+    }
+    if(M[1]=== 'Chrome'){
+        tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+        if(tem!= null) return {name:tem[1].replace('OPR', 'Opera'),version:tem[2]};
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return {name:M[0],version:M[1]};
+})();
+
+function disableDragging(e) {
+  e.preventDefault();
+}
+
+function handleFileSelect0(evt) 
+{
+  handleFileSelect(evt, 0);
+}
+function handleFileSelect1(evt) 
+{
+  handleFileSelect(evt, 1);
+}
+
+function handleFileSelect(evt, screen)
+{
+  if (evt.target.files.length > 1) {
+    alert("Select one file");
+  }
+  if (evt.target.files.length != 1) {
+    return;
+  }
+
+  var file = evt.target.files[0];
+  console.log("got screen " + screen + " " + file.name);
+  if (!file.type.match('image.*')) {
+    alert("Select image file");
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = (function(theFile) {
+    return function(e) {
+
+      vDepth[screen] = 0;
+      imgRcvdPrev[screen] = imgRcvd[screen];
+
+      var img = new Image();
+      img.setAttribute('crossOrigin', 'anonymous');
+
+      img.onerror=function(evt) { 
+        alert("Image load problem: " + evt.type);
+      };
+      img.onload=function() {
+        imgRcvd[screen] = img;
+        drawTwo();
+      };
+
+//alert("URI: " + e.target.result);
+      img.src = e.target.result;
+    };
+  })(file);
+  reader.readAsDataURL(file);
+}
+
+var loadUrl = null;
+
+function webFile(screen)
+{
+  loadUrl = prompt("URL of image file (e.g. .jpg): ");
+  if (loadUrl == null) {
+    return;
+  }
+  var img = new Image();
+  img.setAttribute('crossOrigin', 'anonymous');
+  img.onerror=function(evt) {
+    alert("Image load problem: " + evt.type);
+  };
+  img.onload=function() {
+    vDepth[screen] = 0;
+    imgRcvdPrev[screen] = imgRcvd[screen];
+
+    imgRcvd[screen] = img;
+    drawTwo();
+  };
+
+  img.src = loadUrl;
+}
+
+
+
+//%%%%%%%% start photoriot
+
+var ADMIN_PIX = 210; // for selector/footer plus 20px
+
+var isAndroid = false;
+var isIphone = false;
+
+function adjustPageElements()
+{
+  var ua = navigator.userAgent.toLowerCase();
+  isAndroid = ua.indexOf("android") > -1;
+  isIphone = ua.indexOf("iphone") > -1;
+
+  if (isIphone || isAndroid) {
+    document.getElementById("body").style.height = "800px";
+    document.getElementById("wrapper").style.height = "800px";
+    var heights = [
+      ["home", 50],
+      ["about", 50]
+
+    ];
+    for (var i=0; i<heights.length; i++) {
+      var x = document.getElementById(heights[i][0]);
+      if (x == null) {
+        alert("Internal error: no " + heights[i][0]);
+      } else {
+        var size = heights[i][1];
+        if (isIphone) size = parseInt(size *= 0.6);
+        x.style.fontSize = size + "px";
+      }
+    }
+
+    var buttons = [
+      ["twolb",  110, 40],
+      ["twol",   110, 40],
+
+      ["twolsb",  80, 40],
+      ["twols",   80, 40],
+    ];
+    for (var i=0; i<buttons.length; i++) {
+      var b = document.getElementById(buttons[i][0]);
+      if (b == null) {
+        alert("Internal error: no " + buttons[i][0]);
+      } else {
+        b.style.width = buttons[i][1] + "px";
+        b.style.height = buttons[i][2] + "px";
+      }
+    }
+  }
+}
+
+var tileId = 2;
+
+function setTile(row, reload)
+{
+  console.log("setTile " + row);
+
+  if (row == tileId) {
+    return;
+  }
+
+  //setCookie(getTileKey(), row); 
+
+  if (isIphone || isAndroid) {
+    switch (row) {
+      case 0:
+      case 1:
+        document.getElementById("body").style.height =    "800px";
+        document.getElementById("wrapper").style.height = "800px";
+        break;
+      case 2:
+        document.getElementById("body").style.height =    "600px";
+        document.getElementById("wrapper").style.height = "600px";
+        break;
+      case 3:
+        document.getElementById("body").style.height =    "1400px";
+        document.getElementById("wrapper").style.height = "1400px";
+        break;
+      default: break;
+    }
+  }
+
+  if (tileId != row) {
+    var oldTileId = tileId;
+    tileId = row;
+
+    drawTwo();
+  }
+}
+
+
+var screens = 2;
+
+function showView() {
+  document.getElementById("thepreview").style.display = 'none';
+  document.getElementById("theshow").style.display = '';
+}
+
+var vDepth = [0, 0];
+var imgRcvd = [null, null];
+var imgRcvdPrev = [null, null];
+
+function toggleLast(screen, side) {
+
+  console.log("toggleLast " + screen + " " + side);
+
+  if (side === 'l') {
+    togL = 'l';
+  } else if (side === 'r') {
+    togR = 'r';
+  } else {
+    togL = 'l';
+    togR = 'r';
+  }
+
+  if (screen == -1) {
+    for (var i=0; i<2; i++) {
+      if ((vDepth[i] == 0  &&  imgRcvdPrev[i] == null)  ||
+          (vDepth[i] == 1  &&  imgRcvd[i] == null)) {
+        alert("No pictures to go back to " + (i+1));
+        return;
+      }
+      if (vDepth[i] == 0) {
+        vDepth[i] = 1;
+      } else {
+        vDepth[i] = 0;
+      }
+
+    }
+    drawTwo();
+    return;
+  } else {
+
+    if ((vDepth[screen] == 0  &&  imgRcvdPrev[screen] == null)  ||
+        (vDepth[screen] == 1  &&  imgRcvd[screen] == null)) {
+      alert("No picture to go back to " + screen);
+      return;
+    }
+    if (vDepth[screen] == 0) {
+      vDepth[screen] = 1;
+    } else {
+      vDepth[screen] = 0;
+    }
+
+    drawTwo();
+  }
+}
+
+var bothToggleDown = null;
+
+function bothToggle() {
+
+  if (bothToggleDown == null) {
+    return;
+  }
+
+  var dt = new Date() - bothToggleDown;
+  if (dt < 1000) {
+    toggleLast(-1, 'm');
+  } else { // go back to last new
+
+    for ( var i=0; i<vDepth.length; i++) {
+      vDepth[i] = 0;
+    }
+    drawTwo();
+  }
+
+  bothToggleDown = null;
+}
+
+function setImg(imgsrc, img, avail_height)
+{
+  if (img == null) {
+    alert("NO image");
+    return;
+  }
+  if (imgsrc.height == avail_height) {
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = imgsrc.width;
+    canvas.height = avail_height;
+    var context = canvas.getContext( '2d' );
+    context.drawImage( imgsrc, 0, 0, imgsrc.width, imgsrc.height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+    return;
+  }
+
+  console.log("resize height " + imgsrc.height +
+            " to " + avail_height +
+            " tot_height " + window.innerHeight);
+
+  var scaled_width = (avail_height / imgsrc.height) * imgsrc.width;
+
+  var canvas = document.createElement( 'canvas' );
+  canvas.width = scaled_width;
+  canvas.height = avail_height;
+  var context = canvas.getContext( '2d' );
+//console.log("here");
+//imgsrc.crossOrigin = "Anonymous";
+  context.drawImage( imgsrc, 0, 0, scaled_width, avail_height);
+  var tmp = canvas.toDataURL( 'image/jpeg', 0.92 );
+  tmp.crossOrigin = "Anonymous";
+  img.crossOrigin = "Anonymous";
+  img.src = tmp;
+//console.log("here2");
+  img.onmousedown = disableDragging; // for FF
+  img.style.opacity = "1.0";
+  img.style.display = '';
+  console.log("resized");
+}
+
+var waitingDisplays = 0;
+var minHeightTile2 = 99999999;
+
+var useLastTileId2Height = false;
+var lastTileId2Height = null;
+
+function drawTwo()
+{
+  console.log("drawTwo");
+
+  if (isAndroid || isIphone) {
+    var height = 0.6 * window.innerWidth;
+    if (tileId == 2) height *= 0.6;
+    height = parseInt(height);
+
+    for (var i=0; i<2; i++) {
+      var img2draw;
+      console.log("vdepth " + i + " " + vDepth[i]);
+      if (vDepth[i] == 0) {
+          img2draw = imgRcvd[i];
+      } else {
+          img2draw = imgRcvdPrev[i];
+      }
+      if (img2draw == null) {
+        console.log("null 2draw");
+      } else {
+        var img = document.getElementById("image" + (i+1));
+        if (img == null) alert("NO image " + i);
+        setImg(img2draw, img, height);
+        //img.src = img2draw.src;
+      }
+    }
+  } else {
+    // resizeImage() inline for newimg use TODO consolidate
+    var tot_height = window.innerHeight;
+
+    var avail_height = tot_height - ADMIN_PIX;
+    if (tileId == 2) {
+      if (useLastTileId2Height) {
+        avail_height = lastTileId2Height;
+        useLastTileId2Height = false; 
+      } else {
+        var imgRcvd0, imgRcvd1;
+        if (vDepth[0] == 0) {
+          imgRcvd0 = imgRcvd[0];
+        } else {
+          imgRcvd0 = imgRcvdPrev[0];
+        }
+        if (vDepth[1] == 0) {
+          imgRcvd1 = imgRcvd[1];
+        } else {
+          imgRcvd1 = imgRcvdPrev[1];
+        }
+        var tot_width = 0;
+        var max_ht = 0;
+        if (imgRcvd0 != null) {
+          tot_width += imgRcvd0.width * avail_height / imgRcvd0.height;
+          max_ht = imgRcvd0.height;
+        }
+        if (imgRcvd1 != null) {
+          tot_width += imgRcvd1.width * avail_height / imgRcvd1.height;
+          if (imgRcvd1.height > max_ht) {
+            max_ht = imgRcvd1.height;
+          }
+        }
+        var avail_width = window.innerWidth;
+        avail_width -= 60;
+console.log("widths " + 
+(imgRcvd0 == null ? "null" : imgRcvd0.width) + " " + 
+(imgRcvd1 == null ? "null" : imgRcvd1.width) +
+" = " + tot_width + " W " + avail_width + " " + window.innerWidth);
+        if (tot_width > avail_width) {
+          var ws = avail_width / tot_width;
+          avail_height *= ws;
+          avail_height = Math.floor(avail_height);
+        }
+/*
+        if (avail_height < minHeightTile2) {
+          minHeightTile2 = avail_height;
+        } else {
+          avail_height = minHeightTile2;
+        }
+*/
+        lastTileId2Height = avail_height;
+      }
+    } else if (tileId == 3) {
+      avail_height /= 2;
+    }
+
+    switch (tileId) {
+      case 2:
+        document.getElementById("td1").setAttribute("height", avail_height);
+        document.getElementById("td2").setAttribute("height", avail_height);
+        break;
+      case 3:
+        document.getElementById("td3").setAttribute("height", avail_height);
+        document.getElementById("td4").setAttribute("height", avail_height);
+        break;
+    }
+
+    for (var i=0; i<2; i++) {
+      var imgsrc;
+      if (vDepth[i] == 0) {
+          imgsrc = imgRcvd[i];
+      } else {
+          imgsrc = imgRcvdPrev[i];
+      }
+      if (imgsrc == null) {
+        console.log("src null " + (i+1));
+      } else {
+//alert("type " + Object.prototype.toString.call(imgsrc));
+        var imgi = i+1;
+        if (tileId == 3) {
+          imgi += 2;
+        }
+        var img = document.getElementById("image" + imgi);
+        //imgsrc.crossOrigin = this.crossOrigin;
+        //img.crossOrigin = this.crossOrigin;
+        try {
+          setImg(imgsrc, img, avail_height);
+        } catch (e) {
+          alert("E " + e);
+          setImg(imgsrc, img, avail_height);
+        }
+        if (tileId == 3) {
+          document.getElementById("td" + imgi).setAttribute("width", img.width);
+        }
+      }
+    }
+
+  }
+console.log("Reveal..");
+  // final reveal
+  if (tileId == 2) {
+    document.getElementById("tr1").style.display = '';
+    document.getElementById("tr2").style.display = 'none';
+    document.getElementById("spacer").style.height = "40px";
+  } else if (tileId == 3) {
+    document.getElementById("tr1").style.display = 'none';
+    document.getElementById("tr2").style.display = '';
+    document.getElementById("spacer").style.height = "10px";
+  }
+  showView();
+  prevTime = new Date();
+}
+
+var screenShotFile = "";
+
+function screenShot()
+{
+  if (navigator.browserSpecs.name === 'Safari') {
+    alert("Safari doesn't support this.");
+    return;
+  }
+  if (screenShotFile == null) {
+    screenShotFile = "";
+  }
+  var tmp = prompt("Screenshot (jpeg) file name (in Downloads)", screenShotFile);
+  if (tmp == null) {
+    return;
+  }
+  screenShotFile = tmp;
+  tmp = tmp.toLowerCase();
+  if (!tmp.endsWith(".jpg") &&  !tmp.endsWith(".jpeg")) {
+     screenShotFile = screenShotFile + ".jpg";
+  }
+  var canvas = document.createElement( 'canvas' );
+  var CONST = 4;
+  if (tileId == 2) {
+    var imgA = document.getElementById("image1");
+    var imgB = document.getElementById("image2");
+    canvas.height = imgA.height;
+    canvas.width = imgA.width + imgB.width + CONST;
+    var context = canvas.getContext( '2d' );
+    context.fillStyle = "#909090";
+    //context.fillRect(0, 0, imgA.width+CONST, imgA.height);
+//console.log("W " + imgA.width + " H " + imgA.height);
+//console.log("W " + imgB.width + " H " + imgB.height);
+//console.log("C " + canvas.width + " H " + canvas.height);
+    context.drawImage( imgA, 0, 0, imgA.width, imgA.height,
+                             0, 0, imgA.width, imgA.height);
+    context.fillRect(imgA.width, 0, imgA.width+CONST, imgA.height);
+    context.drawImage( imgB, 0, 0, imgB.width, imgB.height,
+                             imgA.width + CONST, 0,
+                             imgB.width, imgB.height);
+  } else {
+    var imgA = document.getElementById("image3");
+    var imgB = document.getElementById("image4");
+    canvas.height = imgA.height + imgB.height + CONST;
+    canvas.width = Math.max(imgA.width, imgB.width);
+    var context = canvas.getContext( '2d' );
+    context.fillStyle = "#909090";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    var startA, startB;
+    if (imgA.width < imgB.width) {
+      startA = (imgB.width - imgA.width) / 2;
+      startB = 0;
+    } else {
+      startA = 0;
+      startB = (imgA.width - imgB.width) / 2;
+    }
+    context.drawImage( imgA, 0, 0, imgA.width, imgA.height,
+                        startA, 0, imgA.width, imgA.height);
+    context.drawImage( imgB, 0, 0, imgB.width, imgB.height,
+                        startB, imgA.height+CONST, imgB.width, imgB.height);
+  }
+  //var url = canvas.toDataURL( 'image/jpeg', 0.92 );
+  var dlLink = document.createElement('a');
+  dlLink.download = screenShotFile;
+  dlLink.href = canvas.toDataURL( 'image/jpeg', 0.92 );
+  dlLink.dataset.downloadurl = ['image/jpeg', dlLink.download, dlLink.href].join(':');
+  document.body.appendChild(dlLink);
+  dlLink.click();
+  document.body.removeChild(dlLink);
+
+alert("done");
+}  
+
+
+var mouseDown = 0;
+
+document.addEventListener('DOMContentLoaded', function () {
+    // ...
+  document.body.onmousedown = function() { 
+    ++mouseDown;
+  }
+  document.body.onmouseup = function() {
+    if (mouseDown > 0) {
+      --mouseDown;
+    }
+  }
+});
+
+// -->
+</script>
+</head>
+
+<!-- NEUTRAL GREY BACKGROUND -->
+<body id="body">
+
+<div id="wrapper">
+
+<!-- DRAW PAGE -->
+
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<a href="index.html">
+<span id="home" class="basicButton">Home</span> &nbsp;&nbsp; &nbsp;&nbsp;
+</a>
+
+<button id="twolb" title="Two Landscape" onclick="setTile(2, false);" 
+class="basicButton"> <!-- &#9707;+ --><img id="twol" src="ico/landscapes3_ico.jpg" alt="Two Landscape"></button> &nbsp;&nbsp;
+
+<button id="twolsb" title="Two Landscape Stacked" onclick="setTile(3, false);" 
+class="basicButton"><b><img id="twols" src="ico/landscapes_stacked4_ico.jpg" alt="Two Landscape Stacked"></b></button> &nbsp;&nbsp;
+
+<button id="screenshot" title="Screenshot" onclick="screenShot();"
+ class="basicButton">S</button>
+</td>
+<td style="text-align:right">
+<a href="explain.html">
+<span id="about" class="basicButton">About &nbsp;&nbsp;</span>
+</a>
+</td>
+</tr>
+</table>
+</div>
+
+<div id="content">
+<div id="thepreview" style="text-align:center">
+<br/><br/><br/>
+<h3>Phobrain Pair Workbench: choose two photos to fit</h3>
+</div>
+
+<div id="theshow" style="display=false;text-align:center;">
+
+<table><tbody>
+ <tr><td id="spacer"><p></p></td></tr>
+
+ <tr id="tr1" style="display:none;">
+  <td style="width:30%;" onclick="toggleLast(0, 'l');"> </td>
+  <td id="td1">
+    <img id="image1" style="display:none;"
+     crossOrigin="Anonymous"
+     draggable="false" src="noimage" alt="photo?">
+  </td>
+  <td id="td2">
+    <img id="image2" style="display:none;"
+     crossOrigin="Anonymous"
+     draggable="false" src="noimage" alt="photo?">
+  </td>
+  <td style="width:30%;" onclick="toggleLast(1, 'r');"> </td>
+ </tr>
+
+ <tr id="tr2" style="display:none;">
+  <td style="width:100%;">
+   <table style="width:100%;"><tbody>
+    <tr><td><table style="width:100%;"><tbody><tr>
+     <td style="width:100px;" onclick="toggleLast(0, 'l');"> </td>
+     <td id="td3" style="text-align:center;" >
+      <img id="image3" draggable="false" src="noimage" 
+       crossOrigin="Anonymous" alt="photo?">
+     </td>
+     <td style="width:100px;" onclick="toggleLast(0, 'r');"> </td>
+    </tr></tbody></table></td></tr>
+    <tr><td><table style="width:100%;"><tbody><tr>
+     <td style="width:100px;" onclick="toggleLast(1, 'l');"> </td>
+     <td id="td4" style="text-align:center;" >
+      <img id="image4" draggable="false" src="noimage" 
+       crossOrigin="Anonymous" alt="photo?">
+     </td>
+     <td style="width:100px;" onclick="toggleLast(1, 'r');"> </td>
+    </tr></tbody></table></td></tr>
+   </tbody></table>
+  </td>
+ </tr>
+</tbody></table>
+</div>
+</div>
+<div id="footer" style="text-align:center;">
+
+<button style="width:100%;background:transparent;border:none;"
+   title="toggle"
+   onclick="this.blur();"
+   onmousedown="bothToggleDown=new Date();"
+   onmouseup="bothToggle();"> &nbsp;
+</button> <br />
+
+<br />
+<input type="file" id="file0" name="file0" />
+<input type="file" id="file1" name="file1" />
+<br/>
+<button id="file0b" onclick="webFile(0);" style="background-color:white;border-radius: 15%;">Web load</button>
+<div id="web0div" style="width:160px;white-space: nowrap;display: inline-block;"></div>
+<button id="file1b" onclick="webFile(1);" style="background-color:white;border-radius: 15%;">Web load</button>
+<div id="web1div" style="width:160px;white-space: nowrap;display: inline-block;"></div>
+<p
+   style="color:rgba(255,255,255,0.4);font-size: 16pt; font-family:'Courier New',Courier,monospace; text-align:right;">
+  &copy; 2017 Photoriot.</p>
+<!-- INITIALIZE -->
+
+<script>
+<!--
+try {
+  adjustPageElements()
+  if (window.File && window.FileReader && window.FileList && window.Blob) {
+  } else {
+    alert('The File APIs are not fully supported in this browser.');
+  }
+  document.getElementById('file0').addEventListener('change',
+    handleFileSelect0, false);
+  document.getElementById('file1').addEventListener('change',
+    handleFileSelect1, false);
+} catch (e) {
+  alert(e);
+}
+// -->
+</script>
+</div>
+</div>
+</body>
+</html>

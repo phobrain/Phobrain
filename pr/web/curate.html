@@ -1,0 +1,4919 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+ *  SPDX-FileCopyrightText: 2015-2024 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<head>
+ <link rel="canonical" href="http://phobrain.com"/>
+ <link rel="icon" href="favicon.ico"/>
+ <!-- base href="http://phobrain.com" target="_top"/-->
+ <meta name="robots" content="noindex,nofollow"/>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+ <title>Phobrain Slideshow</title>
+
+ <script src="js/jquery/jquery-1.11.3.min.js"></script>
+ <script src="js/bootstrap/bootstrap.min.js"></script>
+ <script src="js/phobasic.js"></script>
+
+ <link rel="stylesheet" type="text/css"
+         href="js/bootstrap/bootstrap.min.css" />
+
+ <link rel="stylesheet" type="text/css"
+         href="css/footer.css" />
+ <link rel="stylesheet" type="text/css"
+         href="css/phobasic.css" />
+
+<style>
+
+.caret-right {
+    border-bottom: 5px solid transparent;
+    border-top: 5px solid transparent;
+    border-left: 5px solid;
+    display: inline-block;
+    height: 0;
+    opacity: 0.6;
+    vertical-align: center;
+    width: 0;
+}
+</style>
+
+<script>
+<!--
+
+//%%%%%%%% start phobrain
+
+var ADMIN_PIX = 220; // for selector/footer plus 20px
+
+var view = null;
+
+var DEFAULT_TILE = 1; // 2 portraits
+var tileId = DEFAULT_TILE;
+
+var cmdMode = 2; // pair mode
+
+function setCmdMode(val)
+{
+  console.log("setCmdMode tileId " + tileId +
+	" cmdMode " + cmdMode + '-> [' + val + ']');
+  if (tileId == 0) {
+    return;
+  }
+  if (val == 1) {
+
+	document.getElementById("menu_radio_dialog_mode").innerHTML =
+		"&#x25aa;"; // yes
+	document.getElementById("menu_radio_pair_mode").innerHTML =
+		"&#x25ab;";
+
+  } else if (val == 2) {
+
+	document.getElementById("menu_radio_dialog_mode").innerHTML =
+		"&#x25ab;";
+	document.getElementById("menu_radio_pair_mode").innerHTML =
+		"&#x25aa;"; // yes
+
+  } else {
+	alert('unknown radio but: ' + val);
+  }
+  cmdMode = val;
+  setCookie(getCmdModeKey(), cmdMode);
+  adjustCmdTds(tileId);
+}
+
+function handleShiftKeyCmd(e)
+{
+//alert('keyup ' + e.ctrlKey + ' ' + e.shiftKey + ' ' + e.keyCode);
+
+  if (!e.shiftKey) return;
+  switch (e.keyCode) {
+    case 68: // D
+      setCmdMode(1);
+      break;
+    case 80: // P
+      setCmdMode(2);
+      break;
+    default:
+      break;
+  }
+}
+
+document.addEventListener('keyup', handleShiftKeyCmd, false);
+
+function adjustViewList()
+{
+  document.getElementById("viewAll").className = "blackBut";
+  document.getElementById("viewKwdSel").className = "blackBut";
+  document.getElementById("viewPeep").className = "blackBut";
+  document.getElementById("viewBill").className = "blackBut";
+  document.getElementById("viewRS").className = "blackBut";
+  document.getElementById("viewElle").className = "blackBut";
+  document.getElementById("viewEllen").className = "blackBut";
+  document.getElementById("viewRon").className = "blackBut";
+  document.getElementById("viewEd").className = "blackBut";
+
+  if (view === "0") {
+    document.getElementById("viewAll").className = "greyBut";
+  } else if (view === "1") {
+    document.getElementById("viewBill").className = "greyBut";
+  //} else if (view === "6") {
+    //document.getElementById("viewKwdSel").className = "greyBut";
+  } else if (view === "7") {
+    document.getElementById("viewRS").className = "greyBut";
+  } else if (view === "2") {
+    document.getElementById("viewElle").className = "greyBut";
+  } else if (view === "4") {
+    document.getElementById("viewEllen").className = "greyBut";
+  } else if (view === "6") {
+    document.getElementById("viewPeep").className = "greyBut";
+  } else if (view === "9") {
+    document.getElementById("viewRon").className = "greyBut";
+  } else {
+    console.log("Unknown view: " + view);
+  }
+}
+
+var kwdSel6 = null;
+
+function setView(v)
+{
+  console.log("setView " + v + " view=" + view);
+
+  var newView = "" + v;
+
+  if (v == -6) {
+    var t = kwdSel6;
+    if (t == null) t = "";
+    kwdSel6 = prompt("K:", t);
+    if (kwdSel6 == null  ||  kwdSel6 == "") {
+      alert('Needed; Unchanged');
+    } else {
+      setView6();
+    }
+    return;
+  }
+  view = "" + v;
+  var viewKey = getPersonKey() + "_" + personID + "_view";
+  setCookie(viewKey, view);
+  getSessionId(true, false); // greys selection
+}
+
+function setView6()
+{
+  console.log("setView6: " + kwdSel6);
+  if (kwdSel6 == null  ||  kwdSel6 == "") {
+    alert('No kwds');
+    return;
+  }
+
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+
+        var t = xmlHttp.responseText.trim();
+        console.log("RESP: [" + t + "]");
+        if (!t.startsWith("OK")) {
+          alert("kwds6: " + xmlHttp.responseText);
+          return;
+        }
+        var ss = t.split(' ');
+        if (ss.length != 2) {
+          alert("kwds6: " + xmlHttp.responseText);
+          return;
+        }
+
+        alert('Pics: ' + ss[1]);
+
+        // from setView()
+        view = "-6";
+        var viewKey = getPersonKey() + "_" + personID + "_view";
+        setCookie(viewKey, view);
+        sessionID = "none"; // QQQ
+        var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+        setCookie(sessionKey, sessionID);
+        getSessionId(true, false);
+
+      } else if (xmlHttp.status == 204) {
+
+        console.log('fetch pics..');
+
+        if (tileId < 3) {
+          nextImage(1, 0);
+          nextImage(2, 0);
+        } else {
+          nextImage(3, 0);
+          nextImage(4, 0);
+        }
+//alert('big state in ' + (new Date() - t0));
+
+      } else {
+
+        var errtxt = xmlHttp.responseText;
+        var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+        if (errdoc != null) {
+            errtxt = errdoc.title;
+        }
+        console.log(""+xmlHttp.status + ": " + errtxt);
+        if (xmlHttp.status < 500) {
+            alert(errtxt);
+        } else if (xmlHttp.status >= 500) {
+            if (!suppressPicLoadErr) {
+              alert("Server error, try reloading page (1): " + errtxt);
+            }
+        }
+        if (xmlHttp.responseText.includes("Please reload web page.")) {
+            var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+            console.log("server lost session " + sessionKey);
+            sessionID = "none";
+            setCookie(sessionKey, sessionID);
+            suppressPicLoadErr = true;
+        }
+        return;
+      }
+    }
+  };
+  try {
+    var params = "sess=" + sessionID;
+    var o = "o";
+    if (tileId == 1) o = "v";
+    else if (tileId > 1) o = "h";
+    params += "&o=" + o;
+    params += "&k=";
+    var words = kwdSel6.split(' ');
+    params += JSON.stringify(words);
+
+    //console.log("v6kwds params: " + params);
+    var url = servletRoot + "/kqext";
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+
+function getSessionKey()
+{
+  if (view == null) {
+    view = getCookie("view");
+    if (view == null  ||  view.length == 0) {
+      view = getUrlVars()["v"];
+      if (view == null  ||  view.length == 0) {
+        console.log("!!! defaulting view to all");
+        view = "0"; // all
+        setCookie("view", "0");
+      }
+    }
+    adjustViewList();
+  }
+  var k = "m";
+  return "curate_" + k + "_" + view;
+}
+
+function getPersonKey()
+{
+  return "curate_person";
+}
+
+function getTileKey()
+{
+  return "curate_tile";
+}
+
+function getCmdModeKey()
+{
+  return "curate_cmode";
+}
+
+function getVDepthKey()
+{
+  return "curate_vdepth";
+}
+
+var isAndroid = false;
+var isIphone = false;
+
+function adjustPageElements()
+{
+  var ua = navigator.userAgent.toLowerCase();
+  isAndroid = ua.indexOf("android") > -1;
+  isIphone = ua.indexOf("iphone") > -1;
+
+  if (isIphone || isAndroid) {
+    document.getElementById("body").style.height = "800px";
+    document.getElementById("wrapper").style.height = "800px";
+    document.getElementById("home").innerHTML = "Home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+    var heights = [
+      ["phob_home", 50],
+      ["drop_left", 50],
+      ["home", 50],
+      ["menu_square_span", 50],
+      ["menu_twop_span", 50],
+      ["menu_twol_span", 50],
+      ["menu_twols_span", 50],
+
+    ["menu_radio_dialog_mode", 50],
+    ["menu_radio_dialog_mode_style", 50],
+    ["menu_radio_srch_pair_mode", 50],
+    ["menu_radio_pair_mode_style", 50],
+
+      ["rain_about", 50],
+      ["drop_right", 50],
+      ["about", 50],
+      ["desc_td1", 50],
+      ["desc_td2", 50],
+      ["desc_td3", 50],
+      ["desc_td4", 50],
+
+      ["yplus", 100],
+      ["minus", 100],
+        ["phiM0", 50],
+        ["phiM1", 50],
+        ["phiM2", 50],
+        ["phiM3", 50],
+        ["phiM4", 50],
+        ["phiM5", 50],
+        ["phiM6", 50],
+        //["phiM7", 50],
+      //["curated", 100],
+      ["dialog_no", 100],
+      ["dialog_noop", 100],
+      ["dialog_yes", 100],
+      ["approve", 100],
+      ["unapprove", 100],
+      ["bar", 80],
+      ["gplus", 100],
+
+      ["foot_credit", 50]
+    ];
+    for (var i=0; i<heights.length; i++) {
+      var x = document.getElementById(heights[i][0]);
+      if (x == null) {
+        alert("Internal error: no " + heights[i][0]);
+      } else {
+        var size = heights[i][1];
+        if (isIphone) size = parseInt(size *= 0.6);
+        x.style.fontSize = size + "px";
+      }
+    }
+
+    var buttons = [
+      ["ico_square",  50, 40],
+      ["ico_port",  60, 40],
+      ["ico_land",  110, 40],
+      ["ico_land2",  60, 40],
+
+      ["menu_twopb",  100, 40],
+      //["twop",    60, 40],
+
+      ["menu_twolb",  110, 40],
+      //["twol",   110, 40],
+
+      ["menu_twolsb",  80, 40],
+      //["twols",   80, 40],
+    ];
+    for (var i=0; i<buttons.length; i++) {
+      var b = document.getElementById(buttons[i][0]);
+      if (b == null) {
+        alert("Internal error: no " + buttons[i][0]);
+      } else {
+        b.style.width = buttons[i][1] + "px";
+        b.style.height = buttons[i][2] + "px";
+      }
+    }
+
+  }
+}
+
+
+
+function adjustCmdTds(row)
+{
+  console.log("adjustCmdTds: " + row + " cmdMode " + cmdMode);
+
+  if (cmdMode == 1) { // dialog training
+
+    document.getElementById("cmdTd2").style.display = 'none';
+    document.getElementById("cmdTd1").style.display = '';
+
+    document.getElementById("cmdTd1").style.width = "20%";
+    document.getElementById("showTd").style.width = "40%";
+    document.getElementById("kwdTd").style.width = "40%";
+
+    document.getElementById("dialog_no").style.display = '';
+    document.getElementById("dialog_noop").style.display = '';
+    document.getElementById("dialog_yes").style.display = '';
+
+    //document.getElementById("phiM0").style.display = 'none';
+    //document.getElementById("phiM1").style.display = 'none';
+    //document.getElementById("phiM2").style.display = 'none';
+    //document.getElementById("phiM3").style.display = 'none';
+    //document.getElementById("phiM4").style.display = 'none';
+    //document.getElementById("phiM5").style.display = 'none';
+    //document.getElementById("phiM6").style.display = 'none';
+
+    //document.getElementById("golden_ab").style.display = 'none';
+    //document.getElementById("golden_rgb").style.display = 'none';
+    //document.getElementById("golden_8").style.display = 'none';
+    //document.getElementById("golden_27").style.display = 'none';
+    //document.getElementById("bill_rgb_32").style.display = 'none';
+
+    //document.getElementById("yplus").style.display = 'none';
+    //document.getElementById("gplus").style.display = 'none';
+    //document.getElementById("minus").style.display = 'none';
+    //document.getElementById("bar").style.display = 'none';
+
+    //document.getElementById("unapprove").style.display = 'none';
+    //document.getElementById("approve").style.display = 'none';
+
+    return;
+  }
+
+  // pair training
+
+  document.getElementById("cmdTd1").style.display = 'none';
+  document.getElementById("cmdTd2").style.display = '';
+
+  document.getElementById("phiM0").style.display = '';
+  document.getElementById("phiM1").style.display = '';
+  document.getElementById("phiM2").style.display = '';
+  document.getElementById("phiM3").style.display = '';
+  document.getElementById("phiM4").style.display = '';
+  document.getElementById("phiM5").style.display = '';
+  document.getElementById("phiM6").style.display = '';
+
+  document.getElementById("golden_ab").style.display = '';
+  document.getElementById("golden_rgb").style.display = '';
+  document.getElementById("golden_8").style.display = '';
+  document.getElementById("golden_27").style.display = '';
+  document.getElementById("bill_rgb_32").style.display = '';
+
+  document.getElementById("yplus").style.display = '';
+  document.getElementById("gplus").style.display = 'none';
+  document.getElementById("minus").style.display = '';
+  document.getElementById("bar").style.display = '';
+
+  document.getElementById("unapprove").style.display = '';
+  document.getElementById("approve").style.display = '';
+
+  var winWidth = window.innerWidth; // disbelief factor
+  var cmdlen = 0;
+  if (cmdMode == 2) {
+    var name = navigator.browserSpecs.name;
+    if (name == 'Chrome') {
+      if (row == 0) cmdlen = 110;
+      else cmdlen = 550;
+    } else if (name == 'Firefox') {
+      if (row == 0) cmdlen = 140;
+      else cmdlen = 550;
+    } else if (isIphone) {
+      if (row == 0) cmdlen = 110;
+      else cmdlen = 460;
+      document.getElementById("cmdTd2").style.width =  "";
+      document.getElementById("showTd").style.width = "";
+      document.getElementById("kwdTd").style.width =  "";
+      return;
+    } else {
+      if (row == 0) cmdlen = 140;
+      else cmdlen = 500;
+    }
+    if (isIphone || isAndroid) {
+      cmdlen *= 2;
+    }
+    if (row > 0) {
+      cmdlen += Math.floor(3 * cmdlen / 5); // add 3
+    }
+  }
+  var sidelen = Math.floor(0.99 * (winWidth - cmdlen) / 2);
+  if (sidelen < 0) {
+      sidelen = 0;
+  }
+
+  console.log("adjustCmdTds: win, cmd, side " +
+        winWidth + " " + cmdlen + " " + sidelen);
+  document.getElementById("cmdTd2").style.width = cmdlen + "px";
+  document.getElementById("showTd").style.width = sidelen + "px";
+  document.getElementById("kwdTd").style.width = sidelen + "px";
+
+  document.getElementById("cmdTd2").style.display = '';
+
+}
+
+// button grey/black status mgt
+const parallelFuncButtons = [ "parallel_none", "parallel_cos", "parallel_poi" ];
+                    // 'poi' for poincare, but version 0 in db uses cartesian/pgvector
+const parallelModels = [
+        "parallel_1.hist256", "parallel_1.hist1728", "parallel_1.hist1984",
+
+        "parallel_2.vgg16-512", "parallel_2.vgg16-256", "parallel_2.vgg16-128", "parallel_2.vgg16-64",
+        "parallel_2.vgg16-32", "parallel_2.vgg16-16", "parallel_2.vgg16-4", "parallel_2.vgg16-2",
+
+        "parallel_2.nnl-1008", "parallel_2.nnl-252", "parallel_2.nnl-42",
+        "parallel_2.nnl-21", "parallel_2.nnl-7", "parallel_2.nnl-3",
+
+        "parallel_2.dense-64", "parallel_2.mob-40",
+
+        // pair vectors - TODO get from server when enabled, since needs personal training
+        "parallel_3.pair2", "parallel_3.pair3", "parallel_3.pair5", "parallel_3.pair12"
+        ];
+
+var parallelFunc = "none";
+var parallelModel = "none";
+
+function setParallelFunc(val)
+{
+    console.log('setParallelFunc ' + parallelFunc + '->' + val);
+
+    parallelFunc = val;
+
+    for (const l of parallelFuncButtons) {
+        var x = document.getElementById(l);
+        if (x != null) {
+            document.getElementById(l).className = "blackBut";
+        }
+    }
+
+    var elt_id = "parallel_" + val;
+    var elt = document.getElementById(elt_id);
+    if (elt == null) {
+        console.log('bad val [' + elt_id + '], expected from [' + parallelFuncButtons + ']');
+    } else {
+        elt.className = "greyBut";
+
+        if (val != "none"  &&  parallelModel == "none") {
+            // turning on for 1st time since page load TODO cookie-save state
+            setParallelModel('1.hist256'); // greyscale.128 + luminance.128
+        }
+    }
+    if (parallelFunc == "none") {
+        setParallelModel('none');
+    }
+}
+
+function setParallelModel(val)
+{
+    console.log('setParallelModel ' + parallelModel + '->' + val);
+
+    parallelModel = val;
+
+    for (const l of parallelModels) {
+        var x = document.getElementById(l);
+        if (x != null) {
+            document.getElementById(l).className = "blackBut";
+        }
+    }
+
+    var elt_id = "parallel_" + val;
+    var elt = document.getElementById(elt_id);
+    if (elt == null) {
+        console.log('bad val [' + elt_id + '], expected from [' + parallelModels + ']');
+    } else {
+        elt.className = "greyBut";
+//console.log('888888888888888888888888888888888 GREY');
+    }
+}
+
+var repeats = false;
+var suppressPicLoadErr = false;
+
+function toggleRepeats(val)
+{
+  console.log("toggleRepeats " + val + " repeats: " + repeats);
+
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+        var t = xmlHttp.responseText.trim();
+        console.log("Repeats RESP: [" + t + "]");
+        if ("OK" === t) {
+          if (repeats) {
+            document.getElementById("menu_tog_repeats").innerHTML = "&#x25ab;";
+          } else {
+            document.getElementById("menu_tog_repeats").innerHTML = "&#x25aa";
+          }
+          repeats = !repeats;
+        } else if ("true" === t) {
+          document.getElementById("menu_tog_repeats").innerHTML = "&#x25aa";
+          repeats = true;
+        } else if ("false" === t) {
+          document.getElementById("menu_tog_repeats").innerHTML = "&#x25ab;";
+          repeats = false;
+        } else {
+          console.log("Unexpected rpts: " + xmlHttp.responseText);
+        }
+        // md = JSON.parse(xmlHttp.responseText);
+        // console.log("md " + md);
+      } else {
+        var errtxt = xmlHttp.responseText;
+        var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+        if (errdoc != null) {
+            errtxt = errdoc.title;
+        }
+        console.log(""+xmlHttp.status + ": " + errtxt);
+        if (xmlHttp.status < 500) {
+            alert(errtxt);
+        } else if (xmlHttp.status == 500) {
+            if (!suppressPicLoadErr) {
+              alert("Server error, try reloading page (1): " + errtxt);
+            }
+            if (xmlHttp.responseText.includes("Please reload web page.")) {
+                var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+                console.log("server lost session " + sessionKey);
+                sessionID = "none";
+                setCookie(sessionKey, sessionID);
+                suppressPicLoadErr = true;
+            }
+        } else {
+            console.log("Unexpected xmlHttp.status " + xmlHttp.status + ": " + errtxt);
+        }
+        return;
+      }
+    } else {
+        //console.log("Ignored xmlHttp.readyState " + xmlHttp.readyState);
+    }
+  };
+  try {
+    var params = "sess=" + sessionID;
+    if ("status" === val) {
+      params += "&pr=status";
+    } else {
+      params += "&pr=" + !repeats;
+    }
+
+console.log("repeats params: [" + params + "]");
+    var url = servletRoot + "/getkext";
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    console.log("Excep sending to " + url);
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+var picClik_opt = 5; // default neural
+
+function togglePicClik()
+{
+  if (picClik_opt == 4) {
+    picClik_opt = 5;
+    document.getElementById("menu_pic_clik").innerHTML = "&#x25ab;";
+  } else {
+    picClik_opt = 4;
+    document.getElementById("menu_pic_clik").innerHTML = "&#x25aa";
+  }
+}
+
+function setTile(row, reload)
+{
+  console.log("setTile " + row + " reload " + reload);
+
+  switch (row) {
+    case 1:
+      document.getElementById("menu_twopb").className = 'greyBut';
+      document.getElementById("menu_twolb").className = 'blackBut';
+      document.getElementById("menu_twolsb").className = 'blackBut';
+      break;
+    case 2:
+      document.getElementById("menu_twopb").className = 'blackBut';
+      document.getElementById("menu_twolb").className = 'greyBut';
+      document.getElementById("menu_twolsb").className = 'blackBut';
+      break;
+    case 3:
+      document.getElementById("menu_twopb").className = 'blackBut';
+      document.getElementById("menu_twolb").className = 'blackBut';
+      document.getElementById("menu_twolsb").className = 'greyBut';
+      break;
+  }
+
+  if (row == tileId) {
+    return;
+  }
+
+  setCookie(getTileKey(), row); // redundant when called from fresh session load
+
+  md = null;
+  mdK = null;
+
+  for (var i=0; i<imgRcvd.length; i++) {
+    vDepth[i] = 0;
+    imgRcvd[i] = null;
+    imgRcvdPrev[i] = null;
+  }
+
+  if (isIphone || isAndroid) {
+    switch (row) {
+      case 0:
+      case 1:
+        document.getElementById("body").style.height =    "800px";
+        document.getElementById("wrapper").style.height = "800px";
+        break;
+      case 2:
+        document.getElementById("body").style.height =    "600px";
+        document.getElementById("wrapper").style.height = "600px";
+        break;
+      case 3:
+        document.getElementById("body").style.height =    "1400px";
+        document.getElementById("wrapper").style.height = "1400px";
+        break;
+      default: break;
+    }
+  }
+  if (row == 0) {
+    cmdMode = 2;
+  }
+  if (row == 0  ||  tileId == 0) {
+    adjustCmdTds(row);
+  }
+
+  // only with tr1+
+  //var curated = document.getElementById("curated");
+  var yplus = document.getElementById("yplus");
+
+  var approve = document.getElementById("approve");
+  var unapprove = document.getElementById("unapprove");
+
+  if (row == 0) {
+    tileId = 0;
+
+    screens = 1;
+
+    document.getElementById("spacer").style.height = "10px";
+
+    //curated.style.display = 'none';
+    yplus.style.display = 'none';
+
+    approve.style.display = 'none';
+    unapprove.style.display = 'none';
+
+    nextImage0(0);
+
+  } else if (tileId != row) {
+
+    var oldTileId = tileId;
+    tileId = row;
+
+    screens = 2;
+
+    //curated.style.display = '';
+    yplus.style.display = '';
+
+    //if (window.location.hostname == 'localhost') {
+      approve.style.display = '';
+      unapprove.style.display = '';
+    //}
+    if (reload ||
+        (oldTileId == 2  &&  tileId == 3) ||
+        (oldTileId == 3  &&  tileId == 2)) {
+      bigone(0, 0, -3, 'reload');
+    } else {
+      bigone(0, 0, -2, 'nonreload');
+    }
+  }
+}
+
+
+//var myScroll;
+
+var inImage = 0;
+var imageIn = -1;
+
+$(document).ready(function() {
+  //resizeImg();
+  //$(window).resize(resizeImg);
+
+  //myScroll = new IScroll('#wrapper'); // prevent horiz scroll
+
+    $("#image0").on("mouseenter", function() { inImage++; imageIn = 0; });
+    $("#image0").on("mouseleave", function() { inImage--; imageIn = -1; });
+    $("#image1").on("mouseenter", function() { inImage++; imageIn = 1; });
+    $("#image1").on("mouseleave", function() { inImage--; imageIn = -1; });
+    $("#image2").on("mouseenter", function() { inImage++; imageIn = 2; });
+    $("#image2").on("mouseleave", function() { inImage--; imageIn = -1; });
+    $("#image3").on("mouseenter", function() { inImage++; imageIn = 3; });
+    $("#image3").on("mouseleave", function() { inImage--; imageIn = -1; });
+    $("#image4").on("mouseenter", function() { inImage++; imageIn = 4; });
+    $("#image4").on("mouseleave", function() { inImage--; imageIn = -1; });
+
+});
+
+var servletRoot = "/pr";  // set in proj/web/build.gradle
+
+var screens = 2;
+
+var personID = "none";
+var sessionID = "none";
+
+function getSessionId(load, askUser)
+{
+  console.log("getSessionId: " + load + " " + askUser);
+  suppressPicLoadErr = false;
+
+  var d = new Date();
+  var lastDate = getCookie("lastDate");
+  if (lastDate != null  &&  lastDate.length > 0) {
+    var d2 = new Date(lastDate);
+    if (d.getTime() - d2.getTime() < 5000) {
+      sessionID = "none"; // get fresh session since user is refreshing
+      setCookie(sessionKey, "");
+    }
+  }
+  setCookie("lastDate", d.toString());
+
+  // get personID
+  console.log("get cookie replace person id=" + personID);
+  personID = getCookie(getPersonKey());
+  console.log("got cookie person id=" + personID);
+  if (askUser  ||  personID == null  ||  personID.length == 0) {
+    console.log("get person, w/ existing=" + personID);
+    var t = prompt("SHA1:", (personID == null || personID === "none" ? "" : personID));
+    console.log("got [" + t + "] w/ load=" + load);
+    if (t != personID  &&  load) {
+      console.log("new person: " + t);
+      personID = t;
+      setCookie(getPersonKey(), t);
+      var tt = getCookie(getPersonKey());
+      if (tt != t) alert("tt " + tt + "] t " + t);
+    }
+  }
+  console.log("Net person=" + personID);
+
+  // get last view for the person
+
+  var viewKey = getPersonKey() + "_" + personID + "_view";
+  view = getCookie(viewKey);
+  if (view == null  ||  view.length == 0) {
+    console.log("initial view");
+    view = "0";
+    setCookie(viewKey, view);
+  }
+  adjustViewList();
+
+  var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+  sessionID = getCookie(sessionKey);
+  if (sessionID == null  || sessionID.length == 0) {
+    console.log("no session " + sessionKey);
+    sessionID = "none";
+    setCookie(sessionKey, sessionID);
+  }
+//QQQ
+  console.log("sessionID: " + sessionID);
+  var oldSess = sessionID;
+  if (!load  ||  sessionID === "none") {
+
+    console.log("get session " + sessionID + " p " + personID);
+    var xmlHttp;
+    try {
+      xmlHttp = getHTTP();
+    } catch (e) {
+      alert(e);
+      return false;
+    }
+
+    // tileId = 0;
+    // setCookie(getTileKey(), 0); // start from scratch
+
+    // prepare for preview/showDog
+
+    var theshow = document.getElementById("theshow");
+    if (theshow.style.display != 'none') {
+      theshow.style.display = 'none';
+    }
+    var thepreview = document.getElementById("thepreview");
+    if (thepreview.style.display == 'none') {
+      thepreview.style.display = '';
+    }
+
+    xmlHttp.onreadystatechange=function() {
+      if(xmlHttp.readyState==4) {
+        if (xmlHttp.status == 200) {
+          sessionID = xmlHttp.responseText;
+          //setCookie("session", sessionID);
+          var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+          setCookie(sessionKey, sessionID);
+          document.getElementById("menu_tog_repeats").innerHTML = "&#x25ab;";
+          repeats = false;
+          showDog();
+        } else {
+            var errtxt = xmlHttp.responseText;
+            var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+            if (errdoc != null) {
+                errtxt = errdoc.title;
+            }
+            console.log(""+xmlHttp.status + ": " + errtxt);
+            if (xmlHttp.status < 500) {
+                alert(errtxt);
+            } else if (xmlHttp.status == 500) {
+                if (!suppressPicLoadErr) {
+                    alert("Server error, try reloading page (1): " + errtxt);
+                }
+                if (xmlHttp.responseText.includes("Failed to generate session tag.")) {
+                    var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+                    console.log("server lost session " + sessionKey);
+                    sessionID = "none";
+                    setCookie(sessionKey, sessionID);
+                    suppressPicLoadErr = true;
+                }
+            } else {
+                alert(errtxt);
+            }
+
+            return;
+        }
+      } else {
+        // ignore other status
+        return;
+      }
+    };
+    var params = "tzoff=" + d.getTimezoneOffset() +
+                 "&hour=" + d.getHours() +
+                 "&browser=" + navigator.appName +
+                 "&version=" + navigator.appVersion +
+                 "&platform=" + navigator.platform +
+                 "&lang=" + navigator.language +
+                 "&useragent=" + navigator.userAgent +
+                 "&username=" + personID +
+                 "&session=" + sessionID +
+                 "&k=" + "m" +
+                 "&v=" + view +
+                 "&c=" + tileId +
+                 "&new=x";
+    try {
+      var url = servletRoot + "/getsession";
+      xmlHttp.open("POST", url, true);
+      xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+      xmlHttp.send(params);
+    } catch (e) {
+      alert(e);
+      return false;
+    }
+  } else {
+    console.log("use existing session");
+    var t = getCookie(getTileKey());
+    if (t != null  &&  t != ""  &&  tileId != t) {
+      console.log("using previous tileId: [" + t + "]");
+      var i = parseInt(t) || DEFAULT_TILE;
+      if (t === "0") {
+        setTile(0, true);
+      } else {
+        setTile(i, true);
+      }
+    }
+    t = getCookie(getCmdModeKey());
+    if (typeof t != 'undefined'  &&  t != null  &&  t != ""  &&  cmdMode != t) {
+      console.log("using previous cmdMode: " + t);
+      setCmdMode(t);
+    }
+    toggleRepeats('status');
+
+    if (screens == 1) {
+      nextImage0(0);
+    } else {
+      if (tileId < 3) {
+        nextImage(1, 0);
+        nextImage(2, 0);
+      } else {
+        nextImage(3, 0);
+        nextImage(4, 0);
+      }
+    }
+  }
+  return true;
+}
+
+function showDog()
+{
+  var newimg = new Image();
+  newimg.onload=function() {
+    // when image is loaded, make it visible
+    var img = document.getElementById("imageP");
+    img.src = newimg.src;
+    img.width = window.innerWidth;
+    img.setAttribute("height", "auto");
+    img.setAttribute("vertical-align", "top");
+    img.setAttribute("float", "right");
+    fade(img);
+  };
+  // start load of image into memory
+  newimg.src = "dog_eyes2.jpg";
+}
+
+function fade(element)
+{
+  console.log("fade tileId " + tileId);
+  var op = 1;  // initial opacity
+  var timer = setInterval(function () {
+      if (op <= 0.1) {
+         clearInterval(timer);
+         if (tileId == 0) {
+           nextImage0(0);
+         } else if (tileId < 3) {
+           nextImage(1, 0);
+           nextImage(2, 0);
+         } else {
+           nextImage(3, 0);
+           nextImage(4, 0);
+         }
+      }
+      element.style.opacity = op;
+      element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+      op -= op * 0.3;
+    }, 100);
+}
+
+function showView()
+{
+  document.getElementById("thepreview").style.display = 'none';
+  document.getElementById("theshow").style.display = '';
+}
+
+var vDepth = [0, 0, 0, 0, 0];
+var imgRcvd = [null, null, null, null, null];
+var imgRcvdPrev = [null, null, null, null, null];
+
+var nToggleLast = 0;
+var togL = '';
+var togR = '';
+var togTimes = [];
+var lastTogTime = null;
+
+function toggleLast(screen, side)
+{
+
+  if ($('#drop1').isActive()  ||  $('#drop2').isActive()) {
+    console.log("toggleLast: dropdown is active/skip");
+    return;
+  }
+
+  console.log("toggleLast " + screen + " " + side);
+
+  if (side === 'l') {
+    togL = 'l';
+  } else if (side === 'r') {
+    togR = 'r';
+  } else {
+    togL = 'l';
+    togR = 'r';
+  }
+
+  md = null;
+  mdK = null;
+  methods = null;
+
+  var t0 = lastTogTime;
+  if (t0 == null) {
+    t0 = prevTime;
+  }
+  lastTogTime = new Date();
+  togTimes.push(lastTogTime - t0);
+  if (screen == -1) {
+    var ii = 0; // 1-1
+    if (tileId == 3) ii = 2; // 3-1
+    for (var i=0; i<2; i++) {
+      ii++;
+      if ((vDepth[ii] == 0  &&  imgRcvdPrev[ii] == null)  ||
+          (vDepth[ii] == 1  &&  imgRcvd[ii] == null)) {
+        alert("No pictures to go back to " + ii);
+        return;
+      }
+      nToggleLast++;
+      if (vDepth[ii] == 0) {
+        vDepth[ii] = 1;
+      } else {
+        vDepth[ii] = 0;
+      }
+
+    }
+    drawTwo();
+    return;
+  } else {
+
+    if ((vDepth[screen] == 0  &&  imgRcvdPrev[screen] == null)  ||
+        (vDepth[screen] == 1  &&  imgRcvd[screen] == null)) {
+      alert("No picture to go back to " + screen);
+      return;
+    }
+    if (vDepth[screen] == 0) {
+      vDepth[screen] = 1;
+    } else {
+      vDepth[screen] = 0;
+    }
+
+    nToggleLast++;
+
+    if (screen == 0) {
+      drawOne();
+    } else {
+      drawTwo();
+    }
+  }
+}
+
+function togTimesStr()
+{
+  if (togTimes.length == 0) {
+    return "____";
+  }
+  var str = "";
+  for (var i=0; i<togTimes.length; i++) {
+    str += Base64.fromInt(togTimes[i]);
+    str += ",";
+  }
+  return str;
+}
+
+var mdown_time = null;
+
+function mdown()
+{
+  mdown_time = new Date();
+}
+
+var bothToggleDown = null;
+
+function bothToggle()
+{
+
+  if (tileId == 0) {
+    toggleLast(0, 'm');
+    return;
+  }
+
+  if (bothToggleDown == null) {
+    return;
+  }
+
+  var dt = new Date() - bothToggleDown;
+  if (dt < 1000) {
+    toggleLast(-1, 'm');
+  } else { // go back to last new
+
+    for ( var i=1; i<vDepth.length; i++) {
+      vDepth[i] = 0;
+    }
+    drawTwo();
+  }
+
+  bothToggleDown = null;
+}
+
+var md = null;
+
+function getMD()
+{
+  console.log("getMD retry " + retry0Ct);
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+         md = JSON.parse(xmlHttp.responseText);
+         console.log("md " + md.credit);
+         showMD();
+      } else {
+            var errtxt = xmlHttp.responseText;
+            var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+            if (errdoc != null) {
+                errtxt = errdoc.title;
+            }
+            console.log(""+xmlHttp.status + ": " + errtxt);
+            if (xmlHttp.status < 500) {
+                alert(errtxt);
+            } else if (xmlHttp.status == 500) {
+                if (!suppressPicLoadErr) {
+                    alert("Server error, try reloading page (1): " + errtxt);
+                }
+                if (xmlHttp.responseText.includes("Failed to generate session tag.")) {
+                    var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+                    console.log("server lost session " + sessionKey);
+                    sessionID = "none";
+                    setCookie(sessionKey, sessionID);
+                    suppressPicLoadErr = true;
+                }
+            } else {
+                alert(errtxt);
+            }
+            return;
+      }
+    }
+  };
+  try {
+    var params = "sess=" + sessionID;
+    switch (tileId) {
+      case 0:
+        params += "&p1=x&p2=x\n"; break;
+      case 1:
+      case 2:
+        params += "&p1=1." + vDepth[1] +
+                  "&p2=2." + vDepth[2] + "\n";
+        break;
+      case 3:
+        params += "&p1=1." + vDepth[3] +
+                  "&p2=2." + vDepth[4] + "\n";
+        break;
+      default:
+        alert("unexp tileId: " + tileId);
+        break;
+    }
+
+    console.log("md params: " + params);
+    var url = servletRoot + "/getkext";
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+var mouseDownNextToPlus = false;
+var mouseDownOnCredit = false;
+
+var methods = null;
+
+var mdK = null;
+var retry0Ct = 0;
+
+function showMD()
+{
+  if (!mouseDownNextToPlus  &&  !mouseDownOnCredit) return;
+
+  if (tileId == 0) {
+    if (md == null) {
+      console.log("md is null retry " + retry0Ct);
+      retry0Ct++;
+      if (retry0Ct > 2) {
+        retry0Ct = 0;
+        return;
+      }
+      getMD();
+      return;
+    }
+    retry0Ct = 0;
+  } else {
+    var ii = 1;
+    if (tileId == 3) ii = 3;
+
+    var ps = "0." + vDepth[ii] + "1." + vDepth[ii+1];
+    if (md == null  ||  ps != mdK) {
+      mdK = ps;
+      getMD();
+      return;
+    }
+  }
+  var content;
+  if (mouseDownOnCredit) {
+    var m = "";
+    if (methods != null) {
+        var mn = methods.split(',');
+        if (mn.length == 3) {
+            if (mn[1] === mn[2]) {
+                m = '&nbsp;&nbsp;Methods: ' + mn[1];
+            } else {
+                m = '&nbsp;&nbsp;Methods: ' + mn[1] + ' ' + mn[2];
+            }
+        } else {
+            m = methods;
+        }
+    }
+    content = md.credit + m;
+  } else {
+    content = md.kw;
+  }
+  //console.log("content [" + content.trim() + "]");
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "<span style=\"text-align:right; color:rgba(255,255,255,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;\">" + content.trim() + "</span>";
+}
+
+function hideKwds()
+{
+  mouseDownNextToPlus = false;
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "&nbsp;";
+}
+
+function hideCredit()
+{
+  mouseDownOnCredit = false;
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "&nbsp;";
+}
+
+// reset by reDot()
+var dotList = [];
+var angleHist = new Array(36).fill(0);
+
+var dotSpeed = 0;
+var cacheDots = false; // true==?
+
+var solidIncrease = true;
+
+// rgbs initially = background
+var plainRGB = [ parseInt(144), parseInt(144), parseInt(144), parseInt(80) ];
+
+var rgbs = {};
+// 'left' pic prev
+rgbs['0.0'] = plainRGB;
+// 'left' pic current
+rgbs['0.1'] = plainRGB;
+// 'right' pic prev
+rgbs['1.0'] = plainRGB;
+// 'right' pic current
+rgbs['1.1'] = plainRGB;
+
+function colorBaseArr(rgbarr, vel)
+{
+	//return colorBaseGoldenRatio(rgbarr);
+	var x = Math.trunc(vel);
+
+	console.log("colorBaseArr " + x);
+
+	if (x < 3) return colorBaseCompl(rgbarr);
+	if (x > 70) return colorBaseRand(rgbarr);
+
+	//return colorBaseCompl(colorBaseGoldenRatio(rgbarr));
+	if (x % 2 == 0) {
+		if (x % 4 == 0) return colorBaseRand(rgbarr);
+		return colorBaseCompl(rgbarr);
+	}
+	if (x % 3 == 0) return colorBaseGoldenRatio(rgbarr);
+	if (x % 5 == 0) return colorBaseCompl(
+					colorBaseGoldenRatio(rgbarr));
+	return colorBaseCompl(rgbarr);
+}
+
+var golden_ratio_conjugate = 0.618033988749895;
+
+function colorBaseGoldenRatio(rgbarr)
+{
+	var rgb = new Object();
+	rgb.r = rgbarr[0];
+	rgb.g = rgbarr[1];
+	rgb.b = rgbarr[2];
+
+	var hsv = RGB2HSV(rgb);
+	console.log("SV " + hsv.saturation + " " + hsv.value);
+	if (rgbarr[3] < 0.3) {
+		console.log("Goose saturation for radius " + rgbarr[3]);
+		hsv.saturation = Math.trunc(1.3 * hsv.saturation);
+		if (hsv.value < 40) hsv.value *= 2;
+	}
+	hsv.hue += golden_ratio_conjugate;
+	hsv.hue %= 1;
+	rgb = HSV2RGB(hsv);
+
+	console.log("colorBaseGolden: " + rgb.r + " " + rgb.g + " " + rgb.b);
+
+	return [rgb.r, rgb.g, rgb.b ];
+}
+
+function colorBaseRand(rgbarr)
+{
+
+	//var radius = Math.trunc( rgbarr[3] / 1.5 );
+
+	var r = Math.random() * 256;
+	r = (r + rgbarr[0]) / 2;
+	r = Math.trunc(r);
+
+	var g = Math.trunc(Math.random() * 256);
+	g = (g + rgbarr[1]) / 2;
+	g = Math.trunc(g);
+
+	var b = Math.trunc(Math.random() * 256);
+	b = (b + rgbarr[2]) / 2;
+	b = Math.trunc(b);
+
+	console.log("colorBaseRand: Color rand mix " + r + " " + g + " " + b);
+
+	return [ r, g, b ];
+}
+
+function colorBaseCompl(rgbarr)
+{
+	var radius = 0; //Math.trunc( rgbarr[3] / 1.5 );
+	var ll = rgbarr[4];
+	var contrast = rgbarr[5];
+
+	var rgb = new Object();
+	// rotate
+	if (ll < 40) { // light
+		rgb.r = (rgbarr[1] + radius) % 255;
+		rgb.g = (rgbarr[2] + radius) % 255;
+		rgb.b = (rgbarr[0] + radius) % 255;
+	} else {
+		rgb.r = (rgbarr[2] + radius) % 255;
+		rgb.g = (rgbarr[0] + radius) % 255;
+		rgb.b = (rgbarr[1] + radius) % 255;
+	}
+/*
+	rgb.r = (rgbarr[0] + radius) % 255;
+	rgb.g = (rgbarr[1] + radius) % 255;
+	rgb.b = (rgbarr[2] + radius) % 255;
+*/
+	var hsv = RGB2HSV(rgb);
+	hsv.hue = HueShift(hsv.hue,180.0);
+	rgb = HSV2RGB(hsv);
+
+	// avg ll = 38
+	if (ll > 55) { // light
+		if (contrast < 50) {
+console.log("CAP light/lowc");
+			var cap = 120;
+			var gap = 80;
+			if (rgb.r > cap) rgb.r = cap -
+						Math.floor((gap * rgb.r)/255);
+			if (rgb.g > cap) rgb.g = cap +
+						Math.floor((gap * rgb.g)/255);
+			if (rgb.b > cap) rgb.b = cap +
+						Math.floor((gap * rgb.b)/255);
+		} else {
+console.log("CAP light/hic");
+			var cap = 160;
+			var gap = 255 - cap;
+			if (rgb.r > cap) rgb.r = cap +
+						Math.floor((gap * rgb.r)/255);
+			if (rgb.g > cap) rgb.g = cap +
+						Math.floor((gap * rgb.g)/255);
+			if (rgb.b > cap) rgb.b = cap +
+						Math.floor((gap * rgb.b)/255);
+		}
+	} else if (ll > 30) {
+		if (contrast < 50) {
+console.log("CAP med/lowc");
+			var cap = 190;
+			var gap = 255 - cap;
+			if (rgb.r < cap) rgb.r = cap +
+						Math.floor((gap * rgb.r)/255);
+			if (rgb.g < cap) rgb.g = cap +
+						Math.floor((gap * rgb.g)/255);
+			if (rgb.b < cap) rgb.b = cap +
+						Math.floor((gap * rgb.g)/255);
+		} else {
+console.log("CAP med/hic");
+			var cap = 180;
+			var gap = 255 - cap;
+			if (rgb.r < cap) rgb.r = cap +
+						Math.floor((gap * rgb.r)/255);
+			if (rgb.g < cap) rgb.g = cap +
+						Math.floor((gap * rgb.g)/255);
+			if (rgb.b < cap) rgb.b = cap +
+						Math.floor((gap * rgb.b)/255);
+		}
+	} else { // dark
+		if (contrast < 50) {
+console.log("CAP dark/lowc");
+			var cap = 80;
+			var gap = 255 - cap;
+			if (rgb.r < cap) rgb.r = cap +
+						Math.floor((gap * rgb.r)/255);
+			if (rgb.g < cap) rgb.g = cap +
+						Math.floor((gap * rgb.g)/255);
+			if (rgb.b < cap) rgb.b = cap +
+						Math.floor((gap * rgb.b)/255);
+		} else {
+console.log("CAP dark/hic");
+			var cap = 180;
+			var gap = 255 - cap;
+			if (rgb.r < cap) rgb.r = cap +
+						Math.floor((gap * rgb.r)/255);
+			if (rgb.g < cap) rgb.g = cap +
+						Math.floor((gap * rgb.g)/255);
+			if (rgb.b < cap) rgb.b = cap +
+						Math.floor((gap * rgb.b)/255);
+		}
+	}
+	console.log("colorBaseCompl: " + rgb.r + " " + rgb.g + " " + rgb.b);
+
+	return [rgb.r, rgb.g, rgb.b ];
+
+}
+
+function RGB2HSV(rgb)
+{
+	var hsv = new Object();
+	var max = max3(rgb.r,rgb.g,rgb.b);
+	var dif = max - min3(rgb.r,rgb.g,rgb.b);
+	hsv.saturation = (max==0.0)?0:(100*dif/max);
+	if (hsv.saturation==0) hsv.hue=0;
+	else if (rgb.r==max) hsv.hue=60.0*(rgb.g-rgb.b)/dif;
+	else if (rgb.g==max) hsv.hue=120.0+60.0*(rgb.b-rgb.r)/dif;
+	else if (rgb.b==max) hsv.hue=240.0+60.0*(rgb.r-rgb.g)/dif;
+	if (hsv.hue<0.0) hsv.hue+=360.0;
+	hsv.value=Math.round(max*100/255);
+	hsv.hue=Math.round(hsv.hue);
+	hsv.saturation=Math.round(hsv.saturation);
+	return hsv;
+}
+
+// RGB2HSV and HSV2RGB are based on Color Match Remix [http://color.twysted.net/]
+// which is based on or copied from ColorMatch 5K [http://colormatch.dk/]
+function HSV2RGB(hsv)
+{
+	var rgb=new Object();
+	if (hsv.saturation==0) {
+		rgb.r=rgb.g=rgb.b=Math.round(hsv.value*2.55);
+	} else {
+		hsv.hue/=60;
+		hsv.saturation/=100;
+		hsv.value/=100;
+		i=Math.floor(hsv.hue);
+		f=hsv.hue-i;
+		p=hsv.value*(1-hsv.saturation);
+		q=hsv.value*(1-hsv.saturation*f);
+		t=hsv.value*(1-hsv.saturation*(1-f));
+		switch(i) {
+			case 0: rgb.r=hsv.value; rgb.g=t; rgb.b=p; break;
+			case 1: rgb.r=q; rgb.g=hsv.value; rgb.b=p; break;
+			case 2: rgb.r=p; rgb.g=hsv.value; rgb.b=t; break;
+			case 3: rgb.r=p; rgb.g=q; rgb.b=hsv.value; break;
+			case 4: rgb.r=t; rgb.g=p; rgb.b=hsv.value; break;
+			default: rgb.r=hsv.value; rgb.g=p; rgb.b=q;
+		}
+		rgb.r=Math.round(rgb.r*255);
+		rgb.g=Math.round(rgb.g*255);
+		rgb.b=Math.round(rgb.b*255);
+	}
+	return rgb;
+}
+
+//Adding HueShift via Jacob (see comments)
+function HueShift(h,s)
+{
+	h+=s; while (h>=360.0) h-=360.0; while (h<0.0) h+=360.0; return h;
+}
+
+//min max via Hairgami_Master (see comments)
+function min3(a,b,c) {
+
+	return (a<b)?((a<c)?a:c):((b<c)?b:c);
+}
+function max3(a,b,c) {
+
+	return (a>b)?((a>c)?a:c):((b>c)?b:c);
+}
+
+function wrapFac(prMeta, rgbval)
+{
+	if (dotList.length % 2) return Math.floor(rgbval);
+
+    var partRadius = 200 * prMeta[3];
+	var val = Math.max(160, Math.floor(partRadius + rgbval) % 255);
+//console.log('RGBRAD partRadius ' + partRadius + '-> ' + val);
+	return val;
+/*
+        var fac = 1.0 + prMeta[3];
+console.log('RGBRAD frac ' + fac);
+	return Math.max(140, Math.floor(fac * rgbval) % 255);
+*/
+}
+
+function greyBase(dot, prMeta, day, hour, millis)
+{
+	var msg = "B:GREY|";
+
+	var val = 255; // white
+	if (dotList.length > 0) {
+		var dt = dot.time - dotList[0].time;
+		val = 144 + (dt * dt * dt) % 100; // 144==background
+	}
+	msg += 'bw' + val + '|';
+			
+/*
+	var val = 144; // value of background
+	if (dotList.length > 30) {
+		val = 255;
+	} else {
+		val += Math.floor(1.7 * dotList.length);
+	}
+*/
+
+	if (hour < 8  ||  hour > 18) { // 'night'
+		if (hour < 6  &&  hour > 2) { // 'nightowl'
+			msg += 'nightowl-5|';
+			val -= 5;
+		} else {
+			msg += 'night|';
+		}
+	} else {
+		msg += 'dayhr' + hour + '|';
+	}
+
+	if (day == 0  ||  day == 6) { // weekend
+		msg += 'wknd+5|';
+		val += 5;
+	}
+
+	if (millis % 2 == 0) {
+		// saves screening others
+	} else if (millis % 3 == 0) {
+		val -= 1;
+	} else if (millis % 5 == 0) {
+		val -= 3;
+	}
+	val = wrapFac(prMeta, val);
+
+//console.log('millis ' + millis);
+console.log('BW val ' + val);
+
+	msg += 'bw' + val + '|';
+
+	return [ "rgba(" + val + "," + val + "," + val + ",", msg ];
+}
+
+function greyTailBase(dot, prMeta, day, hour, millis)
+{
+	var complRGB = colorBaseArr(prMeta, dot.vel);
+
+	r = complRGB[0];
+	g = complRGB[1];
+	b = complRGB[2];
+
+	r = wrapFac(prMeta, r);
+	g = wrapFac(prMeta, g);
+	b = wrapFac(prMeta, b);
+
+	return [ "rgba(" + r + "," + g + "," + b + ",", "B:GTB|" ];
+}
+
+function redBase(dot, prMeta, day, hour, millis)
+{
+	var msg = 'B:red|';
+
+	// peak = ~red, modified by day of week and time
+	// RGB red:    255,0,0
+	// RGB orange: 255,90,10
+	// RYB red:    254,39,18
+
+	var val1 = 0;
+	var val2 = 0;
+
+	if (hour < 8  ||  hour > 18) { // 'night'
+		msg += 'night|';
+		if (hour < 6  &&  hour > 2) { // 'nightowl'
+			msg += 'owl|';
+			val1 = 90;
+			val2 = 10;
+		} else {
+			val1 = 40;
+			val2 = 15;
+		}
+
+		if (millis % 2 == 0) {
+			// saves screening others
+		} else if (millis % 3 == 0) {
+			val1 -= 5;
+		} else if (millis % 5 == 0) {
+			val1 -= 10;
+		} else if (millis % 7 == 0) {
+			val1 -= 15;
+		}
+	} else { // 'day'
+		msg += 'day|';
+		if (hour > 11  &&  hour < 13) { // 'lunch'
+			msg += 'lunch|';
+			val1 += 25;
+		} else if (hour < 11) {
+			msg += 'am|';
+			val1 += 18;
+		} else {
+			msg += 'pm|';
+			val1 += 45;
+		}
+		if (millis % 2 == 0) {
+			// screen
+		} else if (millis % 3 == 0) {
+			val1 += 2;
+		} else if (millis % 5 == 0) {
+			val2 = 25;
+		}
+	}
+
+	val1 = wrapFac(prMeta, val1);
+	val2 = wrapFac(prMeta, val2);
+
+	return [ "rgba(254," + val1 + "," + val2 + ",", msg ];
+}
+
+function grnyelBase(dot, prMeta, day, hour, millis)
+{
+	var msg = 'B:grnyel|';
+
+	// 55,255,55 = RGB green
+	// 102,176,50 = RYB green
+
+	// 255,255,0 = RGB yellow
+	// 254,254,51 = RYB yellow
+
+	// 178,215,50 = RYB y/g
+
+	var val1 = 75;
+	var val2 = 55;		
+
+	if (hour < 8  ||  hour > 18) { // 'night'
+		msg += 'night|';
+		if (hour < 6  &&  hour > 2) { // 'nightowl'
+			msg += 'owl|';
+			val1 += 100;
+			val2 -= 20;
+		} else {
+			val1 += 5;
+			val2 -= 3;
+		}
+
+		if (millis % 2 == 0) {
+			// saves screening others
+		} else if (millis % 3 == 0) {
+			val1 += 7;
+			val2 -= 3;
+		} else if (millis % 4 == 0) {
+			val1 += 12;
+			val2 -= 5;
+		} else if (millis % 5 == 0) {
+			val1 += 17;
+			val2 -= 8;
+		}
+	} else { // 'day'
+
+		msg += 'day|';
+
+		if (hour > 11  &&  hour < 13) { // 'lunch'
+			msg += 'lunch|';
+			//
+		} else if (hour < 11) {
+			msg += 'am|';
+			val1 += 25;
+			val2 -= 5;
+		} else {
+			msg += 'pm|';
+			val1 += 8;
+			val2 -= 3;
+		}
+
+		if (millis % 2 == 0) {
+			// screen
+		} else if (millis % 3 == 0) {
+			val1 += 1;
+			val2 -= 2;
+		} else if (millis % 4 == 0) {
+			val1 += 10;
+			val2 -= 9;
+		}
+	}
+
+	val1 = wrapFac(prMeta, val1);
+	val2 = wrapFac(prMeta, val2);
+
+	return [ "rgba(" + val1 + "," + "255," + val2 + ",", msg ];
+}
+
+function blueBase(dot, prMeta, day, hour, millis)
+{
+	var msg = 'B:blue|';
+
+	// ~blue = 0, 191, 255 to 0, 64, 255
+
+	var val1 = 0;
+	var val2 = 120;
+	var val3 = 255;
+
+	if (hour < 8  ||  hour > 18) { // 'night'
+		msg += 'night|';
+		if (hour < 6  &&  hour > 2) { // 'nightowl'
+			msg += 'owl|';
+			val2 = 90;
+		} else {
+			val2 = 64;
+		}
+	} else {
+		msg += 'day|';
+		if (hour > 11  &&  hour < 13) { // 'lunch'
+			msg += 'lunch|';
+			val2 += 25;
+		} else if (hour < 11) {
+			msg += 'am|';
+			val2 += 20;
+		} else {
+			msg += 'pm|';
+			val2 += 15;
+		}
+	}
+	if (millis % 2 == 0) {
+		val1 += 15;
+	} else if (millis % 3 == 0) {
+		val2 -= 15;
+		val3 -= 15;
+	} else if (millis % 5 == 0) {
+		val1 += 12;
+		val2 -= 12;
+		val3 -= 12;
+	} else if (millis % 7 == 0) {
+		val1 += 22;
+		val2 -= 15;
+		val3 -= 25;
+	}
+
+	val1 = wrapFac(prMeta, val1);
+	val2 = wrapFac(prMeta, val2);
+	val3 = wrapFac(prMeta, val3);
+
+	return [ "rgba(" + val1 + "," + val2 + "," + val3 + ",", msg ];
+}
+
+function minChannel(prMeta)
+{
+	var min = 0;
+
+	if (prMeta[1] < prMeta[0]) {
+		if (prMeta[2] < prMeta[1]) {
+			min = 2;
+		} else {
+			min = 1;
+		}
+	} else if (prMeta[2] < prMeta[0]) {
+		min = 2;
+	}
+	if (min != 1  &&  2 * prMeta[1] < prMeta[0] + prMeta[2]) {
+		console.log('HAH/min');
+		min = 1;
+	}
+	return min;
+}
+
+function maxChannel(prMeta)
+{
+	var max = 0;
+	if (prMeta[1] > prMeta[0]) {
+		if (prMeta[2] > prMeta[1]) {
+			max = 2;
+		} else {
+			max = 1;
+		}
+	} else if (prMeta[2] > prMeta[0]) {
+		max = 2;
+	}
+	if (max != 1  &&  2 * prMeta[1] > prMeta[0] + prMeta[2]) {
+		console.log('HAH/max');
+		max = 1;
+	}
+	return max;
+}
+
+var spiralRGB = null;
+
+function colorSpiralBase(dot, prMeta, day, hour, millis)
+{
+//var t0 = new Date();
+//console.log('SPIRAL base');
+	if (dotList.length == 0  ||  spiralRGB == null) {
+
+		spiralRGB = colorBaseArr(prMeta, dot.vel);
+
+		var min = minChannel(spiralRGB);
+		spiralRGB[min] = Math.trunc(0.7 * spiralRGB[min]);
+		var max = maxChannel(spiralRGB);
+		spiralRGB[max] = Math.trunc(1.3 * spiralRGB[max]) % 255;
+		spiralRGB.time = dot.time;
+//console.log('SETUP ' + (new Date()-t0));
+	}
+	var dt = dot.time - spiralRGB.time;
+	var sin = Math.sin(dt);
+	var cos = Math.cos(dt);
+
+//console.log('GEOM ' + (new Date()-t0));
+	var r, g, b;
+	if (dt % 2 == 0) {
+		r = spiralRGB[0] + (0.5 * sin * spiralRGB[0]);
+		g = spiralRGB[1] + (0.5 * cos * spiralRGB[1]);
+		b = spiralRGB[2] + (0.5 * cos * spiralRGB[2]);
+	} else if (dt % 3 == 0) {
+		r = spiralRGB[0] + (0.5 * cos * spiralRGB[0]);
+		g = spiralRGB[1] + (0.5 * cos * spiralRGB[1]);
+		b = spiralRGB[2] + (0.5 * sin * spiralRGB[2]);
+	} else {
+		r = spiralRGB[0] + (0.5 * sin * spiralRGB[0]);
+		g = spiralRGB[1] + (0.5 * sin * spiralRGB[1]);
+		b = spiralRGB[2] + (0.5 * cos * spiralRGB[2]);
+	}
+
+//console.log('SPIRAL ' + (new Date()-t0));
+	if (dot.accel > 2) {
+		var fac = 0.5;
+		if (dot.accel > 3) {
+			fac = 0.33;
+		}
+		r = 255 - fac * r;
+		g = 255 - fac * g;
+		b = 255 - fac * b;
+		//r *= fac; g *= fac; b *= fac;
+	}
+
+	r = wrapFac(prMeta, r);
+	g = wrapFac(prMeta, g);
+	b = wrapFac(prMeta, b);
+
+	return [ "rgba(" + r + "," + g + "," + b + ",", 'B:spiral|' ];
+}
+
+function colorTailBase(dot, prMeta, day, hour, millis)
+{
+
+	if (dotList.length > 16) {
+
+		return greyTailBase(dot, prMeta, day, hour, millis);
+
+	}
+
+	// color 'head'
+
+	// pick min(r,g,b)
+	var min = minChannel(prMeta);
+
+/*
+	// pick max(r,g,b)
+	var max = 0;
+	if (prMeta[1] > prMeta[0]) {
+		if (prMeta[2] > prMeta[1]) {
+			max = 2;
+		} else {
+			max = 1;
+		}
+	} else if (prMeta[2] > prMeta[0]) {
+		max = 2;
+	}
+	if (max != 1  &&  2 * prMeta[1] > prMeta[0] + prMeta[2]) {
+		console.log('HAH');
+		max = 1;
+	}
+*/
+	var res;
+	switch (min) {
+		case 0:
+			res = redBase(dot, prMeta, day, hour, millis);
+			break;
+		case 1:
+			res = grnyelBase(dot, prMeta, day, hour, millis);
+			break;
+		case 2:
+			res = blueBase(dot, prMeta, day, hour, millis);
+			break;
+		default:
+			alert('HUH ' + min);
+	}
+	//return [ res[0], 'HEAD' + max + '|' + res[1] ];
+	return [ res[0], 'HEAD' + min + '|' + res[1] ];
+}
+
+function colorBase(dot, prMeta, day, hour, millis)
+{
+	var res = null;
+
+	if (dot.accel > 1) {
+		if (dot.vel > 90) {
+			res = blueBase(dot, prMeta, day, hour, millis);
+		} else {
+			res = grnyelBase(dot, prMeta, day, hour, millis);
+		}
+	} else if (dot.vel > 15  &&  dot.accel > 0) {
+		res = redBase(dot, prMeta, day, hour, millis);
+	} else if (dot.vel < dot.size) {
+		res = grnyelBase(dot, prMeta, day, hour, millis);
+	} else if (dot.vel > 15) {
+		res = blueBase(dot, prMeta, day, hour, millis);
+	} else {
+
+		var val;
+		if (dotList.length % 2) {
+			val = 255 - millis % 5;
+		} else {
+			val = millis % 4;
+		}
+		val = wrapFac(prMeta, val);
+
+		res = [ "rgba(" + val + "," + val + "," + val + ",",
+			'else=grey|' ];
+	}
+
+	return [ res[0], 'B:CB|' + res[1] ];
+}
+
+var colorDraw = true;
+/*
+function toggleColorDraw()
+{
+    colorDraw = !colorDraw;
+    if (colorDraw) {
+        document.getElementById("menu_radio_color_draw").innerHTML =
+            "Draw: use grey";
+    } else {
+        document.getElementById("menu_radio_color_draw").innerHTML =
+            "Draw: use colors";
+    }
+}
+*/
+
+var isMobile = false; // big change to enable
+
+function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile, caller)
+{
+console.log('placeDot ' + caller + ' scrn ' + scrn + ' xy ' + x + ',' + y +
+' mouseDown ' + mouseDown);
+
+	// if (isMobile) { figure out which scrn==pic x,y in, for color match }
+
+//if (waitingDisplays != 0  ||  enterBig != null) {
+//console.log('placeDot: skip/waiting: ' + waitingDisplays + ' eb ' + enterBig);
+//return;
+//}
+	var t0 = new Date();
+
+	if (dotList.length == 0) {
+/*
+        if (dialogRating == -1) {
+            alert("Must rate before drawing");
+            mouseDown = false;
+            return;
+        }
+*/
+		dotSpeed = 1;
+	}
+	var dot = document.createElement('div');
+	dot.className = "dot";
+	dot.time = now;
+	dot.x = x;
+	dot.y = y;
+	dot.style.left = x + "px";
+    dot.style.top = y + "px";
+    if (startsize == -1  &&  cutdistsq == -1) {
+        // mouseup
+        dot.mouseUp = true;
+		dotList.push(dot);
+		return;
+    }
+	if (cacheDots) {
+		dotList.push(dot);
+		console.log('N ' + dotList.length);
+		return;
+	}
+
+	dot.dist = 0;
+	dot.vel = 0;
+	dot.accel = 0;
+
+	var prevDot = null;
+	var pprevDot = null;
+	var angle = null;
+
+	var msg = "";
+	var facmsg = "";
+
+	var sizeFac = null;
+	if (dotList.length > 0) {
+
+		prevDot = dotList[dotList.length-1];
+
+		var dt = dot.time - prevDot.time;
+		if (dt == 0) {
+			console.log('SKIP dt 0');
+			return;
+		}
+
+		var dx = prevDot.x - dot.x;
+		var dy = prevDot.y - dot.y;
+
+		var distsq = dx*dx + dy*dy;
+
+		if (distsq < cutdistsq) {
+			console.log('d2='+distsq+' < cut=' + cutdistsq +
+				' / skip dot');
+			return;
+		}
+
+		dot.dist = Math.sqrt(distsq); // sqrt/vel/accel at end?
+
+		if (dot.dist < startsize) {
+			if (dotList.length % 2) {
+				console.log('d < ss + even: skip dot');
+				return;
+			}
+			msg += '[d<ss]|';
+		}
+
+		dot.vel = (100 * dot.dist) / dt;
+		dot.accel = dot.vel - prevDot.vel;
+                dot.jerk = Math.abs(dot.accel) - Math.abs(prevDot.accel);
+
+		if (dot.vel > prevDot.vel) {
+			facmsg += 'vel>prev|';
+			sizeFac = 1 + Math.log(1.5 + dot.vel / prevDot.vel);
+//console.log('FAC v/v ' + dot.vel + ' / ' + prevDot.vel + ' -> ' + sizeFac);
+		} else {
+			var dd = dot.dist - prevDot.dist;
+			var a = Math.abs(dd / (dot.dist + prevDot.dist));
+//console.log('FAC dd/a ' + dd + ' , ' + a);
+			facmsg += 'a=' + (Math.floor(100*a)/100) + '|';
+			if (a > 0.2) {
+				facmsg += 'a>.2|';
+				sizeFac = 2 + 1.0 / (1.0 + Math.abs(5-a));
+			} else if (a > 0.1) {
+				facmsg += 'a>.1|';
+				sizeFac = 1 + a;
+			} else if (a > 0.01) {
+				facmsg += 'a>.01|';
+				sizeFac = 0.8 + 20 * a;
+			} else {
+				facmsg += 'a/else|';
+				sizeFac = 0.5;
+			}
+		}
+		if (dotList.length > 1) {
+			pprevDot = dotList[dotList.length-2];
+			angle = Math.atan2(dot.y-prevDot.y,
+						dot.x-prevDot.x) -
+				Math.atan2(pprevDot.y-prevDot.y,
+						pprevDot.x-prevDot.x);
+			angle = (angle * 180) / Math.PI;
+/*
+			if (angle < 0) {
+				angle = 360 + angle;
+console.log("ANG+360 " + angle);
+			} else if (angle > 180) {
+				angle = 360 - angle;
+console.log("ANG-360 " + angle);
+			} else {
+console.log("ANG " + angle);
+			}
+*/
+			var histBin = Math.abs(Math.floor(angle/10.0));
+//console.log("ANG " + angle + "  BIN " + histBin);
+			angleHist[histBin] += 1;
+		}
+	}
+
+	// display
+
+	var size = null;
+	if (dot.dist < startsize) {
+//console.log('DIST ' + dot.dist + ' < ss ' + startsize);
+		msg += 'sz:d<ss|';
+		sizeFac = null;
+		facmsg = null;
+		if (millis % 2 == 0) {
+			size = Math.ceil(0.8 * dot.dist);
+		} else if (millis % 3 == 0) {
+			size = Math.ceil(0.7 * dot.dist);
+		} else if (millis % 5 == 0) {
+			size = Math.ceil(0.6 * dot.dist);
+		} else {
+			size = Math.ceil(0.5 * dot.dist);
+		}
+	} else if (sizeFac != null) {
+//console.log('FAC ' + sizeFac + ' * ss ' + startsize);
+		msg += 'sz:sf[' + facmsg + '=>' + (Math.floor(100*sizeFac)/100);
+		size = Math.ceil(startsize * sizeFac);
+		if (dot.dist > size * 3) {
+			msg += 'dist>sz*3';
+			size *= 2.5;
+		}
+		msg += ']';
+	} else if (dot.vel > 2.0) {
+		msg += 'sz:dv>2|';
+		size = startsize * 4;
+	} else if (dot.vel > 1.0) {
+		msg += 'sz:dv>1|';
+		size = startsize * 3;
+	} else if (dot.vel > 0.5) {
+		msg += 'sz:dv>.5|';
+		size = startsize * 2;
+	} else if (dot.vel > 0.2) {
+		msg += 'sz:dv>.2|';
+		size = Math.ceil(1.5 * startsize);
+	} else  {
+		msg += 'sz:dv/else|';
+		size = Math.ceil(0.5 * startsize);
+	}
+	if (size > dot.dist) {
+		msg += 'sz->dist|';
+		size = dot.dist;
+	}
+	if (size < 2) {
+		size = 2;
+		msg += 'sz=>2';
+	} else if (isMobile) {
+		if (size > 45) {
+			if (size > 60  &&  Math.random() < 0.3) {
+				msg += 'sz=>60';
+				size = 60;
+			} else {
+				msg += 'sz=>45';
+				size = 45;
+			}
+		}
+	} else if (size > 22  ||  size > dot.dist) {
+		msg += '>22,>dist|';
+		var limit = Math.min(22, dot.dist);
+		size %= limit;
+	}
+
+	if (prevDot != null  &&  size > 3 * prevDot.size) {
+		msg += '=>3*prev|';
+		size = 2.8 * prevDot.size;
+	}
+	dot.size = Math.ceil(size);
+
+	var dim = dot.size + 'px';
+	msg += '=>' + dim + '|\n';
+
+	dot.style.width = dim;
+	dot.style.height = dim;
+
+//console.log('DIM ' + dim + ' dist ' + dot.dist + ' vel ' + dot.vel + ' sizeFac ' + sizeFac + ' t ' + (new Date()-t0));
+//dot.style.backgroundColor = "red";
+//document.body.appendChild(dot);
+//dotList.push(dot);
+//return;
+
+	var day = now.getDay();
+	var hour = now.getHours();
+	var millis = now.getMilliseconds();
+
+	var key = (scrn % 2 == 0 ? "1." : "0.") + (1+vDepth[scrn])%2;
+//console.log('KEY '  + key);
+	var prMeta = rgbs[key];
+
+	var res; // [base, basemsg]
+	//res = colorSpiralBase(dot, prMeta, day, hour, millis);
+
+	if (!colorDraw) {
+
+		res = greyBase(dot, prMeta, day, hour, millis);
+
+	} else {
+		var dotStyle = prMeta[6];
+		switch(dotStyle) {
+			case 0:
+				res = colorSpiralBase(dot, prMeta,
+							day, hour, millis);
+				break;
+			case 1:
+				if (millis % 2 == 0   ||  millis % 3 == 0) {
+					res = colorTailBase(dot, prMeta,
+							day, hour, millis);
+				} else {
+					res = colorSpiralBase(dot, prMeta,
+							day, hour, millis);
+				}
+				break;
+			case 2:
+				if (millis % 5 == 0) {
+					res = colorSpiralBase(dot, prMeta,
+							day, hour, millis);
+				} else {
+					res = colorBase(dot, prMeta,
+							day, hour, millis);
+				}
+				break;
+			case 3:
+				if (millis % 2 == 0) {
+					res = colorTailBase(dot, prMeta,
+							day, hour, millis);
+				} else if (millis % 3 == 0) {
+					res = colorSpiralBase(dot, prMeta,
+							day, hour, millis);
+				} else {
+					res = colorBase(dot, prMeta,
+							day, hour, millis);
+				}
+				break;
+			case 4:
+				res = colorSpiralBase(dot, prMeta,
+							day, hour, millis);
+				break;
+			case 5:
+			default:
+				res = colorBase(dot, prMeta,
+							day, hour, millis);
+				break;
+		}
+		res[1] = 'cstyle:' + dotStyle + '|' + res[1];
+	}
+
+	var baseColor = res[0];
+	msg += res[1];
+
+	// solid/transparency
+
+	if (dotList.length == 0) {
+		dot.solid = 0.7;
+	} else if (dotList.length < 9) {
+		dot.solid = 0.2 + (0.1 * dotList.length);
+	} else {
+		var reversible = true;
+		if (solidIncrease) {
+			if (prevDot.solid > 0.9) {
+//console.log('solid incr FLIP');
+				msg += 'sol->down|';
+				solidIncrease = !solidIncrease;
+				dot.solid = prevDot.solid - 0.15;
+				reversible = false;
+			} else {
+				msg += 'sol.inc|';
+				dot.solid = prevDot.solid + 0.1;
+				if (dot.solid < 0.7) {
+					reversible = false;
+				}
+			}
+		} else {
+			if (prevDot.solid < 0.5) {
+				msg += 'sol->up|';
+//console.log('solid incr FLIP');
+				solidIncrease = !solidIncrease;
+				dot.solid = prevDot.solid + 0.15;
+				reversible = false;
+			} else {
+				msg += 'sol.dec|';
+				dot.solid = prevDot.solid - 0.1;
+				if (dot.solid > 0.6) {
+					reversible = false;
+				}
+			}
+		}
+		if (reversible  &&  angle != null) {
+
+			if (angle < 160 || angle > 200) {
+				msg += 'sol/ang/flip|';
+//console.log("solid ANG FLIP " + angle);
+				solidIncrease != solidIncrease;
+			}
+		}
+/*
+		var cut1 = 0.2, cut2 = 0.65, f1 = -0.1, f2 = 1;
+		if (mobile) {
+			cut1 = 5; cut2 = 18; f1 = 10; f2 = 5;
+		}
+		if (dot.vel < cut1) {
+			solid = 0.6;
+		} else if (dot.vel > cut2) {
+			solid = 0.8;
+		} else {
+			solid = (dot.vel - f1) / f2;
+console.log('sv ' + solid + ' ' + dot.vel + ' (' + f1 + ' / ' + f2 + ')');
+		}
+*/
+	}
+
+/*
+	solid += 0.1 * (millis % 5) / 7;
+
+	if (hour < 8  ||  hour > 18) { // 'night'
+		if (hour < 6  &&  hour > 2) { // 'nightowl'
+			solid -= 0.1;
+		} else {
+			solid -= 0.05;
+		}
+		if (solid > 0.9) {
+			console.log('***** ** ** trim solid ' + solid);
+			solid = 0.9;
+		}
+	} else {
+		if (solid < 0.7) {
+			if (!isMobile) solid += 0.2;
+		} else if (solid > 0.91) {
+			console.log('***** ** ** trim solid ' + solid);
+			solid = 0.91;
+		}
+	}
+*/
+	dot.solid = Math.round(dot.solid * 100) / 100;
+    if (isNaN(dot.solid)) {
+		dot.solid = 0.2 + (0.1 * dotList.length);
+    }
+
+	var colstr = baseColor + dot.solid + ")";
+//console.log('DOT ' + prMeta + '\n' + msg + '\n=> ' + colstr);
+	dot.style.backgroundColor = colstr;
+
+	var t1 = new Date()-t0;
+	document.body.appendChild(dot);
+	dotList.push(dot);
+
+	var gap = 0;
+	if (dotList.length > 1) {
+		gap = dot.time - dotList[dotList.length-2].time;
+	}
+
+        if (gap > 700) {
+		if (gap > 1400  ||  Math.random() < 0.5) {
+			var tmp = Math.floor(Math.random() * 6);
+			console.log('GAP->NEW TYPE ' +
+				prMeta[6] + ' -> ' + tmp);
+			prMeta[6] = tmp;
+		}
+        }
+	if (dotList.length == 5) {
+		startDotGibber(true); // 'slow'
+	}
+console.log('dot ' + dotList.length +
+' color ' + colstr +
+'\nv ' + dot.vel +
+'\nt ' + t1 + ' ' + (new Date()-t0));
+}
+
+// reset by reDot()
+var dialogRating = -1;
+
+function dialogApproval(status)
+{
+  // change of mind unrecorded for now
+  console.log('diapp ' + dialogRating + '->' + status);
+  dialogRating = status;
+}
+
+function dotSide(dot)
+{
+    var side = 1;
+    if (tileId == 3) { // stacked
+        if (dot.y > window.innerHeight / 2) { // very? approx
+            return 4;
+        }
+        return 3;
+    }
+    if (dot.x > window.innerWidth / 2) {
+        return 2;
+    }
+    return 1;
+}
+
+var goNeg = false; // not used in curate
+var watchDots = false; // not used in curate
+
+function launchOrWaitDotty(src)
+{
+  if (!watchDots) {
+    console.log("launchOrWaitDotty(" + src + "): watchDots false");
+    return;
+  }
+/*
+  var side1 = dotSide(dotList[0]);
+  var i = dotList.length-1;
+  while (i > 0  &&  dotList[i].mouseUp) i--;
+  var lastDot = dotList[i]; // made an effort
+  var side2 = dotSide(lastDot);
+
+  if (dialogRating == -1) {
+    console.log("Defaulting rating to unapprove");
+    dialogRating = 2;
+
+  } else if (dialogRating < 0  ||  dialogRating > 2) {
+    alert('Dialog rating not set: ' + dialogRating);
+    mouseDown = false;
+    return;
+  }
+
+  var cmd = 100 + dialogRating;
+  var cmt = src + (goNeg ? '/neg' : '');
+
+  if (waitingDotty > 0) {
+
+    waitingDotty = 0;
+
+    bigone(side1, side2, cmd, cmt);
+
+  } else {
+    waitingDotty++;
+  }
+*/
+}
+
+function logApproval(status)
+{
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     mouseDown = false;
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+         console.log("approval " + xmlHttp.responseText);
+      } else {
+            var errtxt = xmlHttp.responseText;
+            var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+            if (errdoc != null) {
+                errtxt = errdoc.title;
+            }
+            console.log(""+xmlHttp.status + ": " + errtxt);
+            if (xmlHttp.status < 500) {
+                alert(errtxt);
+            } else if (xmlHttp.status == 500) {
+                if (!suppressPicLoadErr) {
+                    alert("Server error, try reloading page (1): " + errtxt);
+                }
+                if (xmlHttp.responseText.includes("Failed to generate session tag.")) {
+                    var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+                    console.log("server lost session " + sessionKey);
+                    sessionID = "none";
+                    setCookie(sessionKey, sessionID);
+                    suppressPicLoadErr = true;
+                }
+            } else {
+                alert(errtxt);
+            }
+            return;
+      }
+
+    }
+  };
+  try {
+    var v1Depth, v2Depth;
+    if (tileId < 3) {
+      v1Depth = vDepth[1];
+      v2Depth = vDepth[2];
+    } else {
+      v1Depth = vDepth[3];
+      v2Depth = vDepth[4];
+    }
+    var params = "sess=" + sessionID +
+		"&p1=1." + v1Depth +
+        "&p2=2." + v2Depth +
+        "&st=" + status + "\n";
+
+    console.log(params);
+    var url = servletRoot + "/logap";
+    xmlHttp.onreadystatechange=function() {
+      if(xmlHttp.readyState==4) {
+        if (xmlHttp.status == 200) {
+          console.log("STATUS: " + xmlHttp.responseText);
+          if (!xmlHttp.responseText.startsWith("logged:")) {
+            alert(xmlHttp.responseText);
+          }
+        } else {
+            var errtxt = xmlHttp.responseText;
+            var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+            if (errdoc != null) {
+                errtxt = errdoc.title;
+            }
+            console.log(""+xmlHttp.status + ": " + errtxt);
+            if (xmlHttp.status < 500) {
+                alert(errtxt);
+            } else if (xmlHttp.status == 500) {
+                alert("Server error, try reloading page.");
+            } else {
+                if (!suppressPicLoadErr) {
+                  alert("Server error, try reloading page (1): " + errtxt);
+                }
+            }
+            return;
+        }
+      }
+//console.log('GOT ' + xmlHttp.readyState + '/' + xmlHttp.status);
+    };
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+function extrap(doit)
+{
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  try {
+    var v1Depth, v2Depth;
+    if (tileId < 3) {
+      v1Depth = vDepth[1];
+      v2Depth = vDepth[2];
+    } else {
+      v1Depth = vDepth[3];
+      v2Depth = vDepth[4];
+    }
+    var params = "sess=" + sessionID +
+		"&p1=1." + v1Depth +
+        "&p2=2." + v2Depth;
+    if (doit) {
+      params += "&st=extrapD\n";
+    } else {
+      params += "&st=extrapQ\n";
+    }
+
+    console.log(params);
+    var url = servletRoot + "/logap";
+    xmlHttp.onreadystatechange=function() {
+      if(xmlHttp.readyState==4) {
+        if (xmlHttp.status == 200) {
+          console.log("STATUS: " + xmlHttp.responseText);
+          if (xmlHttp.responseText.startsWith("log:")) {
+            alert(xmlHttp.responseText);
+          } else if (xmlHttp.responseText.startsWith("logged:")) { // nothing
+          } else if (xmlHttp.responseText.indexOf("DONE") != -1) {
+              alert(xmlHttp.responseText);
+          } else {
+            var conf = confirm(xmlHttp.responseText);
+            if (conf) {
+              extrap(true);
+            }
+          }
+        } else {
+            var errtxt = xmlHttp.responseText;
+            var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+            if (errdoc != null) {
+                errtxt = errdoc.title;
+            }
+            console.log(""+xmlHttp.status + ": " + errtxt);
+            if (xmlHttp.status < 500) {
+                alert(errtxt);
+            } else if (xmlHttp.status == 500) {
+                alert("Server error, try reloading page.");
+            } else {
+                if (!suppressPicLoadErr) {
+                alert("Server error, try reloading page (1): " + errtxt);
+                }
+            }
+            return;
+        }
+      }
+    };
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+function resizeImg0()
+{
+  console.log("resizeImg0");
+
+  var tot_height = window.innerHeight;
+  var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
+
+  var td = document.getElementById("td0");
+  td.setAttribute("height", avail_height);
+
+  var img = document.getElementById("image0");
+
+  if (isAndroid || isIphone) {
+    img.style.opacity = "1.0";
+    return;
+  }
+
+  if (img.height > avail_height) {
+
+    console.log("resize height " + img.height + " to " + avail_height +
+                " tot_height " + window.innerHeight);
+
+    var scaled_width = (avail_height / img.height) * img.width;
+
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = scaled_width;
+    canvas.height = avail_height;
+    var tmp = new Image();
+    tmp.src = img.src;
+    context = canvas.getContext( '2d' );
+    context.drawImage( tmp, 0, 0, scaled_width, avail_height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+
+  }
+  img.onmousedown = disableDragging; // for FF
+  img.style.opacity = "1.0";
+}
+
+
+var mouseCount = 0;
+var prevT = null;
+var prevX = null, prevY;
+var rMax = 0;
+
+var dTot = 0;
+var maxVel = 0;
+var distMaxVel = 0;
+var timeMaxVel = 0;
+var lastVel = 0;
+var lastAcc = 0;
+var maxAcc = 0;
+var minAcc = 0;
+var maxJerk = 0;
+var maxX = 0;
+var minX = 0;
+var maxY = 0;
+var minY = 0;
+var accumX = 0;
+var accumY = 0;
+var lastClickX = 0;
+var lastClickY = 0;
+
+var picCount = 0;
+var pixInPic = 0;
+var pixOutPic = 0;
+var prevTime;
+var startNext;
+var imageLoaded = -1;
+
+function disableDragging(e)
+{
+  e.preventDefault();
+  mdown();
+}
+
+var gibIndex = 0;
+var dotGibberTimer = null;
+
+var methid = 0;
+
+function swapDot(somenum, dot1, dot2)
+{
+	switch(methid) {
+	case 0:
+		var num = somenum % 3;
+		if (num == 0  ||  num == 2) {
+			var tmp = dot1.style.backgroundColor;
+			dot1.style.backgroundColor = dot2.style.backgroundColor;
+			dot2.style.backgroundColor = tmp;
+		}
+		if (num == 1  ||  num == 2) {
+			var tmp = dot1.size;
+			dot1.size = dot2.size;
+			var dim = dot1.size + 'px';
+			if (somenum % 3) {
+				dot1.style.height = dim;
+			}
+			if (somenum % 2) {
+				dot1.style.width = dim;
+			}
+
+			dot2.size = tmp;
+			dim = dot2.size + 'px';
+			// just do one for wobble; size will correct it
+			if (somenum % 2) {
+				dot2.style.height = dim;
+			}
+			if (somenum % 3) {
+				dot2.style.width = dim;
+			}
+		}
+		break;
+	case 1:
+	default:
+		var tmp = dot1.style.backgroundColor;
+		dot1.style.backgroundColor = dot2.style.backgroundColor;
+		dot2.style.backgroundColor = tmp;
+
+		tmp = dot1.size;
+		dot1.size = dot2.size;
+		var dim = dot1.size + 'px';
+		dot1.style.width = dim;
+		dot1.style.height = dim;
+
+		dot2.size = tmp;
+		dim = dot2.size + 'px';
+		// just do one for wobble; size will correct it
+		if (somenum % 2) {
+			dot2.style.height = dim;
+		}
+		if (somenum % 3) {
+			dot2.style.width = dim;
+		}
+
+		break;
+	}
+}
+
+function dotGibber()
+{
+//var t0 = new Date();
+
+	var dotCount = dotList.length;
+	if (new Date() % 2) {
+		//console.log('MOD2 dc ' + dotCount);
+		if (dotCount % 2) {
+			var bound = dotCount / 2;
+			for (var i=0; i<bound; i++) {
+				var dot = dotList[i];
+				var next = dotList[dotCount - 1 - i];
+				swapDot(Math.floor((Math.random() * 10) + 1),
+						dot, next);
+			}
+		} else {
+			for (var i=0; i<dotCount; i++) {
+				var dot = dotList[i];
+				var next = i + 1;
+				if (next == dotCount) {
+					next = 0;
+				}
+				next = dotList[next];
+				swapDot(Math.floor((Math.random() * 10) + 1),
+						dot, next);
+			}
+		}
+	} else {
+		//console.log('MOD1 dc ' + dotCount);
+		if (dotCount % 2) {
+			for (var i=dotCount-1; i>-1; i--) {
+				var dot = dotList[i];
+				var next = i - 1;
+				if (next == -1) {
+					next = dotCount-1;
+				}
+				next = dotList[next];
+
+				swapDot(Math.floor((Math.random() * 10) + 1),
+						dot, next);
+//console.log('dot.size ' + dot.size + ' N ' + dotCount + ' next ' + next);
+			}
+		} else {
+			var bound = Math.floor(dotCount / 2);
+			for (var i=0; i<bound; i++) {
+				var dot = dotList[i];
+				var next = dotList[dotCount - 1 - i];
+
+				swapDot(Math.floor((Math.random() * 10) + 1),
+						dot, next);
+			}
+		}
+	}
+	if (lastGibberStart != null) {
+		var r = Math.random();
+		var impatient = 2500 + Math.floor(r * 2500);
+		if (new Date() - lastGibberStart > impatient) {
+			startDotGibber(r<0.5);
+		}
+	}
+
+/*
+	var mult1 = 1.25;
+	var mult2 = 0.8;
+	if (dotCount % 2) {
+		mult1 = 0.8;
+		mult2 = 1.25;
+	}
+	for (var i=0; i<dotCount; i++) {
+		var dot = dotList[i];
+		//document.body.removeChild(dotList[i]);
+		var mult = mult1;
+		if (i%2) {
+			mult = mult2;
+		}
+		dot.size = Math.ceil(mult * dot.size);
+
+		var dim = dot.size + 'px';
+
+		dot.style.width = dim;
+		dot.style.height = dim;
+	}
+*/
+//console.log('gib ' + (new Date()-t0));
+}
+
+var lastGibberStart = null;
+
+function startDotGibber(slow)
+{
+	clearInterval(dotGibberTimer);
+	dotGibberTimer = null;
+
+	if (dotList.length < 2) return;
+
+	gibIndex = 0;
+
+	var msg = "";
+	var delay;
+
+	if (slow) {
+		var aDot = dotList[Math.floor(dotList.length*Math.random())];
+		if (aDot.vel > 90) {
+			msg = 'a.vel>90';
+			delay = 800;
+		} else {
+			var acc = Math.sqrt(Math.abs(aDot.accel));
+			if (acc > 5) {
+				acc = 3;
+			}
+			msg = 'a.vel<90,a=' + acc;
+			delay = Math.floor(600 + acc * 100);
+		}
+	} else {
+		msg = 'time/draw';
+		delay = 400 + (dotList[dotList.length-1].time % 200)
+			/ dotSpeed; // rel to dotList[0].time;
+	}
+    delay = Math.floor(delay);
+console.log('GIBBER: ' + msg + ': ' + delay);
+	dotGibberTimer = setInterval(function() { dotGibber(); }, delay);
+	lastGibberStart = new Date();
+}
+
+function reDot()
+{
+    //console.log("REDOT");
+    clearInterval(dotGibberTimer);
+    dotGibberTimer = null;
+    dotSpeed = 0;
+
+    if (!cacheDots) {
+        var dotCount = dotList.length;
+        for (var i=0; i<dotCount; i++) {
+            var dot = dotList[i];
+            if (!dot.mouseUp) document.body.removeChild(dotList[i]);
+        }
+    }
+//console.log(angleHist);
+    gibIndex = 0;
+    dotList = [];
+    spiralRGB = null;
+    angleHist = new Array(36).fill(0);
+    dialogRating = -1;
+}
+
+function nextImage0(rating)
+{
+  console.log("nextImage0: " + rating);
+
+  md = null;
+  mdK = null;
+
+  startNext = new Date();
+
+  var clickTime = -1;
+  if (mdown_time != null) {
+    var now = new Date();
+    clickTime = now - mdown_time;
+    mdown_time = null;
+  }
+
+  var vecX = 0;
+  var vecY = 0;
+  if (mouseCount > 0) {
+    // console.log("acc " + accumX + "/" + accumY + " " + mouseCount + "\n" +
+                   // lastClickX + "/" + lastClickY);
+    vecX = (accumX / mouseCount) - lastClickX;
+    vecY = (accumY / mouseCount) - lastClickY;
+    mouseCount = 1;
+  }
+
+  //console.log("rating " + rating);
+  var interval = 0;
+  if (prevTime) {
+    interval = new Date() - prevTime;
+  }
+
+  var newimg = new Image();
+  newimg.onerror=function(evt) {
+    alert("Image load problem: try refreshing page or returning to Home and choosing a view");
+  }
+  newimg.onload=function() {
+    if (newimg.height == 1  &&  newimg.width == 1) {
+
+      // empty.jpg
+      var conf = confirm("DONE with view. You can enable pic repeats, start over or, or change views. Start over?");
+      if (conf) {
+        getSessionId(false, false);
+      }
+      return;
+    }
+    console.log("loaded");
+
+    imgRcvdPrev[0] = imgRcvd[0];
+    imgRcvd[0] = newimg;
+    vDepth[0] = 0;
+    drawOne();
+  }
+
+  dTot = Math.round(dTot);
+
+  var lox = [ "na", "na" ];
+
+  if (rating == 4) {
+    var img = document.getElementById("image0");
+    lox = getLox(img);
+  }
+
+  var url = servletRoot +"/getnext";
+  // TODO - add lots and binhex it
+  var togSide = togL + togR;
+  if (togSide === '') {
+    togSide = 'na';
+  }
+
+  var dots = summarizeDots(true);
+
+  var params = "?sess=" + sessionID +
+		"&ct=" + picCount +
+		"&dc=0&dd=0&dv=0&da=0&dmv=0&dma=0&dmj=0" +
+		"&pp=" + pixInPic +
+		"&po=" + pixOutPic +
+		"&rating=" + rating +
+		"&t=" + interval +
+		"&t2=" + timeMaxVel +
+        "&w=0&mt=0" +
+		"&dist=" + dTot +
+		"&dist2=" + Math.round(distMaxVel) +
+		"&maxv=" + maxVel +
+		"&maxa=" + maxAcc +
+		"&mina=" + minAcc +
+		"&maxj=" + maxJerk +
+		"&dx=" + (maxX - minX) +
+		"&dy=" + (maxY - minY) +
+		"&vecx=" + Math.round(vecX) +
+		"&vecy=" + Math.round(vecY) +
+		"&loc=" + lox[0] +
+		"&locspec=" + lox[1] +
+		"&ctm=" + clickTime +
+		"&ltm=" + imageLoaded +
+		"&ntog=" + nToggleLast +
+		"&tgs=" + togSide +
+		"&togt=" + togTimesStr() +
+        dots;
+  // start load of image into memory
+  newimg.src = url + params;
+
+  // while waiting, have a good time
+
+  nToggleLast = 0;
+  togTimes = [];
+  lastTogTime = null;
+  togL = "";
+  togR = "";
+  togSide = null;
+
+  pixInPic = 0;
+  pixOutPic = 0;
+  dTot = 0;
+  maxVel = 0;
+  lastVel = 0;
+  distMaxVel = 0;
+  timeMaxVel = 0;
+  maxAcc = 0;
+  minAcc = 0;
+  lastAcc = 0;
+  maxJerk = 0;
+  lastClickX = lastX;
+  lastClickY = lastY;
+  maxX = lastX;
+  minX = lastX;
+  maxY = lastY;
+  minY = lastY;
+  accumX = lastX;
+  accumY = lastY;
+}
+
+function setImg(imgsrc, img, avail_height)
+{
+  if (img == null) {
+    alert("NO image");
+    return;
+  }
+  if (imgsrc.height == avail_height) {
+    console.log("no resize");
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = imgsrc.width;
+    canvas.height = avail_height;
+    var context = canvas.getContext( '2d' );
+    context.drawImage( imgsrc, 0, 0, imgsrc.width, imgsrc.height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );;
+    return;
+  }
+
+  console.log("resize height " + imgsrc.height +
+            " to " + avail_height +
+            " tot_height " + window.innerHeight);
+
+  var scaled_width = (avail_height / imgsrc.height) * imgsrc.width;
+
+  var canvas = document.createElement( 'canvas' );
+  canvas.width = scaled_width;
+  canvas.height = avail_height;
+  var context = canvas.getContext( '2d' );
+  context.drawImage( imgsrc, 0, 0, scaled_width, avail_height);
+  var tmp = canvas.toDataURL( 'image/jpeg', 0.92 );
+  img.src = tmp;
+  img.onmousedown = disableDragging; // for FF
+  img.style.opacity = "1.0";
+  //console.log("resized");
+}
+
+function drawOne()
+{
+
+  // when image is loaded, make it visible
+  var now = new Date();
+  imageLoaded = now - startNext;
+
+  var img = document.getElementById("image0");
+
+  var newimg;
+  if (vDepth[0] == 0) {
+    newimg = imgRcvd[0];
+  } else {
+    newimg = imgRcvdPrev[0];
+  }
+
+  showView();
+
+  if (isAndroid || isIphone) {
+    img.src = newimg.src;
+    //var canvas = document.createElement( 'canvas' );
+    //canvas.width = newimg.width;
+    //canvas.height = newimg.height;
+    //context = canvas.getContext( '2d' );
+    //context.drawImage( newimg, 0, 0, newimg.width, newimg.height);
+    //img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+  } else {
+    console.log("maybe resize");
+    // resizeImage() inline for newimg use TODO consolidate
+    var tot_height = window.innerHeight;
+    var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
+    avail_height += 60; // inverse logic
+    var td = document.getElementById("td0");
+    td.setAttribute("height", avail_height);
+
+    if (newimg.height <= avail_height) {
+    console.log("use as-is");
+      img.src = newimg.src;
+    } else {
+
+      console.log("inline resize height " + newimg.height + " to " +
+		avail_height + " tot_height " + window.innerHeight);
+
+      var scaled_width = (avail_height / newimg.height) * newimg.width;
+
+      var canvas = document.createElement( 'canvas' );
+      canvas.width = scaled_width;
+      canvas.height = avail_height;
+      context = canvas.getContext( '2d' );
+      context.drawImage( newimg, 0, 0, scaled_width, avail_height);
+      img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+    }
+  }
+  img.onmousedown = disableDragging; // for FF
+  img.style.opacity = "1.0";
+
+  document.getElementById("tr0").style.display = '';
+  document.getElementById("tr1").style.display = 'none';
+  document.getElementById("tr2").style.display = 'none';
+
+  prevTime = new Date();
+  picCount++;
+}
+
+
+var waitingDisplays = 0;
+var minHeightTile2 = 99999999;
+
+var useLastTileId2Height = false;
+var lastTileId2Height = null;
+
+function decrementDisplayCountdown()
+{
+console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId);
+  if (waitingDisplays == 0) {
+    alert("Error, decrementing 0");
+    return;
+  }
+  // not thread safe
+  waitingDisplays--;
+  if (waitingDisplays > 0) {
+    return;
+  }
+
+  drawTwo();
+}
+
+function drawTwo()
+{
+console.log("drawTwo");
+
+  reDot();
+
+  if (isAndroid || isIphone) {
+    var height = 0.6 * window.innerWidth;
+    if (tileId == 2) height *= 0.6;
+    height = parseInt(height);
+
+    var start = 1;
+    if (tileId > 2) start = 3;
+
+    for (var i=start; i<start+2; i++) {
+      var img2draw;
+console.log("vdepth " + i + " " + vDepth[i]);
+      if (vDepth[i] == 0) {
+          img2draw = imgRcvd[i];
+      } else {
+          img2draw = imgRcvdPrev[i];
+      }
+      if (img2draw == null) {
+        console.log("null 2draw");
+      } else {
+        var img = document.getElementById("image" + i);
+        if (img == null) alert("NO image " + i);
+        setImg(img2draw, img, height);
+        //img.src = img2draw.src;
+      }
+    }
+  } else {
+    // resizeImage() inline for newimg use TODO consolidate
+    var tot_height = window.innerHeight;
+
+    var avail_height = tot_height - ADMIN_PIX;
+    if (tileId != 2) {
+      avail_height += 60;
+    }
+    var remaining_width = 0;
+
+    if (tileId == 2) {
+      if (useLastTileId2Height) {
+        avail_height = lastTileId2Height;
+        useLastTileId2Height = false;
+      } else {
+        var imgRcvd1, imgRcvd2;
+        if (vDepth[1] == 0) {
+          imgRcvd1 = imgRcvd[1];
+        } else {
+          imgRcvd1 = imgRcvdPrev[1];
+        }
+        if (vDepth[2] == 0) {
+          imgRcvd2 = imgRcvd[2];
+        } else {
+          imgRcvd2 = imgRcvdPrev[2];
+        }
+        if (imgRcvd1 == null  ||  imgRcvd2 == null) {
+          console.log("default scaling");
+          avail_height /= 1.45;
+          avail_height = Math.floor(avail_height);
+        } else {
+/*
+          var max_ht = imgRcvd1.height;
+          if (imgRcvd2.height > max_ht) {
+            max_ht = imgRcvd2.height;
+          }
+*/
+          var tot_width = imgRcvd1.width * avail_height / imgRcvd1.height;
+          tot_width += imgRcvd2.width * avail_height / imgRcvd2.height;;
+          var avail_width = window.innerWidth;
+          avail_width -= 80; // clickable margins
+          remaining_width = 80;
+console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
+" = " + tot_width + " W " + avail_width + " " + window.innerWidth +
+" avail_height " + avail_height);
+          if (tot_width > avail_width) {
+            var ws = avail_width / tot_width;
+            avail_height *= ws;
+            avail_height = Math.floor(avail_height);
+console.log("avail_height " + avail_height);
+          }
+        }
+/*
+        if (avail_height < minHeightTile2) {
+          minHeightTile2 = avail_height;
+        } else {
+          avail_height = minHeightTile2;
+        }
+*/
+        lastTileId2Height = avail_height;
+      }
+    } else if (tileId == 3) {
+      avail_height /= 2;
+    }
+
+    switch (tileId) {
+      case 1:
+      case 2:
+        document.getElementById("td1").setAttribute("height", avail_height);
+        document.getElementById("td2").setAttribute("height", avail_height);
+        if (remaining_width > 0) {
+          var t = remaining_width / 2;
+          document.getElementById("tr1_td_start").setAttribute("width", t);
+          document.getElementById("tr1_td_end").setAttribute("width", t);
+        }
+        break;
+      case 3:
+        document.getElementById("td3").setAttribute("height", avail_height);
+        document.getElementById("td4").setAttribute("height", avail_height);
+        break;
+    }
+
+    var ii = 1;
+    if (tileId == 3) ii = 3;
+    for (var i=ii; i<ii+2; i++) {
+      var imgsrc;
+      if (vDepth[i] == 0) {
+          imgsrc = imgRcvd[i];
+      } else {
+          imgsrc = imgRcvdPrev[i];
+      }
+      if (imgsrc == null) {
+        console.log("src null " + i);
+      } else {
+
+        var img = document.getElementById("image" + i);
+
+        setImg(imgsrc, img, avail_height);
+        if (tileId == 3) {
+console.log("SET td" + i + " to match img width " + img.width);
+          document.getElementById("td" + i).setAttribute("width", img.width);
+        }
+      }
+    }
+
+  }
+  // final reveal
+  document.getElementById("tr0").style.display = 'none';
+  if (tileId == 1) {
+    document.getElementById("tr1").style.display = '';
+    document.getElementById("tr2").style.display = 'none';
+    document.getElementById("spacer").style.height = "10px";
+  } else if (tileId == 2) {
+    document.getElementById("tr1").style.display = '';
+    document.getElementById("tr2").style.display = 'none';
+    document.getElementById("spacer").style.height = "40px";
+  } else if (tileId == 3) {
+    document.getElementById("tr1").style.display = 'none';
+    document.getElementById("tr2").style.display = '';
+    document.getElementById("spacer").style.height = "10px";
+  }
+  showView();
+  prevTime = new Date();
+}
+
+var screenShotFile = "";
+
+function screenShot()
+{
+  if (navigator.browserSpecs.name === 'Safari') {
+    alert("Safari doesn't support this.");
+    return;
+  }
+  if (screenShotFile == null) {
+    screenShotFile = "";
+  }
+  var tmp = prompt("Screenshot (jpeg) file name (in Downloads)", screenShotFile);
+  if (tmp == null) {
+    return;
+  }
+  screenShotFile = tmp;
+  tmp = tmp.toLowerCase();
+  if (!tmp.endsWith(".jpg") &&  !tmp.endsWith(".jpeg")) {
+     screenShotFile = screenShotFile + ".jpg";
+  }
+  var canvas = document.createElement( 'canvas' );
+  var CONST = 4;
+  if (tileId == 1  ||  tileId == 2) {
+    //var imgA = document.getElementById("image1");
+    //var imgB = document.getElementById("image2");
+    //work from orig so not using overscaled from screen
+
+    console.log('SCREEN: tile' + tileId + ' vDepths ' + vDepth);
+    var imgAorig;
+    if (vDepth[1] == 0) {
+      imgAorig = imgRcvd[1];
+    } else {
+      imgAorig = imgRcvdPrev[1];
+    }
+    if (imgAorig == null) {
+      alert('imgAorig is null, vDepth[0]=' + vDepth[0]);
+    }
+
+    var imgBorig;
+    if (vDepth[2] == 0) {
+      imgBorig = imgRcvd[2];
+    } else {
+      imgBorig = imgRcvdPrev[2];
+    }
+    if (imgBorig == null) {
+      alert('imgBorig is null, vDepth[0]=' + vDepth[0]);
+    }
+
+    //canvas.height = imgA.height;
+    //canvas.width = imgA.width + imgB.width + CONST;
+    canvas.height = Math.max(imgAorig.height, imgBorig.height);
+    if (canvas.height < 800) {
+      console.log('scaling up height to 800: ' + canvas.height);
+      canvas.height = 800;
+    }
+    var ratio = canvas.height / imgAorig.height;
+    canvas.width = Math.round(ratio * (imgAorig.width + imgBorig.width + CONST));
+    var smallConst = Math.round(ratio * CONST);
+console.log('rat ' + ratio + ' => h/w=' + canvas.height + '/' + canvas.width + ' c=' + smallConst + ' in-widths=' + imgAorig.width + '/' + imgBorig.width);
+
+    var context = canvas.getContext( '2d' );
+    context.fillStyle = "#909090";
+    //context.fillRect(0, 0, imgAorig.width+CONST, imgAorig.height);
+    var ratWidth1 = Math.round(ratio * imgAorig.width);
+    context.drawImage( imgAorig,
+	0, 0,
+	imgAorig.width, imgAorig.height,
+	0, 0, ratWidth1, canvas.height);
+    context.fillRect(ratWidth1, 0, ratWidth1+smallConst, canvas.height);
+    var ratWidth2 = Math.round(ratio * imgBorig.width);
+    context.drawImage( imgBorig,
+	0, 0,
+	imgBorig.width, imgBorig.height,
+	ratWidth1 + smallConst, 0,
+	ratWidth2, canvas.height);
+  } else {
+    alert('stacked? not using orig imgs');
+    var imgA = document.getElementById("image3");
+    var imgB = document.getElementById("image4");
+    canvas.height = imgA.height + imgB.height + CONST;
+    canvas.width = Math.max(imgA.width, imgB.width);
+    var context = canvas.getContext( '2d' );
+    context.fillStyle = "#909090";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    var startA, startB;
+    if (imgA.width < imgB.width) {
+      startA = (imgB.width - imgA.width) / 2;
+      startB = 0;
+    } else {
+      startA = 0;
+      startB = (imgA.width - imgB.width) / 2;
+    }
+    context.drawImage( imgA, 0, 0, imgA.width, imgA.height,
+                        startA, 0, imgA.width, imgA.height);
+    context.drawImage( imgB, 0, 0, imgB.width, imgB.height,
+                        startB, imgA.height+CONST, imgB.width, imgB.height);
+  }
+  //var url = canvas.toDataURL( 'image/jpeg', 0.92 );
+  var dlLink = document.createElement('a');
+  dlLink.download = screenShotFile;
+  dlLink.href = canvas.toDataURL( 'image/jpeg', 0.92 );
+  dlLink.dataset.downloadurl = ['image/jpeg', dlLink.download, dlLink.href].join(':');
+  document.body.appendChild(dlLink);
+  dlLink.click();
+  document.body.removeChild(dlLink);
+}
+
+function summarizeDots(logit)
+{
+	if (!logit) {
+		//console.log("DOTS=don't care"); // as it happens
+		return "&dc=0&dd=0&dv=0&da=0&dmv=0&dma=0&dmj=0&dh=0&ctm=-1";
+	}
+	var dotCount = dotList.length;
+
+	if (dotCount == 0) {
+		//console.log("NO DOTS");
+		return "&dc=0&dd=0&dv=0&da=0&dmv=0&dma=0&dmj=0&dh=0&ctm=-1";
+	}
+
+	// get pic coords
+
+	var img1, img2;
+	if (tileId == 1  ||  tileId == 2) {
+		img1  = document.getElementById("image1");
+		img2 = document.getElementById("image2");
+	} else if (tileId == 3) {
+		img1  = document.getElementById("image3");
+		img2 = document.getElementById("image4");
+	} else {
+		alert('Unhandled tileId ' + tileId);
+		img1  = document.getElementById("image1");
+		img2 = document.getElementById("image2");
+	}
+    var rect1 = img1.getBoundingClientRect();
+    var rect2 = img2.getBoundingClientRect();
+
+	var dh = [];
+	dh.push(-1 * angleHist.length);
+	for (var i=0; i<angleHist.length; i++) {
+		dh.push(angleHist[i]);
+	}
+    var dh2 = [];
+	dh2.push(-1 * angleHist.length);
+	for (var i=0; i<angleHist.length; i++) {
+        if (angleHist[i] != 0) {
+		    dh.push(i + ':' + angleHist[i]);
+        }
+	}
+    alert('l1/2 ' + dh.length + '/' + dh2.length);
+
+    var D_SZ = 100;
+    var dists = new Array(D_SZ).fill(0);
+    //var dmax = 0;
+    var vmax = 0;
+    for (var i=0; i<dotCount; i++) {
+      var dot = dotList[i];
+      if (dot.vel > vmax) vmax = dot.vel;
+      var d = Math.round(dot.dist);
+      //if (d > dmax) dmax = d;
+      if (d > 0 && d < D_SZ) dists[d]++;
+      else if (d != 0  &&  !Number.isNaN(d)) {
+        console.log('outlier ' + d);
+        dists[0]++;
+      }
+    }
+	dh.push(-1 * dists.length);
+	for (var i=0; i<dists.length; i++) {
+		dh.push(dists[i]);
+    }
+    var vels = new Array(D_SZ).fill(0);
+    for (var i=0; i<dotCount; i++) {
+      var dot = dotList[i];
+      var v = dot.vel;
+      if (v != 0  &&  !Number.isNaN(v)) {
+        v = Math.round(100 * v / vmax) - 1;
+        //if (v > 99) alert('awk ' + v);
+        vels[v]++;
+      }
+    }
+	dh.push(-1 * vels.length);
+	for (var i=0; i<vels.length; i++) {
+		dh.push(vels[i]);
+    }
+    dh.push(-8);
+
+    //alert('dists: ' + dists + '\n dmax ' + dmax);
+
+	dh.push(Math.round(rect1.left)); dh.push(Math.round(rect1.right));
+	dh.push(Math.round(rect1.top)); dh.push(Math.round(rect1.bottom));
+	dh.push(Math.round(rect2.left)); dh.push(Math.round(rect2.right));
+	dh.push(Math.round(rect2.top)); dh.push(Math.round(rect2.bottom));
+
+	var dotDist = 0;
+	var dotVectorLength = 0;
+	var dotVectorAngle = 0;
+	var dotMaxVel = 0;
+	var dotMaxAccel = 0;
+	var dotMaxJerk = 0;
+
+	var dots_t0 = dotList[0].time;
+
+    dh.push(-9999);
+	//var rm = !cacheDots;
+	for (var i=0; i<dotCount; i++) {
+		var dot = dotList[i];
+		//if (rm) {
+		//	document.body.removeChild(dotList[i]);
+		//}
+		dh.push(Math.round(dot.x));
+		dh.push(Math.round(dot.y));
+		dh.push(dot.time - dots_t0);
+
+        if (dot.mouseUp) {
+		    dh.push(0);
+		    dh.push(0);
+		    dh.push(0);
+        } else {
+		    dotDist += dot.dist;
+		    var t = dot.vel;
+		    if (t > dotMaxVel) {
+			    dotMaxVel = t;
+		    }
+		    t = dot.accel;
+		    if (t > dotMaxAccel) {
+			    dotMaxAccel = t;
+		    }
+		    t = dot.jerk;
+		    if (t > dotMaxJerk) {
+			    dotMaxJerk = t;
+		    }
+        }
+	}
+
+	var startDot = dotList[0];
+	var endDot = dotList[dotCount-1];
+//zQQQ
+	var dX = endDot.x - startDot.x;
+    // parseInt(endDot.style.left, 10) - parseInt(startDot.style.left, 10);
+	var dY = endDot.y - startDot.y;
+	// parseInt(endDot.style.top, 10) - parseInt(startDot.style.top, 10);
+
+	dotVectorAngle = (180/Math.PI) * Math.atan2( dY , dX );
+	dotVectorLength = dX * dX + dY * dY;
+
+	var clickTime = 0;
+	if (dotList.length > 1) {
+		clickTime = dotList[dotList.length-1].time - dotList[0].time;
+	}
+
+	var history = decStr(dh);
+
+	var params =
+		"&dc=" + dotCount +
+		"&ctm=" + clickTime +
+		"&dd=" + Math.round(dotDist) +
+		"&dv=" + Math.round(dotVectorLength) +
+		"&da=" + Math.round(dotVectorAngle) +
+		"&dmv=" + Math.round(dotMaxVel) +
+		"&dma=" + Math.round(dotMaxAccel) +
+		"&dmj=" + Math.round(dotMaxJerk) +
+		"&dh=" + history;
+
+	if (logit) console.log("dc " + dotCount +
+		" ctm " + clickTime +
+		" dd " + dotDist +
+		" dv " + dotVectorLength +
+		" da " + dotVectorAngle +
+		" dmv " + dotMaxVel +
+		" dma " + dotMaxAccel +
+		" dmj " + dotMaxJerk +
+		//" dh " + history +
+		" XY " + dX + "/" + dY + '\n' +
+		'ANGLES ' + angleHist);
+
+	return params;
+}
+
+function nextImage(screen, rating) // screen in 1,2 or 3,4
+{
+  md = null;
+  mdK = null;
+
+  waitingDisplays++;
+
+  startNext = new Date();
+
+  var clickTime = -1;
+  if (mdown_time != null) {
+    var now = new Date();
+    clickTime = now - mdown_time;
+    mdown_time = null;
+  }
+
+  var vecX = 0;
+  var vecY = 0;
+  if (mouseCount > 0) {
+    // console.log("acc " + accumX + "/" + accumY + " " + mouseCount + "\n" +
+                   // lastClickX + "/" + lastClickY);
+    vecX = (accumX / mouseCount) - lastClickX;
+    vecY = (accumY / mouseCount) - lastClickY;
+    mouseCount = 1;
+  }
+
+  //console.log("rating " + rating);
+  var interval = 0;
+  if (prevTime) {
+    interval = new Date() - prevTime;
+  }
+
+  var newimg = new Image();
+  newimg.onerror=function(evt) {
+    alert("Image load problem: try refreshing page or returning to Home and choosing a view");
+    decrementDisplayCountdown();
+  }
+  newimg.onload=function() {
+    if (newimg.height == 1  &&  newimg.width == 1) {
+      decrementDisplayCountdown();
+
+      // empty.jpg
+      var conf = confirm("DONE with view. You can start over, switch orientation to " + ( tileId == 1 ? "horizontal" : "vertical" ) + ", enable pic repeats, or view another photographer. Start over?");
+      if (conf) {
+        getSessionId(false, false);
+      }
+      return;
+    }
+console.log("loaded " + screen + " " + newimg.width + "x" + newimg.height);
+
+    // when image is loaded, make it visible
+    var now = new Date();
+    imageLoaded = now - startNext;
+
+    imgRcvdPrev[screen] = imgRcvd[screen];
+    imgRcvd[screen] = newimg;
+    vDepth[screen] = 0;
+    decrementDisplayCountdown();
+  }
+
+
+  dTot = Math.round(dTot);
+
+  var lox = [ "na", "na" ];
+
+  if (rating == 4  ||  rating == 5) {
+    var img = document.getElementById("image" + screen);
+    lox = getLox(img);
+  }
+
+  var url = servletRoot + "/getmext";
+  // TODO - add lots and binhex it
+  var togSide = togL + togR;
+  if (togSide === '') {
+    togSide = 'na';
+  }
+  // map to 1,2
+  var ss = screen;
+  if (tileId > 2) {
+    ss = screen - 2;
+  }
+if (ss > 2) alert ("ss " + ss + " tileId " + tileId);
+  var o = "o";
+  if (tileId == 1) o = "v";
+  else if (tileId > 1) o = "h";
+
+  var dots = summarizeDots(false);
+
+  var params = "?sess=" + sessionID +
+		"&sc1=" + ss +
+		"&sc2=" + ss +
+		"&d=" + vDepth[screen] +
+        "&c=l" +
+        "&o=" + o +
+		"&ct=" + picCount++ +
+		"&t=" + interval +
+		"&t2=" + timeMaxVel +
+        "&w=0&mt=0" +
+		"&r=" + rating +
+		"&d=" + dTot +
+		"&d2=" + Math.round(distMaxVel) +
+		"&dx=" + (maxX - minX) +
+		"&dy=" + (maxY - minY) +
+		"&vcx=" + Math.round(vecX) +
+		"&vcy=" + Math.round(vecY) +
+		"&mxv=" + maxVel +
+		"&mxa=" + maxAcc +
+		"&mna=" + minAcc +
+		"&mxj=" + maxJerk +
+		"&ctm=" + clickTime +
+		"&ltm=" + imageLoaded +
+		"&pp=" + pixInPic +
+		"&po=" + pixOutPic +
+		"&loc=" + lox[0] +
+		"&locspec=" + lox[1] +
+		"&btm=" + bigTime +
+		"&ntog=" + nToggleLast +
+		"&tgs=" + togSide +
+		"&togt=" + togTimesStr() +
+        dots;
+
+  // start load of image into memory
+  newimg.src = url + params;
+
+  // while waiting, have a good time
+
+  nToggleLast = 0;
+  togTimes = [];
+  lastTogTime = null;
+  togL = "";
+  togR = "";
+  togSide = null;
+
+  pixInPic = 0;
+  pixOutPic = 0;
+  dTot = 0;
+  maxVel = 0;
+  lastVel = 0;
+  distMaxVel = 0;
+  timeMaxVel = 0;
+  maxAcc = 0;
+  minAcc = 0;
+  lastAcc = 0;
+  maxJerk = 0;
+  lastClickX = lastX;
+  lastClickY = lastY;
+  maxX = lastX;
+  minX = lastX;
+  maxY = lastY;
+  minY = lastY;
+  accumX = lastX;
+  accumY = lastY;
+}
+
+var bigStart = null;
+var bigTime = -1;
+
+function bigone(scrn1, scrn2, rating, caller)  // scrn[12] in 0=ignore, 1,2
+{
+  // scrn1,2 meanings
+  //   rating==x: start/end of dots [not a curate thing, so meh
+  //   rating==30: depths of left,right screens.
+
+  mouseDown = false;
+
+  startNext = new Date();
+
+  var clickTime = -1;
+  if (mdown_time != null) {
+    var now = new Date();
+    clickTime = now - mdown_time;
+    mdown_time = null;
+  }
+
+  var vecX = 0;
+  var vecY = 0;
+  if (mouseCount > 0) {
+    // console.log("acc " + accumX + "/" + accumY + " " + mouseCount + "\n" +
+                   // lastClickX + "/" + lastClickY);
+    vecX = (accumX / mouseCount) - lastClickX;
+    vecY = (accumY / mouseCount) - lastClickY;
+    mouseCount = 1;
+  }
+
+  //console.log("rating " + rating);
+  var interval = 0;
+  if (prevTime) {
+    interval = new Date() - prevTime;
+  }
+
+  dTot = Math.round(dTot);
+
+  var lox = [ "na", "na" ];
+
+  if (rating == 4  ||  rating == 5) {
+    var img = document.getElementById("image" + screen);
+    lox = getLox(img);
+  }
+
+  var xmlHttp;
+  try {
+    xmlHttp = getHTTP();
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+        bigTime = new Date();
+        bigTime -= bigStart;
+console.log("bigone ok");
+        if (xmlHttp.responseText.startsWith("rgb,")) {
+            var lines = xmlHttp.responseText.split('\n');
+            if (lines.length > 1  &&  lines[1].startsWith("m,")) {
+                methods = lines[1];
+                //alert(lines[1]);
+            }
+          // ignoring data for now
+        } else if (xmlHttp.responseText == "DONE\n") {
+            console.log("DONE");
+            var conf = confirm("DONE with view. You can start over, switch orientation to " + ( tileId == 1 ? "horizontal" : "vertical" ) + ", enable pic repeats, or view another photographer. Start over?");
+            if (conf) {
+              getSessionId(false, false);
+            }
+            enterBig = null;
+            return;
+        }  else if (xmlHttp.responseText == "ODONE\n") {
+            console.log("ODONE");
+            alert("Option exhausted for this orientation, please enable pic repeats, or try another option or orientation.");
+            enterBig = null;
+            return;
+        }
+        if (tileId < 3) {
+          nextImage(1, 0);
+          nextImage(2, 0);
+        } else {
+          nextImage(3, 0);
+          nextImage(4, 0);
+        }
+      } else {
+        var errtxt = xmlHttp.responseText;
+        var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+        if (errdoc != null) {
+            errtxt = errdoc.title;
+        }
+        console.log(""+xmlHttp.status + ": " + errtxt);
+        if (xmlHttp.status < 500) {
+            alert(errtxt);
+        } else if (xmlHttp.status == 500) {
+            alert("Server error, try reloading page.");
+        } else {
+            if (!suppressPicLoadErr) {
+              alert("Server error, try reloading page (4): " + errtxt);
+            }
+        }
+        if (xmlHttp.responseText.includes("Please reload web page.")) {
+            var sessionKey = getPersonKey() + "_" + personID + "_v_" + view;
+            console.log("server lost session " + sessionKey);
+            sessionID = "none";
+            setCookie(sessionKey, sessionID);
+            suppressPicLoadErr = true;
+        }
+        return;
+      }
+
+    }
+  };
+  // TODO - add lots and binhex it
+  var togSide = togL + togR;
+  if (togSide === '') {
+    togSide = 'na';
+  }
+  var orient = "o";
+  if (tileId == 1) {
+    orient = "v"
+  } else if (tileId == 2 || tileId == 3) {
+    orient = "h";
+  }
+
+  var dots = summarizeDots(true);
+
+  var params = "sess=" + sessionID +
+		"&sc1=" + scrn1 +
+		"&sc2=" + scrn2 +
+        "&c=m" +
+        "&o="  + orient +
+		"&ct=" + picCount +
+		"&t=" + interval +
+		"&t2=" + timeMaxVel +
+        "&w=0&mt=0" +
+		"&r=" + rating +
+		"&dc=0&dd=0&dv=0&da=0&dmv=0&dma=0&dmj=0" +
+		"&loc=" + lox[0] +
+		"&locspec=" + lox[1] +
+		"&d=" + dTot +
+		"&d2=" + Math.round(distMaxVel) +
+		"&dx=" + (maxX - minX) +
+		"&dy=" + (maxY - minY) +
+		"&vcx=" + Math.round(vecX) +
+		"&vcy=" + Math.round(vecY) +
+		"&mxv=" + maxVel +
+		"&mxa=" + maxAcc +
+		"&mna=" + minAcc +
+		"&mxj=" + maxJerk +
+		"&ctm=" + clickTime +
+		"&ltm=" + imageLoaded +
+		"&pp=" + pixInPic +
+		"&po=" + pixOutPic +
+		"&btm=" + bigTime +
+		"&ntog=" + nToggleLast +
+		"&tgs=" + togSide +
+		"&togt=" + togTimesStr() +
+        dots;
+console.log('-- params ' + params);
+  try {
+    var url = servletRoot + "/getmext";
+    bigStart = new Date();
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+
+  // while waiting, have a good time
+
+  nToggleLast = 0;
+  togTimes = [];
+  lastTogTime = null;
+  togL = "";
+  togR = "";
+  togSide = null;
+
+  pixInPic = 0;
+  pixOutPic = 0;
+  dTot = 0;
+  maxVel = 0;
+  lastVel = 0;
+  distMaxVel = 0;
+  timeMaxVel = 0;
+  maxAcc = 0;
+  minAcc = 0;
+  lastAcc = 0;
+  maxJerk = 0;
+  lastClickX = lastX;
+  lastClickY = lastY;
+  maxX = lastX;
+  minX = lastX;
+  maxY = lastY;
+  minY = lastY;
+  accumX = lastX;
+  accumY = lastY;
+}
+
+function iClick(scrn)
+{
+  console.log("iClick scrn " + scrn + "  cmdmode " + cmdMode);
+
+  setLastXY(new Event("iClick"));
+
+  switch (cmdMode) {
+    case 1:
+      alert('cmdMode 1?');
+      switch (scrn) {
+        case 1:
+        case 3:
+          bigone(1, 1, 10, 'iClick');
+          break;
+        default:
+          bigone(2, 2, 10, 'iClick');
+          break;
+      }
+      break;
+    case 2:
+      nextImage(scrn, picClik_opt);
+      break;
+  }
+}
+
+function yplus()
+{
+  switch (tileId) {
+    case 0:
+      alert("yplus not impl");
+      return;
+    case 1:
+    case 2:
+    case 3:
+      // 2023_07 - adjusting 0,0 to 1,1
+      var scrn1 = vDepth[1];
+      var scrn2 = vDepth[2];
+      if (scrn1 == 0  &&  scrn2 == 0) {
+        scrn1 = 1;
+        scrn2 = 1;
+      }
+      bigone(scrn1, scrn2, 1, 'yplus');
+      break;
+    default:
+      alert("yplus not impl " + tileId);
+  }
+}
+
+function minus()
+{
+  switch (tileId) {
+    case 0:
+      nextImage0(1);
+      break;
+    case 1:
+    case 2:
+    case 3:
+      bigone(0, 0, 0, 'minus');
+      break;
+    default:
+      alert("minus not impl " + tileId);
+  }
+}
+
+function phi(val)
+{
+  //console.log('phi ' + val);
+
+  if (parallelModel != "none"  &&  parallelFunc != "none"  &&
+        val > 20  &&  val < 26) {
+
+    console.log('== Parallel: ' + parallelModel);
+
+    val += "_" + parallelFunc + "." +
+        parallelModel.replace('parallel_', '');
+                     //.replace('-', '_');
+  }
+
+  console.log('== phi/bigone ' + val);
+
+  bigone(vDepth[1], vDepth[2], val, 'phi');
+}
+
+function golden(option)
+{
+  switch (tileId) {
+    case 0:
+      alert("golden not impl");
+      return;
+    case 1:
+    case 2:
+    case 3:
+      bigone(vDepth[1], vDepth[2], option, 'golden');
+      break;
+    default:
+      alert("golden not impl " + tileId);
+  }
+}
+
+function ranD()
+{
+  switch (tileId) {
+    case 0:
+      nextImage0(2);
+      break;
+    case 1:
+    case 2:
+    case 3:
+      bigone(0, 0, 2, 'ranD');
+      break;
+    default:
+      alert("ranD not iml");
+  }
+}
+
+function flip()
+{
+  var v1Depth, v2Depth;
+
+  if (tileId < 3) {
+    v1Depth = vDepth[1];
+    v2Depth = vDepth[2];
+  } else {
+    v1Depth = vDepth[3];
+    v2Depth = vDepth[4];
+  }
+
+  bigone(v1Depth, v2Depth, 30, 'flipem');
+}
+
+function gplus() // button not shown
+{
+  switch (tileId) {
+    case 0:
+      nextImage0(3);
+      break;
+    case 1:
+    case 2:
+    case 3:
+      bigone(vDepth[1], vDepth[2], 3, 'gplus');
+      break;
+    default:
+      alert("gplus not impl");
+  }
+}
+
+
+var mouseDown = false;
+
+
+(function() {
+  document.onmousemove = handleMouseMove;
+  function handleMouseMove(event) {
+    var dot, eventDoc, doc, body, pageX, pageY;
+
+    var now = new Date();
+
+    setLastXY(event);
+
+    accumX += lastX;
+    accumY += lastY;
+
+    if (lastX > maxX) {
+      maxX = lastX;
+    } else if (lastX < minX) {
+      minX = lastX;
+    }
+    if (lastY > maxY) {
+      maxY = lastY;
+    } else if (lastY < minY) {
+      minY = lastY;
+    }
+
+    if (inImage) {
+      pixInPic++;
+
+      if (mouseDown) {
+
+        var dotSize = Math.ceil(3 +
+            (window.innerHeight * window.innerWidth) / 800000);
+        placeDot(imageIn, dotSize, dotSize*dotSize, lastX, lastY, now, false, 'mmove/down');
+      }
+
+    } else {
+      pixOutPic++;
+    }
+
+    if (prevX != null  &&  prevT != null) {
+      var dT = 1 + (now - prevT); // avoid 0
+
+      var x = prevX - lastX;
+      var y = prevY - lastY;
+      var dist = Math.sqrt( x*x + y*y);
+      dTot += dist;
+      var rate;
+      rate = Math.round(100 * dist / dT);
+      if (rate > maxVel) {
+        maxVel = rate;
+        distMaxVel = dTot;
+        if (prevTime) {
+          timeMaxVel = now - prevTime;
+        } else {
+          timeMaxVel = -1;
+        }
+      }
+      var acc = rate - lastVel;
+      if (acc > maxAcc) {
+        maxAcc = acc;
+      }
+      if (acc < minAcc) {
+        minAcc = acc;
+      }
+      var jerk = acc - lastAcc;
+      if (jerk > maxJerk) {
+        maxJerk = jerk;
+      }
+
+      lastVel = rate;
+      lastAcc = acc;
+    }
+    //rates.push(rate);
+
+    prevT = now;
+    prevX = lastX;
+    prevY = lastY;
+    mouseCount++;
+  }
+})();
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    // ...
+  document.body.onmousedown = onMouseDown;
+  function onMouseDown(event) {
+    mouseDown = true;
+    setLastXY(event);
+  }
+  document.body.onmouseup = onMouseUp;
+  function onMouseUp(event) {
+
+    mouseDown = false;
+
+    if (dotList.length == 0) {
+      return;
+    }
+    setLastXY(event);
+
+    //placeDot => -1's == mouseup
+    placeDot(imageIn, -1, -1, lastX, lastY, new Date(), false, 'onmouseup');
+
+    if (waitingDisplays != 0) {
+      return;
+    }
+
+    //launchOrWaitDotty('mouseup'); // only case
+  }
+});
+
+// -->
+</script>
+</head>
+
+<!-- NEUTRAL GREY BACKGROUND -->
+<body id="body">
+
+<div id="wrapper">
+
+<!-- DRAW PAGE -->
+
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<div id="drop1" class="dropdown">
+<button id="phob_home" class="basicButton dropdown-toggle" type="button"
+ data-toggle="dropdown">
+Phob &#9662; </button>
+ <ul id="drop_left" class="dropdown-menu" role="menu"
+	aria-labelledby="phob_home">
+  <li> <a id="home" class="blackBut" style="padding:5px;" href="index.html">Home</a></li>
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+  <li class="dropdown-submenu">
+        <button tabindex="-1" class="blackBut" style="font-size:14pt;"
+		type="button" data-toggle="dropdown">Views/Photogs
+		<span class="caret-right"></span>
+	</button>
+
+    <ul class="dropdown-menu">
+	  <li> <button id="viewAll"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(0);">
+		All
+	  </button></li>
+      <li> <button id="viewPeep"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setView(6);">
+        Selected (~1000 pics)
+      </button></li>
+
+	  <li> <button id="viewKwdSel"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(-6);">
+		Kwd Sel
+	  </button></li>
+	  <li> <button id="viewBill"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(1);">
+        Bill
+	  </button></li>
+	  <li> <button id="viewRS"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(7);">
+        Raf&amp;Skot
+	  </button></li>
+	  <li> <button id="viewElle"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(2);">
+        Elle
+	  </button></li>
+        <li> <button id="viewEd" class="blackBut" style="font-size:14pt;"
+            onclick="setView(8);">
+        Ed
+      </button></li>
+      <li> <button id="viewRon"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(9);">
+        Ron
+      </button></li>
+      <li> <button id="viewEllen"
+		    class="blackBut" style="font-size:14pt;"
+            onclick="setView(4);">
+        Ellen
+      </button></li>
+    </ul>
+  </li>
+
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+  <!--li> <a id="home" class="blackBut" style="padding:5px;" href="index.html">Home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li> -->
+  <li> <button id="menu_twopb" onclick="setTile(1);" class="greyBut">
+	<span id="menu_twop_span" style="font-size:14pt;white-space:nowrap;">
+         2xPortrait &nbsp;&nbsp;
+	 <img id="ico_port" src="ico/portraits3_ico.jpg" alt="icon of two portrait images">
+        </span>
+       </button></li>
+  <li> <button id="menu_twolb" onclick="setTile(2);" class="blackBut">
+	<span id="menu_twol_span" style="font-size:14pt;white-space:nowrap;">
+	2xLandscape &nbsp;
+	 <img id="ico_land" src="ico/landscapes3_ico.jpg" alt="icon of two landscape images">
+        </span>
+       </button></li>
+  <li> <button id="menu_twolsb" onclick="setTile(3);" class="blackBut">
+	<span id="menu_twols_span" style="font-size:14pt;white-space:nowrap;">
+         2xLandscape &nbsp;
+	 <img id="ico_land2" src="ico/landscapes_stacked4_ico.jpg" alt="icon of two landscape images stacked">
+        </span>
+       </button></li>
+
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+  <li> <button id="dialog_mode"  class="blackBut"
+    onclick="setCmdMode(1);">
+    <span id="menu_radio_dialog_mode_style"
+        style="font-size:14pt;white-space:nowrap;">
+      <span id="menu_radio_dialog_mode"
+        style="color:#404040;">&#x25ab;</span>
+      Dialog Mode
+    </span></button></li>
+  <li> <button id="pair_mode"  class="blackBut"
+    onclick="setCmdMode(2);">
+    <span id="menu_radio_pair_mode_style"
+        style="font-size:14pt;white-space:nowrap;">
+      <span id="menu_radio_pair_mode"
+        style="color:#404040;">&#x25aa;</span>
+      Pair Mode
+    </span></button></li>
+
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+  <li class="dropdown-submenu">
+        <button tabindex="-1" class="blackBut" style="font-size:14pt;"
+		type="button" data-toggle="dropdown">Sigma Parallel Descent
+		<span class="caret-right"></span>
+	</button>
+    <ul class="dropdown-menu">
+	  <li> <button id="parallel_none"
+		    class="greyBut" style="font-size:14pt;"
+            onclick="setParallelFunc('none');">
+		    None
+	      </button>
+
+          <button id="parallel_cos"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelFunc('cos');">
+            cosine
+         </button>
+
+         <button id="parallel_poi"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelFunc('poi');">
+            distance
+         </button>
+      </li>
+
+      <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+      <li> <button class="greyBut" style="font-size:14pt; color:green;">
+        &#9677; Color histograms
+      </button></li>
+
+      <li> <button id="parallel_1.hist256"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('1.hist256');">
+        &nbsp; 256 grey+saturation
+      </button></li>
+      <li> <button id="parallel_1.hist1728"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('1.hist1728');">
+        &nbsp; 1728 rgb 12^3
+      </button></li>
+      <li> <button id="parallel_1.hist1984"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('1.hist1984');">
+        &nbsp; 1984 grey+sat+rgb
+      </button></li>
+
+      <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+      <li> <button class="greyBut" style="font-size:14pt; color:green;">
+        &#9679; VGG16 'folds' (native 512)
+      </button></li>
+
+      <li> &nbsp;
+        <button id="parallel_2.vgg16-512"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-512');">
+        512
+        </button>
+        <button id="parallel_2.vgg16-256"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-256');">
+        256
+        </button>
+        <button id="parallel_2.vgg16-128"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-128');">
+        128
+        </button>
+        <button id="parallel_2.vgg16-64"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-64');">
+        64
+        </button>
+        <button id="parallel_2.vgg16-32"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-32');">
+        32
+        </button>
+        <button id="parallel_2.vgg16-16"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-16');">
+        16
+        </button>
+        <button id="parallel_2.vgg16-4"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-4');">
+        4
+        </button>
+        <button id="parallel_2.vgg16-2"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.vgg16-2');">
+        2
+        </button>
+      </li>
+
+      <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+      <li> <button class="greyBut" style="font-size:14pt; color:green;">
+        &#9679; NASNetLarge 'folds' (native 4032)
+      </button></li>
+
+      <li> &nbsp;
+        <button id="parallel_2.nnl-1008"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.nnl-1008');">
+        1008
+        </button>
+
+        <button id="parallel_2.nnl-252"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.nnl-252');">
+        252
+        </button>
+
+        <button id="parallel_2.nnl-42"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.nnl-42');">
+        42
+        </button>
+
+        <button id="parallel_2.nnl-21"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.nnl-21');">
+        21
+        </button>
+
+        <button id="parallel_2.nnl-7"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.nnl-7');">
+        7
+        </button>
+
+        <button id="parallel_2.nnl-3"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.nnl-3');">
+        3
+        </button>
+      </li>
+
+      <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+      <li> <button class="greyBut" style="font-size:14pt; color:green;">
+        &#9679; Other averaged imagenet vector blocks w/ sizes
+      </button></li>
+
+      <li> &nbsp;
+        <button id="parallel_2.dense-64"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.dense-64');">
+        64 DenseNet121
+      </button></li>
+
+      <li> &nbsp;
+        <button id="parallel_2.mob-40"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('2.mob-40');">
+        40 MobileNetV2
+      </button></li>
+
+      <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+      <li> <button class="greyBut" style="font-size:14pt; color:green;">
+        &#9679; Personal latent-space vectors (side-specific)
+      </button></li>
+
+      <li> &nbsp;
+        <button id="parallel_3.pair2"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('3.pair2');">
+        2
+      </button>
+      <button id="parallel_3.pair3"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('3.pair3');">
+        3
+      </button>
+      <button id="parallel_3.pair5"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('3.pair5');">
+        5
+      </button>
+      <button id="parallel_3.pair12"
+            class="blackBut" style="font-size:14pt;"
+            onclick="setParallelModel('3.pair12');">
+        12
+      </button></li>
+
+
+    </ul>
+  </li>
+
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+
+  <li> <button onclick="toggleRepeats('value');" class="blackBut">
+        <span style="font-size:14pt;white-space:nowrap;">
+        <span id="menu_tog_repeats" style="color:#404040;">&#x25ab;</span>
+        Let pics repeat</span>
+        </button></li> <!-- &#x25aa black -->
+  <li> <button onclick="togglePicClik();" class="blackBut">
+        <span style="font-size:14pt;white-space:nowrap;">
+        <span id="menu_pic_clik" style="color:#404040;">&#x25ab;</span>
+        Original picClik</span>
+        </button></li> <!-- &#x25aa black -->
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+  <li> <button id="extrapolate" onclick="extrap(false);" class="blackBut">
+       <span style="font-size:14pt;">Extrapolate</span></button></li>
+  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
+  <li> <button id="screenshot" onclick="screenShot();" class="blackBut">
+       <span style="font-size:14pt;">Screenshot</span></button></li>
+ </ul>
+</div>
+</td>
+<td>
+</td>
+<td style="text-align:right">
+<button title="RESET SESSION" onclick="getSessionId(false, true);" onmousedown="mdown();" class="invisBut">RESET</button>
+</td>
+<td style="text-align:right">
+<div id="drop2" class="dropdown">
+<button id="rain_about" class="basicButton dropdown-toggle" type="button"
+ data-toggle="dropdown">
+&#9662; rain</button>
+ <ul id="drop_right" class="dropdown-menu">
+  <li> <a id="about" class="blackBut" style="padding:5px;" href="explain.html">About&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+ </ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+
+<div id="content">
+<div id="thepreview">
+  <img id="imageP" src="noimage" alt="preview?">
+</div>
+
+<div id="theshow"
+ style="display:none;text-align:center; margin-left:auto; margin-right:auto;">
+<center>
+<table ><tbody>
+ <tr>
+	 <td id="spacer"><p></p></td>
+	 <td><p></p></td>
+	 <td><p></p></td>
+	 <td><p></p></td>
+ </tr>
+
+ <tr id="tr0" style="display:none;">
+  <td style="width:30%;" onclick="toggleLast(0, 'l');"> </td>
+  <td id="td0">
+    <img id="image0" title="draw on pic to see next pic"
+     onmousedown="mdown();"
+     onclick="nextImage0(4);"
+     draggable="false"
+     src="noimage" alt="photo?">
+  </td>
+  <td style="width:30%;" onclick="toggleLast(0, 'r');"> </td>
+  <td><p></p></td>
+ </tr>
+
+ <tr id="tr1">
+  <td id="tr1_td_start" style="width:40px;" onclick="toggleLast(1, 'l');"> </td>
+  <td id="td1" style="padding:2px;">
+    <img id="image1"
+     onmousedown="mdown();" onmouseout="mdown_time=null;"
+     onclick="iClick(1);"
+     draggable="false" src="noimage" alt="photo?">
+  </td>
+  <td id="td2" style="padding:2px;">
+    <img id="image2"
+     onmousedown="mdown();" onmouseout="mdown_time=null;"
+     onclick="iClick(2);"
+     draggable="false" src="noimage" alt="photo?">
+  </td>
+  <td id="tr1_td_end" style="width:40px;" onclick="toggleLast(2, 'r');"> </td>
+ </tr>
+
+ <tr id="tr2" style="display:none;">
+  <td style="width:100%;">
+   <table style="width:100%;"><tbody>
+    <tr><td><table style="width:100%;"><tbody><tr>
+     <td style="width:100px;" onclick="toggleLast(3, 'l');"> </td>
+     <td id="td3" style="text-align:center;padding:2px;" >
+      <img id="image3"
+       onmousedown="mdown();" onmouseout="mdown_time=null;"
+       onclick="iClick(3);" draggable="false" src="noimage" alt="photo?">
+     </td>
+     <td style="width:100px;" onclick="toggleLast(3, 'r');"> </td>
+    </tr></tbody></table></td></tr>
+    <tr><td><table style="width:100%;"><tbody><tr>
+     <td style="width:100px;" onclick="toggleLast(4, 'l');"> </td>
+     <td id="td4" style="text-align:center;padding:2px;" >
+      <img id="image4"
+       onmousedown="mdown();" onmouseout="mdown_time=null;"
+       onclick="iClick(4);" draggable="false" src="noimage" alt="photo?">
+     </td>
+     <td style="width:100px;" onclick="toggleLast(4, 'r');"> </td>
+    </tr></tbody></table></td></tr>
+   </tbody></table>
+  </td>
+  <td></td>
+  <td></td>
+  <td></td>
+ </tr>
+</tbody></table>
+</center>
+</div>
+</div>
+<div id="footer">
+
+<button style="width:100%;background:transparent;border:none;"
+   title="toggle both"
+   onclick="this.blur();"
+   onmousedown="bothToggleDown=new Date();"
+   onmouseup="bothToggle();"> &nbsp;
+</button> <br />
+
+<table id="cmds" style="width:100%; text-align:center;"><tbody>
+<tr>
+ <td id="showTd"
+   title="show info"
+   onmousedown="mouseDownNextToPlus=true; showMD();"
+   onmouseup="hideKwds();"
+   onmouseleave="hideKwds();"> &nbsp;</td>
+
+ <td id="cmdTd1" style="display: none; width:130px; text-align:center;">
+
+  <!-- cmdmode 1 == dialog training -->
+
+  <button id="dialog_no" title="dialog_no"
+   style="font-size:50px; color:rgba(255,255,255,0.6);"
+   onmousedown="mdown();"
+   onmouseup="dialogApproval(2);">
+u
+  </button>
+
+  <button id="dialog_noop" title="dialog_noop"
+   style="font-size:50px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="dialogApproval(0);">
+n
+  </button>
+
+  <button id="dialog_yes" title="dialog_yes"
+   style="font-size:50px; color:green;"
+   onmousedown="mdown();"
+   onmouseup="dialogApproval(1);">
+a
+  </button>
+ </td>
+ <td id="cmdTd2" style="display: none; width:130px; text-align:center;">
+
+  <!-- cmdmode 2 == pair training -->
+
+  <button id="unapprove" title="unapprove"
+   	style="font-size:50px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="logApproval(11);">
+u
+  </button>
+
+  <button id="yplus" title="color match"
+     	style="font-size:50px; color:yellow;"
+   onmousedown="mdown();"
+   onmouseup="yplus();">
++
+  </button>
+
+  <button id="minus" title="neural net distant"
+	style="font-size:50px; color:red;"
+   onmousedown="mdown();"
+   onmouseup="minus();">
+-
+  </button>
+
+  <button id="phiM1" title="Neural nets: group 1"
+	style="font-size:20px; color:#553355;"
+	onmousedown="mdown();"
+	onmouseup="phi(21);">
+&Sigma;1
+  </button>
+
+  <button id="phiM2" title="Neural nets: group 2"
+	style="font-size:20px; color:#553355;"
+	onmousedown="mdown();"
+	onmouseup="phi(22);">
+&Sigma;2
+  </button>
+
+  <button id="phiM3" title="Neural nets: group 3"
+	style="font-size:20px; color:#553355;"
+	onmousedown="mdown();"
+	onmouseup="phi(23);">
+&Sigma;3
+  </button>
+
+  <button id="phiM4" title="Neural nets: group 4"
+	style="font-size:20px; color:#553355;"
+	onmousedown="mdown();"
+	onmouseup="phi(24);">
+&Sigma;4
+  </button>
+
+  <button id="phiM5" title="Neural nets: group 5"
+        style="font-size:20px; color:#553355;"
+        onmousedown="mdown();"
+        onmouseup="phi(25);">
+&Sigma;5
+  </button>
+
+
+  <button id="approve" title="approve"
+   style="font-size:50px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="logApproval(10);">
+a
+  </button>
+
+
+  <button id="phiM0" title="Neural nets: averaged"
+	style="font-size:20px; color:#553355;"
+	onmousedown="mdown();"
+	onmouseup="phi(20);">
+&Sigma;0
+  </button>
+
+  <button id="phiM6" title="Neural nets: random group"
+	style="font-size:20px; color:#553355;"
+	onmousedown="mdown();"
+	onmouseup="phi(26);">
+&Sigma;&xscr;
+  </button>
+
+  <button id="bar" title="random" style="font-size:40px; color:blue;"
+   onmousedown="mdown();"
+   onmouseup="ranD();">
+|
+  </button>
+
+  <button id="flip" title="flip" style="font-size:40px; color:green;"
+   onmousedown="mdown();"
+   onmouseup="flip();">
+f
+  </button>
+
+  <button id="gplus" title="keyword match" style="font-size:50px; color:green;"
+   onmousedown="mdown();"
+   onmouseup="gplus();">
++
+  </button>
+  <button id="golden_ab" title="golden angle AB"
+   style="font-size:30px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="golden(6);">
+2
+  </button>
+
+  <button id="golden_rgb" title="golden angle RGB"
+   style="font-size:30px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="golden(7);">
+3
+  </button>
+
+  <button id="golden_8" title="golden angle RGB 2x2x2"
+   style="font-size:30px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="golden(9);">
+8
+  </button>
+
+  <button id="golden_27" title="golden angle RGB 3x3x3"
+   style="font-size:20px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="golden(8);">
+27
+  </button>
+
+  <button id="bill_rgb_32" title="golden angle RGB 32x32x32"
+   style="font-size:15px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="golden(11);">
+32K
+  </button>
+
+ </td>
+ <td style="text-align:left;"
+   title="show info"
+   onmousedown="mouseDownNextToPlus=true; showMD();"
+   onmouseup="hideKwds();"
+   onmouseleave="hideKwds();">
+	<span id="kwdTd" style="vertical-align:40%;font-size:50px;">
+	&nbsp;</span></td>
+</tr>
+</tbody></table>
+<p id="foot_credit" onmousedown="mouseDownOnCredit=true; showMD();"
+   onmouseup="hideCredit();"
+   onmouseleave="hideCredit();"
+   title="show photo credit"
+   style="color:rgba(255,255,255,0.4);font-size: 14pt; font-family:'Courier New',Courier,monospace; text-align:right;">
+  &copy; 2015-2024 Bill Ross Photoriot.</p>
+<!-- INITIALIZE -->
+
+<script>
+<!--
+try {
+  adjustPageElements()
+  adjustCmdTds(1);
+  getSessionId(true, true);
+} catch (e) {
+  alert(e);
+}
+// -->
+</script>
+</div>
+</div>
+</body>
+</html>

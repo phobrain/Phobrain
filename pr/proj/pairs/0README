@@ -1,0 +1,44 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+# === pr/proj/pairs/0README
+
+Scripts:
+
+    run.v, run.h
+
+Output:
+
+        pr.pairs_[vh]_dump.sql_body, _tail
+        ../histogram/pairs_uniq_[vh]
+
+        [plus 'update' files]                ! overwritten silently
+
+In ../update/, run.color to update picture table after running with new
+color data, run.d0 or run.d0.[vh] for just NN data.
+
+In ../histogram/, e.g. 'run.col.[vh]' is what uses ../histogram/pairs_uniq_[vh].
+
+--- details on ../update/
+
+Picture table: Lab 'ab' angle and those radii dependent on avg/center 
+               point of pic in color space:
+
+    image_desc/center_ang_AB_[vh]
+    ang_ab
+
+    image_desc/center_radii_AB_[vh]
+    image_desc/center_radii_RGB_[vh]
+    d_ctr_rgb | d_ctr_ab 
+
+    (The other picture table radii are histogram-based, 
+     and come from ../histogram: 
+        run_pairtop_angles_only_tbl.sh <v|h>
+
+     /mnt/mx4t/epqe/image_desc/2_hist/pair_angle/h_b11_d_rgb3_len
+
+Calcs RGB radii 
+

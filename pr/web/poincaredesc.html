@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html><head>
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+ <meta charset="utf-8">
+ <link rel="canonical" href="http://phobrain.com"/>
+ <link rel="icon" href="favicon.ico"/>
+ <meta name="description" content="Your mind on photos - associative slideshow brain teaser"/>
+ <meta  http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+ <title>Phobrain Image Analysis</title>
+</head>
+<body bgcolor="#ffffff">
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<a href="index.html">
+<p style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+&nbsp;&nbsp;&nbsp;&nbsp;Home</p>
+</a>
+</td>
+<td style="text-align:right">
+<a href="explain.html">
+<p style="color:rgba(255,255,255,0.6);font-size: 28pt; font-family:'Courier New',Courier,monospace;" align="right">About &nbsp;&nbsp;&nbsp;&nbsp;</p>
+</a>
+</td>
+</tr>
+</table>
+</div>
+<div id="content">
+<center>
+<style>
+h1{
+font-size:100px;
+text-shadow:0px 0px 10px #888;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+line-height:.3;
+}
+A:link{font-weight: bold; text-decoration:none;}
+A:visited{font-weight: bold; text-decoration:none;}
+</style>
+<a href="index.html">
+<h1>Phobrain</h1>
+</a>
+<h2>Image Analysis 3 - Distances in Poincare Spherical Space</h2>
+<p>
+ Paper: <a href="https://arxiv.org/abs/1705.08039">Poincaré Embeddings for Learning Hierarchical Representations</a>
+</p>
+<p>
+<a href="imgdesc.html">Earlier image distance analysis.</a><br />
+Results for various image histogram methods applied
+to a sampling of 328 photos with '11' in their sequence number,<br />
+from a collection of 8K photos by Bill and Elle,
+and a sampling of 568 photos with '33' in their sequence number
+from 16K<br />
+photos, including photos from Ellen and Raf &amp; Skot as well.
+Units are scaled to give a reasonable integer range.<br />
+Pair distances stratify into three groups in each case. In the two extreme
+cases examined, Greyscale and RGB 32^3, <br />
+all the photos in the sample are found in
+the central Group 2 layer of pairs, while Groups 1 and 3 have fewer unique<br />
+photos and pairs, and there is a disjoint split of all photos
+between Groups 1 and 3. 
+This holds for both samples.
+</p>
+
+<h2>Photo/Pair counts per Group</h2>
+
+<table>
+<tr><th>Metric</th><th>N Photos</th><th>Group 1</th><th>Group 2</th><th>Group 3</th></tr>
+<tr><td>Greyscale</td><td>328</td><td>189/9142</td><td>328/13538</td><td>139/4893</td></tr>
+<tr><td>RGB 32^3</td><td>328</td><td>167/7231</td><td>328/13832</td><td>161/6510</td></tr>
+<tr><td>Greyscale</td><td>568</td><td>336/28456</td><td>568/39696</td><td>232/13664</td></tr>
+<tr><td>RGB 32^3</td><td>568</td><td>293/21426</td><td>568/40865</td><td>275/19525</td></tr>
+</table>
+
+<h2>Groups 1 &amp; 3: Intersections between Greyscale and RGB 32^3 (photos/aggregate)</h2>
+<table>
+<tr><th>N Photos</th><th>Group 1</th><th>Group 3</th></tr>
+<tr><td>328</td><td>107/249</td><td>79/221</td></tr>
+<tr><td>568</td><td>175/454</td><td>114/393</td></tr>
+</table>
+
+<h2>Intersection of Pairs between Greyscale/RGB32 Groups (pairs/aggregate)</h2>
+
+<table>
+<tr><th>N Photos</th><th>Group 1</th><th>Group 2</th><th>Group 3</th></tr>
+<tr><td>328</td><td>217/13324</td><td>457/20408</td><td>150/9810</td></tr>
+<tr><td>568</td><td>2061/42271</td><td>12193/60797</td><td>1565/29801</td></tr>
+</table>
+
+<h2>Sorted picture-picture distances</h2>
+
+<h4>Greyscale</h4>
+<img src="graph/graph_328_greyscale_Poincare_dist.jpg">
+<p><a href="poincare_gs_grps.html">Group 1,2,3 example pairs</a></p>
+
+
+<h4>Hue*Saturation 24x24</h4>
+<img src="graph/graph_328_hs_24_Poincare_dist.jpg">
+
+<h4>Hue*Saturation 48x48</h4>
+<img src="graph/graph_328_hs_48_Poincare_dist.jpg">
+
+<h4>RGB 12x12x12</h4>
+<img src="graph/graph_328_rgb_12_Poincare_dist.jpg">
+
+<h4>RGB 24x24x24</h4>
+<img src="graph/graph_328_rgb_24_Poincare_dist.jpg">
+
+<h4>RGB 32x32x32</h4>
+<img src="graph/graph_328_rgb_32_Poincare_dist.jpg">
+<p><a href="poincare_rgb32_grps.html">Group 1,2,3 example pairs</a></p>
+
+<h2>Sample size 568 photos from 16K</h2>
+<p>With '33' in sequence number.</p>
+<h4>Greyscale</h4>
+<img src="graph/graph_568_grey_Poincare_dist.jpg">
+
+<h4>RGB 32x32x32</h4>
+<img src="graph/graph_568_rgb_32_Poincare_dist.jpg">
+
+
+<br/><br/>
+<br/><br/>
+
+<p>
+<i>Software</i><br/>
+  Histograms from BoofCV.<br/>
+</p>
+<style>
+button {
+    border: 1px transparent;
+    background-color: transparent;
+    #text-shadow:0px 0px 5px #fff;
+}
+</style>
+
+<button title="na" style="font-size:50px; color:red;" onmouseup="nextImage(1);">
+-
+</button>
+
+<button title="nu" style="font-size:40px; color:blue;" onmouseup="nextImage(2);">
+|
+</button>
+
+<button title="ni" style="font-size:50px; color:green;" onmouseup="nextImage(3);">
++
+</button>
+<br/> <br/>
+<blockquote>
+<a href="https://aeon.co/videos/starlings-in-flight-sketch-entrancing-abstract-patterns-across-an-autumn-sky">
+What use to cry for Capricorn? it sails<br/>
+Across the heart's red atlas: it is found <br/>
+Only within the ribs, where all the tails <br/>
+The tempest has are whisking it around.</a>
+<br/><br/>
+
+&mdash; Mervyn Peake, 
+<a href="http://www.freebookol.net/Titus_Alone/12.html">Titus Alone</a>
+</blockquote>
+</center>
+</div>
+<p style="text-align:right; color:rgba(0,0,0,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;">&copy; 2015,2016,2017 Photoriot.</p>
+</body></html>

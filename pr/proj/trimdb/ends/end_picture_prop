@@ -1,0 +1,18 @@
+/*
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+
+DROP INDEX IF EXISTS pr.picture_prop_idx;
+CREATE INDEX picture_prop_idx ON pr.picture_prop USING btree (id);
+
+
+--
+-- Name: TABLE picture_prop; Type: ACL; Schema: pr; Owner: pr
+--
+
+REVOKE ALL ON TABLE pr.picture_prop FROM PUBLIC;
+REVOKE ALL ON TABLE pr.picture_prop FROM pr;
+GRANT ALL ON TABLE pr.picture_prop TO pr;

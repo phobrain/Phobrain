@@ -1,0 +1,48 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+== pr/proj/trimdb/ - trim Phobrain db into dump.sql files for export.
+
+    $phobrain_local/trimdb_excludes - list of pic id's to not export
+
+    run.40G_site - works for site sized:
+
+        /dev/vda1       155G   66G   90G  43% /
+        /dev/sda        199G  130G   60G  69% /mnt/volume_sfo2_01
+
+        Where db is on /mnt/ and pics on /.
+
+== server sql scripts for drop+vacuum and load
+
+lops/db19$ cat ../drop_db.sql
+drop table pr.picture;
+drop table pr.picture_prop;
+drop table pr.keywords;
+drop table pr.approved_pair;
+drop table pr.pairs_v;
+drop table pr.pairs_h;
+drop table pr.pairtop_nn_v;
+drop table pr.pairtop_nn_h;
+drop table pr.pairtop_col_v;
+drop table pr.pairtop_col_h;
+vacuum full;
+
+lops/db19$ cat ../load_db.sql 
+\i pr.trim_picture_dump.sql 
+\i pr.trim_picture_prop_dump.sql 
+\i pr.trim_keywords_dump.sql
+\i trim_pr.pairtop_nn_v_dump.sql
+\i trim_pr.pairtop_nn_h_dump.sql
+\i trim_pr.pairtop_col_v_dump.sql
+\i trim_pr.pairtop_col_h_dump.sql
+\i trim_pr.pairs_v_dump.sql_body
+\i trim_pr.pairs_v_dump.sql_tail
+\i trim_pr.pairs_h_dump.sql_body
+\i trim_pr.pairs_h_dump.sql_tail
+\i trim_pr.approved_pair_dump.sql
+alter table pr.approved_pair rename column id1 to id2;
+alter table pr.approved_pair rename column id0 to id1;
+

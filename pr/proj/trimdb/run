@@ -1,0 +1,119 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+
+if [ $# != 2 ] ; then
+    echo Usage: $0 n_vert n_horiz
+    exit 1
+fi
+
+set -e
+
+START=`date`
+
+SRC_PAIR_DUMPS=`../../bin/phobrain_property.sh bulk.db.dump.dir`
+
+if [ ! -d "$SRC_PAIR_DUMPS" ] ; then
+    echo "== $0 Source not a dir: $SRC_PAIR_DUMPS"
+    exit 1
+fi
+
+DUMPDIR=`../../bin/phobrain_property.sh trimdb.dir`
+
+if [ ! -d "$DUMPDIR" ] ; then
+    echo "== $0 Destination not a dir: $DUMPDIR"
+    exit 1
+fi
+
+echo
+echo "=== Source dir is ${SRC_PAIR_DUMPS}:"
+echo
+ls -lt $SRC_PAIR_DUMPS | grep sql | awk '$1=="total" {print} NF==9 {print $6,$7,$8,$9}' | sed -e 's:^:    :g'
+echo
+
+echo -n "Check ages.. Continue? [Y/n]: "
+read REPLY
+case $REPLY in
+    "") echo ok ;;
+    [Yy]) echo ok ;;
+    [Nn]) echo Quitting ; exit 0 ;;
+    *) echo Quitting ; exit 1 ;;
+esac
+
+echo Dump dir is $DUMPDIR
+
+if [ -e "$DUMPDIR" ] ; then
+    echo -n "Dump dir exists: Redo? [Y/n]: "
+    read REPLY
+    case $REPLY in
+        "") echo ok ; rm -rf $DUMPDIR ;;
+        [Yy]) echo ok; rm -rf $DUMPDIR  ;;
+        [Nn]) echo Quitting ; exit 0 ;;
+        *) echo Quitting ; exit 1 ;;
+    esac
+fi
+mkdir $DUMPDIR
+
+HOST=localhost
+
+# -W: ask for db pwd for each tbl.
+# -w: Set ~/.pgpass, postgres pg_hba.conf with -w for smooth op
+W="-W"
+
+echo "==== Building trim_picture tables in db"
+java -Xmx8g -jar build/libs/trimdb-all-1.0.jar $*
+
+echo "==== Dumping trim_ picture tables to $DUMPDIR"
+
+echo "$0": pg_dump pr.trim_picture
+pg_dump $W -U pr -d pr -h $HOST \
+        -t pr.trim_picture > $DUMPDIR/pr.trim_picture_dump.sql
+cat ends/end_picture >> $DUMPDIR/pr.trim_picture_dump.sql
+
+echo "$0": pg_dump pr.trim_picture_prop
+pg_dump $W -U pr -d pr -h $HOST \
+        -t pr.trim_picture_prop > $DUMPDIR/pr.trim_picture_prop_dump.sql
+cat ends/end_picture_prop >> $DUMPDIR/pr.trim_picture_prop_dump.sql
+
+echo "$0": pg_dump pr.trim_keywords
+pg_dump $W -U pr -d pr -h $HOST \
+        -t pr.trim_keywords > $DUMPDIR/pr.trim_keywords_dump.sql
+cat ends/end_keywords >> $DUMPDIR/pr.trim_keywords_dump.sql
+
+echo "==== Applying the $DUMPDIR pics to pair dumps in $SRC_PAIR_DUMPS"
+
+time {
+
+for i in \
+            pr.pairs_h_dump.sql_body pr.pairs_h_dump.sql_tail \
+            pr.pairs_v_dump.sql_body pr.pairs_v_dump.sql_tail \
+            pr.pairtop_angle_h_dump.sql \
+            pr.pairtop_angle_v_dump.sql \
+            pr.pairtop_nn_h_dump.sql \
+            pr.pairtop_nn_v_dump.sql \
+            pr.approved_pair_dump.sql ; do
+
+    FILE=$SRC_PAIR_DUMPS/$i
+
+    if [ ! -e "$FILE" ] ; then
+        echo
+        echo "== $0  skipping - no $FILE"
+        echo
+        continue
+    fi
+
+    echo "==== $0  apply.py $DUMPDIR $FILE"
+    ./apply.py $DUMPDIR $FILE
+done
+
+echo Whew..
+echo "== $0 Source size: `du -sh $SRC_PAIR_DUMPS`"
+echo "== $0 Result size: `du -sh $DUMPDIR`"
+echo
+echo "START: $START"
+echo "END:  `date`"
+}

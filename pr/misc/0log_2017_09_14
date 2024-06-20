@@ -1,0 +1,4577 @@
+#
+#  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+=== 2022_04 - not sure why this is separate from pr/0log.
+                0log first entry: --- Aug 10 2015
+
+--- Thu Nov 10 19:41:19 PST 2016
+
+Split 264 boring transam pics from arch5 into arch6
+Draw on: wrap angle when nothing found in 1st direction.
+         fall back on closest distance if nothing in both dirs.
+PicClick generally: better rotation among distance metrics when
+	prev pic was drawn on
+
+--- Fri Nov 11 18:35:18 PST 2016
+
+Rebuilding keywords, inserting in the temp table:
+
+PID    COMMAND      %CPU TIME     #TH   #WQ  #PORT MEM    PURG   CMPRS  PGRP
+17499  postgres     62.7 04:53.82 1/1   0    7     387M+  0B     186M-  17499
+17498  postgres     62.2 04:55.22 1/1   0    7     387M+  0B     189M-  17498
+17497  java         46.8 04:12.00 19    0    76    57M+   0B     310M   17495
+
+--- Fri Nov 11 23:47:19 PST 2016
+
+Reviewed the single-case keywords and restructured 'parallel' and 'shadow'.
+There are ~800 single-case kwds and ~1600 with >1 pic.
+
+
+--- Sat Nov 12 14:48:47 PST 2016
+
+Split some of door into in_door.
+
+--- Mon Nov 14 02:46:39 PST 2016
+
+Added weighted selection of drawing in color space, currently using cubed
+function for decay from target.
+
+--- Fri Nov 18 12:55:13 PST 2016
+
+Split out gutter_pipe and stove_pipe from pipe last night.
+
+--- Sat Nov 19 01:36:13 PST 2016
+
+Calced and pushed latest keywords. Still haven't pushed decay from target.
+
+ ls -l meta_* meta/
+-rw-r--r--  1 priot  staff  103300386 Nov 19 00:28 meta_0_m
+-rw-r--r--  1 priot  staff   87395014 Nov 19 00:28 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   80277303 Nov 19 00:29 meta_1_m
+-rw-r--r--  1 priot  staff   66370211 Nov 19 00:29 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2831325 Nov 19 00:29 meta_2_m
+-rw-r--r--  1 priot  staff    2756128 Nov 19 00:29 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66392 Nov 19 00:29 meta_3_m
+-rw-r--r--  1 priot  staff      65970 Nov 19 00:29 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      70414 Nov 19 00:29 meta_4_m
+-rw-r--r--  1 priot  staff      66864 Nov 19 00:29 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2962175 Nov 19 00:29 meta_5_m
+-rw-r--r--  1 priot  staff    2589934 Nov 19 00:29 meta_5_m_nogeom
+
+meta/:
+total 689648
+-rw-r--r--  1 priot  staff  104986018 Nov 12 00:30 meta_0_m
+-rw-r--r--  1 priot  staff   87956037 Nov 12 00:31 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   81861563 Nov 12 00:31 meta_1_m
+-rw-r--r--  1 priot  staff   66866650 Nov 12 00:32 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2831154 Nov 12 00:32 meta_2_m
+-rw-r--r--  1 priot  staff    2755957 Nov 12 00:32 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      64505 Nov 12 00:32 meta_3_m
+-rw-r--r--  1 priot  staff      63932 Nov 12 00:32 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      70511 Nov 12 00:32 meta_4_m
+-rw-r--r--  1 priot  staff      66944 Nov 12 00:32 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2962942 Nov 12 00:32 meta_5_m
+-rw-r--r--  1 priot  staff    2590820 Nov 12 00:32 meta_5_m_nogeom
+
+1 week to within 3 minutes!
+
+--- Sat Nov 19 14:34:27 PST 2016
+
+Split out half_arch:
+
+  11 half_arch
+ 201 arch
+
+--- Sat Nov 19 19:47:19 PST 2016
+
+Split plastic up:
+
+   1 plastic_chair
+   5 plastic_chairs
+   8 plastic_mesh
+  67 plastic
+
+--- Wed Nov 23 00:15:43 PST 2016
+
+Differentiated through_window:
+
+   1 open_windows
+   7 open_window
+  89 store_window
+   5 in_windows
+  97 in_window
+   7 through_windows
+ 146 through_window
+ 115 windows
+ 334 window
+
+--- Wed Nov 23 01:16:58 PST 2016
+
+-rw-r--r--  1 priot  staff  102445524 Nov 23 01:15 meta_0_m
+-rw-r--r--  1 priot  staff   86519837 Nov 23 01:15 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   79496983 Nov 23 01:16 meta_1_m
+-rw-r--r--  1 priot  staff   65567735 Nov 23 01:16 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2831259 Nov 23 01:16 meta_2_m
+-rw-r--r--  1 priot  staff    2756057 Nov 23 01:16 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66392 Nov 23 01:16 meta_3_m
+-rw-r--r--  1 priot  staff      65970 Nov 23 01:16 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69950 Nov 23 01:16 meta_4_m
+-rw-r--r--  1 priot  staff      66400 Nov 23 01:16 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2956377 Nov 23 01:16 meta_5_m
+-rw-r--r--  1 priot  staff    2584103 Nov 23 01:16 meta_5_m_nogeom
+
+meta/:
+total 681208
+-rw-r--r--  1 priot  staff  103300386 Nov 19 00:28 meta_0_m
+-rw-r--r--  1 priot  staff   87395014 Nov 19 00:28 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   80277303 Nov 19 00:29 meta_1_m
+-rw-r--r--  1 priot  staff   66370211 Nov 19 00:29 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2831325 Nov 19 00:29 meta_2_m
+-rw-r--r--  1 priot  staff    2756128 Nov 19 00:29 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66392 Nov 19 00:29 meta_3_m
+-rw-r--r--  1 priot  staff      65970 Nov 19 00:29 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      70414 Nov 19 00:29 meta_4_m
+-rw-r--r--  1 priot  staff      66864 Nov 19 00:29 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2962175 Nov 19 00:29 meta_5_m
+-rw-r--r--  1 priot  staff    2589934 Nov 19 00:29 meta_5_m_nogeom
+
+I imagine the shrinkage is like creases developing in the brain as I 
+minimize the error function.
+
+--- Wed Nov 23 01:32:02 PST 2016
+
+Fixed minor bug in kdwd.html (keyword testbed): toggling previous pic was
+going to the unsized version (too big) on the smaller laptop screen I'm
+working on. Added a resize-on-toggle and pushed to server on the imaginary
+chance Pat or Lorena might look at it.
+
+--- Wed Nov 23 01:36:19 PST 2016
+
+I just got a run of through_window pics in kdwd - happy and starting to 
+scp to server.
+
+--- Wed Nov 23 01:49:47 PST 2016
+
+New keywords are in production. Net connection is faster at Airbnb
+place I'm at in Oregon, likely due to cable.
+
+--- Mon Nov 28 00:47:02 PST 2016
+
+Split out string_lights, indirect_light and light_blur and now distinguishing 
+between light and lights.
+
+% ls -l meta_* meta/
+-rw-r--r--  1 priot  staff  102006668 Nov 28 01:09 meta_0_m
+-rw-r--r--  1 priot  staff   86100516 Nov 28 01:10 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   79115653 Nov 28 01:10 meta_1_m
+-rw-r--r--  1 priot  staff   65202537 Nov 28 01:11 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2830975 Nov 28 01:11 meta_2_m
+-rw-r--r--  1 priot  staff    2755773 Nov 28 01:11 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66392 Nov 28 01:11 meta_3_m
+-rw-r--r--  1 priot  staff      65970 Nov 28 01:11 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69627 Nov 28 01:11 meta_4_m
+-rw-r--r--  1 priot  staff      66092 Nov 28 01:11 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2953628 Nov 28 01:11 meta_5_m
+-rw-r--r--  1 priot  staff    2581354 Nov 28 01:12 meta_5_m_nogeom
+
+meta/:
+total 674720
+-rw-r--r--  1 priot  staff  102445524 Nov 23 01:15 meta_0_m
+-rw-r--r--  1 priot  staff   86519837 Nov 23 01:15 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   79496983 Nov 23 01:16 meta_1_m
+-rw-r--r--  1 priot  staff   65567735 Nov 23 01:16 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2831259 Nov 23 01:16 meta_2_m
+-rw-r--r--  1 priot  staff    2756057 Nov 23 01:16 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66392 Nov 23 01:16 meta_3_m
+-rw-r--r--  1 priot  staff      65970 Nov 23 01:16 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69950 Nov 23 01:16 meta_4_m
+-rw-r--r--  1 priot  staff      66400 Nov 23 01:16 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2956377 Nov 23 01:16 meta_5_m
+-rw-r--r--  1 priot  staff    2584103 Nov 23 01:16 meta_5_m_nogeom
+
+--- Wed Nov 30 02:38:39 PST 2016
+
+Split shadow some more:
+
+Of 755 shadow:
+
+  16 wire_shadow
+  17 wrought_iron_shadow
+  18 wire_shadows
+  35 tree_shadows
+  70 tree_shadow
+
+--- Wed Nov 30 03:29:57 PST 2016
+
+% ls -l meta_* meta/
+-rw-r--r--  1 priot  staff  99539943 Nov 30 03:22 meta_0_m
+-rw-r--r--  1 priot  staff  83541646 Nov 30 03:25 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  76734007 Nov 30 03:27 meta_1_m
+-rw-r--r--  1 priot  staff  62729704 Nov 30 03:28 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   2830989 Nov 30 03:28 meta_2_m
+-rw-r--r--  1 priot  staff   2755787 Nov 30 03:29 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff     66392 Nov 30 03:29 meta_3_m
+-rw-r--r--  1 priot  staff     65970 Nov 30 03:29 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff     69488 Nov 30 03:29 meta_4_m
+-rw-r--r--  1 priot  staff     65953 Nov 30 03:29 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   2902485 Nov 30 03:29 meta_5_m
+-rw-r--r--  1 priot  staff   2528980 Nov 30 03:29 meta_5_m_nogeom
+
+meta/:
+total 671568
+-rw-r--r--  1 priot  staff  102006668 Nov 28 01:09 meta_0_m
+-rw-r--r--  1 priot  staff   86100516 Nov 28 01:10 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   79115653 Nov 28 01:10 meta_1_m
+-rw-r--r--  1 priot  staff   65202537 Nov 28 01:11 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2830975 Nov 28 01:11 meta_2_m
+-rw-r--r--  1 priot  staff    2755773 Nov 28 01:11 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66392 Nov 28 01:11 meta_3_m
+-rw-r--r--  1 priot  staff      65970 Nov 28 01:11 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69627 Nov 28 01:11 meta_4_m
+-rw-r--r--  1 priot  staff      66092 Nov 28 01:11 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2953628 Nov 28 01:11 meta_5_m
+-rw-r--r--  1 priot  staff    2581354 Nov 28 01:12 meta_5_m_nogeom
+
+--- Thu Dec  1 12:52:19 PST 2016
+
+I'm in the middle of doing the multi-pic version. Put servlet data in a
+singleton, for accessibility by the new servlet, and made separate lists
+and sets for verticals. It's pretty fast to filter them:
+
+12/01 12:17:53.935 [main] INFO  com.priot.servlet.ServletData - INIT Filtering verticals: 34 [ms]
+
+The existing stuff works with the change. Now I have to apply vertical
+(portrait) filtering to the keyword lists, which I've decided to do 
+dynamically rather than replicate them. They take 24 sec to load, while 
+every other setup step completes in < 100 ms. I'm thinking of making the 
+load lazy, and having keyword matches default to the pairs table while 
+load is happening. Not that I'm losing any users for that 24 sec.
+
+12/01 13:00:25.103 [main] INFO  com.priot.servlet.ServletData - INIT vericals: 5329
+
+Now I have to allow for -|+ resetting both pics at once, by introducing
+a stage cmd to get selection into the session/screen in the db, then a 
+load cmd. Session creation has to populate the initial values.
+
+--- Thu Dec  1 17:20:12 PST 2016
+
+I've got the meaty parts of GetNext split into GetEngine, and all tested,
+so now ready to use GetEngine in GetSession to initialize the screens.
+
+Lots of other stuff went on in the real world while it was in torn-apart
+state. I should be checking code in, now that I've got to a stable place,
+but I'm holding off til feature completion since my USB stick is 95% full.
+I might get there tonight.
+
+--- Thu Dec  1 22:25:47 PST 2016
+
+I've got code for initializing the Screen list with a random pic and
+the top keyword matches on getsession. Now I need a generic call to load
+a given screen's pic into the browser, i.e. img.src = <end>.get(screen).
+
+At each stage spending some time with Pat, at therapist, dinner out,
+then tv.
+
+--- Fri Dec  2 01:57:37 PST 2016
+
+Worked a while uninterrupted, server side of simple click pic to
+cause best kwd match on the other pic, kwd falling back to a variety
+of color algorithms, with startup load. All compiles and old functionality 
+remains.
+
+Now need to write web page to test it, then implement -|+ for that page.
+
+--- Fri Dec  2 04:25:04 PST 2016
+
+I've got the web page working for cross-matched clicks, and it looks like
+it'll be good for debugging keywords, plus it's pretty trippy.
+
+I want to do a kdwd-style page, that shows the pic ids and matching
+keywords, but too busy to turn aside now to do a separate-load version.
+Instead will just log keywords.
+
+--- Fri Dec  2 06:01:49 PST 2016
+
+Found and fixed a few misc kwd bugs. Lots of drekky matches in that there
+is no choosing of favorites for the 1st 100 like the other web page has,
+but mind-boggling to explore.
+
+Time for a backup.
+
+--- Sat Dec  3 05:37:12 PST 2016
+
+Everything seems to work. I still haven't hit the end of the vertical pairs
+in my current session, and getting amazed a lot. I just fixed a bug where
+it cycled pics due to my jump-to-scene feature. Response is sluggish on
+the site version.
+
+I miss the variability of matches, when watching over and over.
+
+--- Mon Dec  5 02:09:32 PST 2016
+
+I rationalized keyword logging. Next step: update Showing records when
+choosing a new pic, so that I can get a timing history to start adding
+variablity, starting with using different color algs for '-' on furthest
+distance and match. The add slice/dice of keyword lists from GetNext,
+and that part will be done. That's the minimal version I plan to have out 
+before my operation. Might add a favorites filter too.
+
+Still haven't reached the end of a pairs session.
+
+--- Mon Dec  5 15:15:00 PST 2016
+
+Clicking on the pic now stratifies the list depending on center or quadrant
+and chooses probabilistically.
+
+--- Tue Dec  6 00:45:25 PST 2016
+
+Showings are now updated, so after a pause I'll start playing with the
+history.
+
+pr=> select count (*) from showing where browser_id = 799;
+ count 
+-------
+  2357
+
+--- Wed Dec  7 00:33:22 PST 2016
+
+pr=> select count (*) from showing where browser_id = 799;
+ count 
+-------
+  2772
+
+History is in place, haven't updated running count yet for firsts/bests
+filter, but maybe I can see a difference from the other filters.
+
+--- Wed Dec  7 13:44:43 PST 2016
+
+Made load of expt.html reload the last pic if any, rather than picking a
+new random one each time you visit the page. Now thinking I should make one
+page that toggles between showing 1 and 2 pics. But it would still have to 
+be all verticals.
+
+--- Wed Dec  7 14:29:27 PST 2016
+
+I lost my session with browserID 799. I'm going to update all the showings
+in my local db.
+
+pr=> select count (*) from showing where browser_id = 803;
+ count 
+-------
+  2799
+
+Getting a lot of:
+
+12/07 14:48:15.094 [qtp633070006-103] INFO  com.priot.servlet.GetEngine - fallback to gist/greyscale
+
+with multiple calls due to nonvertical responses. Maybe I should just make
+a vertical view. On one click:
+
+14:35:59.059
+14:35:59.141
+14:35:59.267
+14:35:59.360
+14:35:59.440
+14:35:59.527
+14:35:59.624
+14:35:59.712
+14:35:59.782
+14:35:59.851
+14:35:59.919
+
+--- Wed Dec  7 18:24:39 PST 2016
+
+I've got the vertical view. Now to rip out all the special-case vertical 
+selection code.
+
+--- Wed Dec  7 19:47:29 PST 2016
+
+expt.html is working with special-case code gone, on the vertical view.
+It was going into horizontals due to scene joins, and since these are 
+legacy for my original archive I was ready to let that hack go.
+
+(Earlier today I found expt/mexpt sharing the browser/session cookie, so 
+made the ids unique.)
+
+Now to try mexpt.html. 
+
+pr=> update showing set browser_id=805 where browser_id = 803;
+UPDATE 2831
+
+--- Wed Dec  7 22:36:01 PST 2016
+
+Got logging somewhat in order. I can't stop call_count in the browser from
+going in 2's for getting pairs (both get the initial number).
+
+12/07 22:35:11.783 [qtp633070006-24] INFO  com.priot.servlet.GetMult - 
+==> 1/img1022a.jpg  n: 2888 count: 18 sel: mi/f/shrt/lt
+12/07 22:35:11.786 [qtp633070006-24] INFO  com.priot.servlet.GetMult - 
+==> 1/img4502a.jpg  n: 2889 count: 18 sel: match
+
+Back to running up the count to see what happens when I reach the end.
+
+--- Wed Dec  7 23:09:14 PST 2016
+
+Fixed another case of a horizontal pic creeping in - due to not properly
+screening pics that have a non-vertical instance.
+
+Split 'post':
+
+   2 rebar_post
+   3 fence_posts
+   4 fence_post
+  21 post
+   2 posts
+
+--- Thu Dec  8 00:03:15 PST 2016
+
+Made deeper fix to horizontal creeping in.. hopefully good now.
+
+--- Thu Dec  8 00:26:26 PST 2016
+
+Nope..
+
+--- Thu Dec  8 01:28:39 PST 2016
+
+Fixed a bunch of subtle things, lastly remembering to regenerate pic indexes
+after working out my basic get-pics-vertical query on the server view load.
+
+==> 1/img725a.jpg  n: 3001 count: 130 sel: match
+
+5263 total vertical.
+
+--- Thu Dec  8 01:51:54 PST 2016
+
+Note 'n:':
+
+==> 1/img1096a.jpg  n: 3039 count: 168 sel: match
+
+Before:
+
+  91 grass
+
+After:
+
+   2 dry_grass
+  11 tall_grass
+  50 grass
+
+--- Thu Dec  8 02:00:50 PST 2016
+
+==> 5/IMG_0945_sm.jpg  n: 3105 count: 234 sel: match
+
+Before:
+
+   6 skylights
+  28 skylight
+
+--- Thu Dec  8 02:09:02 PST 2016
+
+After:
+
+   1 in_skylights
+   5 skylight
+   5 skylights
+  20 in_skylight
+
+--- Thu Dec  8 02:13:39 PST 2016
+
+==> 1/img5918a.jpg  n: 3119 count: 248 sel: match
+
+  17 wire_shadow
+  18 wire_shadows
+
+--- Thu Dec  8 02:20:22 PST 2016
+
+   5 guy_wire_shadow
+   7 guy_wire_shadows
+  10 wire_shadows
+  12 wire_shadow
+
+--- Thu Dec  8 02:24:40 PST 2016
+
+Rebuilding keywords. I'm adding the pairs page to my *Enter* dropdown,
+with the option name highlighted in green.
+
+--- Thu Dec  8 02:52:54 PST 2016
+
+% ls -l meta_* meta/
+-rw-r--r--  1 priot  staff  99183406 Dec  8 02:49 meta_0_m
+-rw-r--r--  1 priot  staff  83250714 Dec  8 02:50 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  76434080 Dec  8 02:50 meta_1_m
+-rw-r--r--  1 priot  staff  62489771 Dec  8 02:51 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   2828538 Dec  8 02:51 meta_2_m
+-rw-r--r--  1 priot  staff   2753326 Dec  8 02:51 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff     66392 Dec  8 02:51 meta_3_m
+-rw-r--r--  1 priot  staff     65970 Dec  8 02:51 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff     69478 Dec  8 02:51 meta_4_m
+-rw-r--r--  1 priot  staff     65948 Dec  8 02:51 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   2899839 Dec  8 02:51 meta_5_m
+-rw-r--r--  1 priot  staff   2526994 Dec  8 02:51 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff  23009826 Dec  8 02:51 meta_6_m
+-rw-r--r--  1 priot  staff  19625668 Dec  8 02:51 meta_6_m_nogeom
+
+meta/:
+total 735664
+-rw-r--r--  1 priot  staff  99539943 Nov 30 03:22 meta_0_m
+-rw-r--r--  1 priot  staff  83541646 Nov 30 03:25 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  76734007 Nov 30 03:27 meta_1_m
+-rw-r--r--  1 priot  staff  62729704 Nov 30 03:28 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   2830989 Nov 30 03:28 meta_2_m
+-rw-r--r--  1 priot  staff   2755787 Nov 30 03:29 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff     66392 Nov 30 03:29 meta_3_m
+-rw-r--r--  1 priot  staff     65970 Nov 30 03:29 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff     69488 Nov 30 03:29 meta_4_m
+-rw-r--r--  1 priot  staff     65953 Nov 30 03:29 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   2902485 Nov 30 03:29 meta_5_m
+-rw-r--r--  1 priot  staff   2528980 Nov 30 03:29 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff  23099292 Dec  8 01:23 meta_6_m
+-rw-r--r--  1 priot  staff  19702615 Dec  8 01:23 meta_6_m_nogeom
+
+--- Thu Dec  8 20:38:51 PST 2016
+
+Before
+
+   2 stove_pipes
+   3 big_pipe
+   5 big_pipes
+  10 stove_pipe
+  23 gutter_pipe
+  40 pipes
+ 106 pipe
+
+After
+
+   2 stove_pipes
+   3 pipe_frame
+   8 big_pipes
+  12 big_pipe
+   1 bent_pipes
+  10 bent_pipe
+  10 stove_pipe
+  20 pvc_pipe
+  23 gutter_pipe
+  33 pipes
+  63 pipe
+
+--- Thu Dec  8 21:31:54 PST 2016
+
+Before
+
+   1 domes
+   1 inside_dome
+  44 dome
+
+After
+
+   1 domes
+   1 inside_dome
+  13 dome_frame
+  29 dome
+
+--- Thu Dec  8 23:04:06 PST 2016
+
+Before
+
+  31 lean_flat
+  31 lean_person
+  95 lean
+
+--- Thu Dec  8 23:21:40 PST 2016
+
+After
+
+  31 lean_person
+  33 lean_flat
+  44 lean_free
+  49 lean
+
+--- Thu Dec  8 23:39:51 PST 2016
+
+Before
+
+ 114 corner
+
+--- Fri Dec  9 00:04:07 PST 2016
+
+After
+
+   1 roof_corner
+   2 corner_points
+  21 corner_point
+  35 street_corner
+  52 corner
+
+--- Fri Dec  9 04:17:59 PST 2016
+
+Seen n: 4067 pics. 
+
+==>PN: 1:3644/1:1447 1:6230 - orange traffic_cone (pipe parallel_bundle) [curve]
+==>LR: 1:6230 1:1769 - parallel_bundle (blob wet bulbous flow) [curve]
+==> 1/img6230a.jpg  n: 4066 count: 2 sel: mi/f/spd/lab_rad
+==> 1/img1769a.jpg  n: 4067 count: 2 sel: match
+
+Just added toggle last pic by click in grey area on either side of pics, 
+after lollygagging through pairs and saving/posting a bunch. 
+
+Now to add a double-toggle when you click to the right of the + sign.
+
+--- Fri Dec  9 04:36:49 PST 2016
+
+Got that working. Now I'd like to make a click on the left of the - sign cause
+the matching keyword to pop up for whatever pair of pics is appearing on the
+screen. That would be fun to do tonight, but I have a phone interview with an
+interestingly boring manual QA possibility at 10:00, and another at 11. 
+
+Also I'd like to make it so if you hold down the mouse button to the right of
+the + for a second or more, it would reset whatever combo you have toggled to
+the last pair gotten.
+
+--- Fri Dec  9 11:23:26 PST 2016
+
+Added 1-sec-right-of-plus resetting the pair.
+
+
+--- Fri Dec  9 17:57:08 PST 2016
+
+Before
+
+ 292 graffiti
+
+After
+
+ 285 graffiti
+
+Got rid of cases where the graffiti was secondary and not prominent.
+
+--- Fri Dec  9 21:33:59 PST 2016
+
+Before
+
+  46 bus
+
+After
+
+   9 in_bus
+  36 bus
+
+--- Sat Dec 10 02:19:43 PST 2016
+
+I finally reached the end of my first session:
+
+pr=> select count(*) from showing where browser_id =805;
+ count 
+-------
+  5380
+
+And I made sure the web page and server get together to start a new session if
+the user wants.
+
+--- Sat Dec 10 11:50:55 PST 2016
+
+I'm deciding whether to implement keyword match calc on the server or in the
+browser. On the server, I need to add a whole servlet to do it in a separate
+call, or figure out all the possibilities and send them with the original
+response. That seems too brittle, so a separate servlet is in order. That would
+let me hide the nonmatching keywords from prying eyes. My original idea of
+sending the keywords with the pic seems the most fun because of doing it
+in javascript for a change, and easier to conceptualize and debug. As it is,
+I'm thinking the browser will send id's like screen.version, where 0.0
+would be the latest on the left, and 0.1 would be one deep on the left.
+I have seen one image fail to update in the browser on +, so in this case
+the keywords would definitely look wrong, since the server doesn't know
+about the browser's error, tho it might not know either for purposes of
+getting the right keywords.
+
+Off to start a servlet.
+
+--- Sat Dec 10 14:52:24 PST 2016
+
+The KwdMatch servlet compiles. Now to add it to the config and write it into
+the web page to test it, since I'm too lazy to write an intermediate test that
+I could automate. 
+
+It's so much simpler just calcing the matches, rather than keeping track of 
+non-match and excluded geometrical keywords.
+
+--- Sun Dec 11 00:57:39 PST 2016
+
+It's in production and announced in a discussion on photo.net.
+
+--- Sun Dec 11 11:58:15 PST 2016
+
+Before
+
+  12 half_arch
+ 201 arch
+
+--- Sun Dec 11 12:35:27 PST 2016
+
+After
+
+   2 small_arch
+  18 wide_arch
+  21 half_arch
+  31 stone_arch
+  55 multi_arch
+  95 arch
+
+I forgot small_arch after using it in the beginning. I'm too lazy to go
+over the pics again. Rebuilding keywords.
+
+priot ~% ls -l meta_* meta/
+
+-rw-r--r--  1 priot  staff  97911310 Dec 11 13:12 meta_0_m
+-rw-r--r--  1 priot  staff  82072526 Dec 11 13:12 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  75312472 Dec 11 13:12 meta_1_m
+-rw-r--r--  1 priot  staff  61452218 Dec 11 13:13 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   2825321 Dec 11 13:13 meta_2_m
+-rw-r--r--  1 priot  staff   2750109 Dec 11 13:13 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff     66353 Dec 11 13:13 meta_3_m
+-rw-r--r--  1 priot  staff     65931 Dec 11 13:13 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff     69481 Dec 11 13:13 meta_4_m
+-rw-r--r--  1 priot  staff     65946 Dec 11 13:13 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   2882861 Dec 11 13:13 meta_5_m
+-rw-r--r--  1 priot  staff   2510658 Dec 11 13:13 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff  22738532 Dec 11 13:13 meta_6_m
+-rw-r--r--  1 priot  staff  19357410 Dec 11 13:13 meta_6_m_nogeom
+
+meta/:
+total 733000
+-rw-r--r--  1 priot  staff  99183406 Dec  8 02:49 meta_0_m
+-rw-r--r--  1 priot  staff  83250714 Dec  8 02:50 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  76434080 Dec  8 02:50 meta_1_m
+-rw-r--r--  1 priot  staff  62489771 Dec  8 02:51 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   2828538 Dec  8 02:51 meta_2_m
+-rw-r--r--  1 priot  staff   2753326 Dec  8 02:51 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff     66392 Dec  8 02:51 meta_3_m
+-rw-r--r--  1 priot  staff     65970 Dec  8 02:51 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff     69478 Dec  8 02:51 meta_4_m
+-rw-r--r--  1 priot  staff     65948 Dec  8 02:51 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   2899839 Dec  8 02:51 meta_5_m
+-rw-r--r--  1 priot  staff   2526994 Dec  8 02:51 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff  23009826 Dec  8 02:51 meta_6_m
+-rw-r--r--  1 priot  staff  19625668 Dec  8 02:51 meta_6_m_nogeom
+
+--- Mon Dec 12 02:09:06 PST 2016
+
+Backing up code and data to hand over to Fred at noon.
+
+--- Fri Dec 16 13:57:35 PST 2016
+
+Just found I can upgrade the laptop to 16G. Christmas order has been made!
+
+--- Fri Dec 16 19:21:36 PST 2016
+
+For 2-pic '-' option, I have 10 color matching algorithms to choose from
+for the choice of 'opposite' photo and the choice of similar to that, so
+100 permutations that I don't want to code manually but that it would be
+nice to index into as pairs of indexes to the color columns in the pairs
+table. I guess the simplest thing is to write a shell script that prints
+the java code out. Intended as a break from winnowing the verticals -
+I've dropped over 600 of the first 2000, with 5000 to go. I'm doing 1000
+a day.
+
+--- Fri Dec 16 21:31:17 PST 2016
+
+I have a magic-mumbers handcrafted function that gives a somewhat uniform
+distribution over 20 simplistic pairs of color matchings - mapping a 
+gaussian to a uniform distribution for 100 permutations looks too 
+complicated at the moment. I biased toward rgb if the user time is longer
+than last.
+
+--- Fri Dec 16 21:58:40 PST 2016
+
+Looks good, now in production. No users since yesterday.
+
+--- Sat Dec 17 00:33:39 PST 2016
+
+I bailed on selecting the verticals from archive1, so now the file-based
+view has all those, plus the selected ones for the other archives.
+
+--- Tue Dec 20 21:48:06 PST 2016
+
+Pairs:                66707025
+Pairs w/out keywords: 62237250
+
+--- Sun Dec 25 02:44:01 PST 2016
+
+Added yellow + in front of other symbols on pairs page: it gives color
+match, while - gives color opposite and | pure random.
+
+Just found a swipe-detect demo page, so preparing to write a servlet
+to handle it. Will have swipe up, down, left and right, hopefully with
+velocity, and hopefully with tap to toggle back and forth with the last
+pic. Fred keeps suggesting it for phones, and I finally decided to take 
+a look at it.
+
+I've keyworded a couple of hundred or so pics to add, with 300+ to go for
+this batch.
+
+--- Sun Dec 25 19:39:48 PST 2016
+
+Finished keywords, re-imported arch5, ran keyword and base color correlations.
+
+-rw-r--r--  1 priot  staff  2934748367 Dec 25 19:38 b0_1_2_lab_dist
+-rw-r--r--  1 priot  staff  2674494688 Nov 10 17:16 b0_1_2_lab_dist.old
+% wc -l b0*
+ 73186851 b0_1_2_lab_dist
+ 66707025 b0_1_2_lab_dist.old
+ 
+--- Mon Dec 26 14:57:13 PST 2016
+
+I had an unexplained glitch where keyword meta files were twice the previous
+size, with duplicate entries. I tried older versions and got the right size,
+diffed the code.. eventually when I reran the current code, it worked too.
+
+Root cause seems to be running the base pic_pic_kwd setup twice without
+dropping the table, but it seemed to persist even after that was fixed.
+The confusion seems due to the bladder spasms I've been having.
+
+Now copying keywords to server.
+
+-rw-r--r--  1 priot  staff  97911310 Dec 11 13:12 meta_0_m
+-rw-r--r--  1 priot  staff  82072526 Dec 11 13:12 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  75312472 Dec 11 13:12 meta_1_m
+-rw-r--r--  1 priot  staff  61452218 Dec 11 13:13 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   2825321 Dec 11 13:13 meta_2_m
+-rw-r--r--  1 priot  staff   2750109 Dec 11 13:13 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff     66353 Dec 11 13:13 meta_3_m
+-rw-r--r--  1 priot  staff     65931 Dec 11 13:13 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff     69481 Dec 11 13:13 meta_4_m
+-rw-r--r--  1 priot  staff     65946 Dec 11 13:13 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   2882861 Dec 11 13:13 meta_5_m
+-rw-r--r--  1 priot  staff   2510658 Dec 11 13:13 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff  22738532 Dec 11 13:13 meta_6_m
+-rw-r--r--  1 priot  staff  19357410 Dec 11 13:13 meta_6_m_nogeom
+
+-rw-r--r--  1 priot  staff  106109045 Dec 26 14:40 meta_0_m
+-rw-r--r--  1 priot  staff   88772183 Dec 26 14:40 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   82656055 Dec 26 14:41 meta_1_m
+-rw-r--r--  1 priot  staff   67380761 Dec 26 14:41 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2810561 Dec 26 14:41 meta_2_m
+-rw-r--r--  1 priot  staff    2736497 Dec 26 14:41 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66243 Dec 26 14:41 meta_3_m
+-rw-r--r--  1 priot  staff      65816 Dec 26 14:41 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69471 Dec 26 14:41 meta_4_m
+-rw-r--r--  1 priot  staff      65866 Dec 26 14:41 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4515350 Dec 26 14:41 meta_5_m
+-rw-r--r--  1 priot  staff    3871400 Dec 26 14:41 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   18668586 Dec 26 14:41 meta_6_m
+-rw-r--r--  1 priot  staff   15651370 Dec 26 14:42 meta_6_m_nogeom
+
+I still need to manually add the new verticals I like to the view_6 file.
+
+--- Sun Jan  1 20:36:02 PST 2017
+
+Reached the end of a pair session and made it work smoothly. It falls back on
+sequential search before signaling defeat.
+
+Number of pics tried before beginning sequential search at the end of the
+session:
+
+01/01 20:17:30.781 INFO  com.priot.servlet.GetEngine - TRIED 3663
+01/01 20:17:56.636 INFO  com.priot.servlet.GetEngine - TRIED 3604
+01/01 20:21:42.018 INFO  com.priot.servlet.GetEngine - TRIED 4180
+
+I deepened the color search lists after 3500 pics have been seen. Overall
+the last 500 pairs or so had fewer good ones than the beginning.
+
+--- Mon Jan  2 11:07:37 PST 2017
+
+No new ideas to implement. I'm 138 pairs into my third pass, not very excited.
+
+--- Mon Jan  9 12:49:00 PST 2017
+
+Decided to bite bullet and log favorite pairs, since ratio is so low.
+
+Initial test of toggled, untoggled, and half-toggled logApproval results:
+
+pr=> select * from approved_pair ;
+        create_time         | browser_id |  id0   |  id1  
+----------------------------+------------+--------+-------
+ 2017-01-09 12:46:41.608845 |        814 | 1:1506 | 5:460
+(1 row)
+
+pr=> select * from approved_pair ;
+        create_time         | browser_id |  id0   |  id1   
+----------------------------+------------+--------+--------
+ 2017-01-09 12:46:41.608845 |        814 | 1:1506 | 5:460
+ 2017-01-09 12:47:27.497264 |        814 | 1:7083 | 1:1983
+(2 rows)
+
+pr=> select * from approved_pair ;
+        create_time         | browser_id |  id0   |  id1   
+----------------------------+------------+--------+--------
+ 2017-01-09 12:46:41.608845 |        814 | 1:1506 | 5:460
+ 2017-01-09 12:47:27.497264 |        814 | 1:7083 | 1:1983
+ 2017-01-09 12:47:56.068363 |        814 | 1:7083 | 5:460
+ 2017-01-09 12:48:09.941922 |        814 | 1:1506 | 1:1983
+(4 rows)
+
+I've added code for finding the other one of an approved pair. It returns
+a list of ApprovedPair's, but maybe suffices to just return the other id.
+For now I'm making it side-agnostic on the search, but will almost certainly
+want to preserve sides. [Will add a side-choosing option.]
+
+--- Tue Jan 10 02:49:30 PST 2017
+
+Finished a pass through the pics, added 553 pairs to approved_pair out 
+of 2361 pairs seen, 23.4% hit rate, not bad. I figure another 10 times 
+through and I'll have a good library to build a distilled pairs page on. 
+I'm thinking of coming up with meta-keywords for the pairs, and matching 
+on that for the blue +. Estimated time to get 10 passes done: 5-10 days,
+if I push.
+
+--- Tue Jan 10 23:45:47 PST 2017
+
+I'm 836 pics into the next pass, with total 903 approved_pairs, so hit rate 
+is going down. I added a never-repeat-a-pair table, enabled only for explore,
+but it will be a few passes before I start getting any hits from that -
+I've only seen it on 1 pair so far, starting from the already-approved pics
+around the beginning of the last pass.
+
+"skipped_seen 2":
+
+01/10 23:59:52.751 [qtp633070006-83] INFO  com.priot.servlet.GetEngine - N 924 TRIED 41 skipped_seen 2 5:704 (sopp/b5) 1:4813 (clr/b6)
+
+% awk 'NF > 0' 0favpr |egrep -v '^-' | wc -l
+     522
+
+I could write a prog to stick those in approved_pair. I need to add a boolean
+for whether there's a keyword match, to save joining with the pair table on
+my upcoming try-approved_pair-first strategy for keyword matches.
+
+--- Wed Jan 11 18:37:39 PST 2017
+
+Finished another pass, with skipped_seen showing up here and there. 
+
+01/11 18:35:08.537 [qtp633070006-1056] INFO  com.priot.servlet.GetEngine - N 4760 TRIED 2201 skipped_seen 0 5:8473 (sopp/b7) 5:8131 (clr/b7)
+01/11 18:35:14.214 [qtp633070006-1051] INFO  com.priot.servlet.GetEngine - N 4762 TRIED 2973 skipped_seen 0 5:8116 (sopp/b3) 3:3935 (clr/b5)
+01/11 18:35:21.353 [qtp633070006-1053] INFO  com.priot.servlet.GetEngine - N 4764 TRIED 3370 skipped_seen 1 3:4493 (rand) 5:7420 (clr/b5)
+01/11 18:35:25.286 [qtp633070006-1053] INFO  com.priot.servlet.GetEngine - N 4766 TRIED 3264 skipped_seen 1 1:2524 (rand->seq) 5:7513 (clr/b6)
+01/11 18:35:42.606 [qtp633070006-1056] INFO  com.priot.servlet.GetEngine - N 4768 TRIED 3597 skipped_seen 0 3:4378 (rand) 1:8411 (clr/b9)
+01/11 18:35:51.709 [qtp633070006-1052] INFO  com.priot.servlet.GetEngine - N 4770 TRIED 3093 skipped_seen 0 1:2983 (rand->seq) 1:6810 (clr/b0)
+01/11 18:36:11.953 [qtp633070006-1053] INFO  com.priot.servlet.GetEngine - N 4772 TRIED 3320 skipped_seen 0 5:4565 (rand) 5:2919 (clr/b9)
+
+Now up to 1217 approved_pairs, the rate falling off from the hoped-for 1500 or
+so. Now that it has gotten to be more like production work, I might be 
+discounting good stuff.
+
+I'm going to take a break and make pair selection more efficient and the code
+more readable.
+
+--- Wed Jan 11 22:09:02 PST 2017
+
+The refactor seems to be working out of the box, now back to the latest
+pass. I'm considering rejiggering the potential choice to give myself
+something different to look at.
+
+1/11 18:35:25.286 [qtp633070006-1053] INFO  com.priot.servlet.GetEngine - N 4766 TRIED 3264 skipped_seen 1 1:2524 (rand->seq) 5:7513 (clr/b6)
+01/11 18:35:42.606 [qtp633070006-1056] INFO  com.priot.servlet.GetEngine - N 4768 TRIED 3597 skipped_seen 0 3:4378 (rand) 1:8411 (clr/b9)
+01/11 18:35:51.709 [qtp633070006-1052] INFO  com.priot.servlet.GetEngine - N 4770 TRIED 3093 skipped_seen 0 1:2983 (rand->seq) 1:6810 (clr/b0)
+01/11 18:36:11.953 [qtp633070006-1053] INFO  com.priot.servlet.GetEngine - N 4772 TRIED 3320 skipped_seen 0 5:4565 (rand) 5:2919 (clr/b9)
+
+01/11 22:07:25.039 [qtp633070006-26] INFO  com.priot.servlet.GetEngine - Color N 2 TRIED 2 skipped_seen 0 1:4964 (sopp/b0) 1:5486 (clr/b0) 
+01/11 22:07:47.345 [qtp633070006-27] INFO  com.priot.servlet.GetEngine - Color N 4 TRIED 2 skipped_seen 0 1:5414 (sopp/b1) 1:6624 (clr/b2) 
+01/11 22:07:53.317 [qtp633070006-10] INFO  com.priot.servlet.GetEngine - Color N 6 TRIED 4 skipped_seen 1 1:4988 (sopp/b0) 1:4543 (clr/b4) 
+
+01/11 23:56:02.413 [qtp633070006-80] INFO  com.priot.servlet.GetEngine - Color N 1184 TRIED 11 skipped_seen 0 1:4499 (sopp/b5) 1:6802 (clr/b6) 
+01/11 23:56:07.949 [qtp633070006-80] INFO  com.priot.servlet.GetEngine - Color N 1186 TRIED 154 skipped_seen 0 1:5838 (sopp/b0) 1:7749 (clr/b4) 
+01/11 23:56:17.749 [qtp633070006-95] INFO  com.priot.servlet.GetEngine - Color N 1188 TRIED 110 skipped_seen 0 1:5617 (sopp/b4) 1:4546 (clr/b5)
+
+That's about 250 pairs per hour or 10 hrs per pass. 
+
+--- Thu Jan 12 01:06:25 PST 2017
+
+01/12 01:05:41.758 [qtp633070006-155] INFO  com.priot.servlet.GetEngine - Color N 2086 TRIED 277 skipped_seen 1 5:9512 (sopp/b1) 1:3727 (clr/b9) 
+01/12 01:05:48.510 [qtp633070006-149] INFO  com.priot.servlet.GetEngine - Color N 2088 TRIED 55 skipped_seen 0 5:5254 (sopp/b5) 3:4614 (clr/b5) 
+01/12 01:05:52.606 [qtp633070006-155] INFO  com.priot.servlet.GetEngine - Color N 2090 TRIED 66 skipped_seen 0 1:5516 (sopp/b9) 1:6501 (clr/b5) 
+
+About 900 pics in an hour, 450 pairs, better.
+
+--- Thu Jan 12 04:27:01 PST 2017
+
+[
+01/11 22:07:25.039 [qtp633070006-26] INFO  com.priot.servlet.GetEngine - Color N 2 TRIED 2 skipped_seen 0 1:4964 (sopp/b0) 1:5486 (clr/b0) 
+]
+01/12 04:24:36.601 [qtp633070006-27] INFO  com.priot.servlet.GetEngine - Color N 4769 TRIED 3240 skipped_seen 0 2:306 (sopp/b3) 2:1402 (clr/b5) 
+01/12 04:24:42.526 [qtp633070006-27] INFO  com.priot.servlet.GetEngine - linearScreenSearch TRIED 4089
+01/12 04:26:26.764 [qtp633070006-10] INFO  com.priot.servlet.GetEngine - linearScreenSearch TRIED 4085
+
+6.5 hours to view 2000 pairs. approved_pair: 1217 -> 1744, so back to
+around 25% hit rate for this run. I've been thinking how I want to use
+approved_pair, use all the entries for color match, even though some are
+from color opposite and playing with keywords. 
+
+  for each color column
+    get intersected list of distant-from-both pics
+    for each pic in list
+      ret_list.clear()
+      ret_list.add(pic)
+      get list of ApprovedPairs
+      for each otherPic in list
+        if not seen
+          ret_list.add(otherPic)
+          if ret_list full
+            return ret_list
+
+  ret_list.clear()
+
+  for each color column
+    .. existing way ..
+  
+Not sure whether to keep color opposite 'pure' of favorites. Then on 
+keyword match use the keyword-flagged ApprovedPairs. Current plan is to do 
+another pass while thinking out the details and getting approved_pair over 
+2000 entries.
+
+--- Thu Jan 12 06:31:41 PST 2017
+
+I added the approved_pair code, not tested yet.
+
+--- Fri Jan 13 23:59:32 PST 2017
+
+Another pass completed:
+
+01/13 23:57:30.997 [qtp633070006-789] INFO  com.priot.servlet.GetMult - 
+==> 3/IMG_4383a_sm.jpg  n: 4783 count: 15161 sel: rand->seq
+01/13 23:57:30.998 [qtp633070006-789] INFO  com.priot.servlet.GetMult - 
+==> 3/IMG_4383a_sm.jpg  n: 4784 count: 15161 sel: rand->seq
+...
+01/13 23:57:35.623 [qtp633070006-789] INFO  com.priot.servlet.GetEngine - DEFAULTING TO SEQUENTIAL SEARCH
+01/13 23:57:36.080 [qtp633070006-789] INFO  com.priot.servlet.GetEngine - DONE
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  2217
+
+Maybe 5 passes? 5 * 2392 pairs => about 18% approved. Now to try with my
+approved pair code working.
+
+--- Sat Jan 14 14:03:11 PST 2017
+
+Looks ok with approved pairs. I made it search them by choosing a target in
+the arbitrarily-ordered list based on view times, and working its way out 
+from there. Not that there are so many approved pairs yet, but I don't want
+every session to just use the first approved pair.
+
+I decided it's a big enough improvement to be worth pushing to the site,
+also rebuilding keywords and deleting a few people pics that I had left in
+for no good reason, of Soup and Bread people.
+
+--- Sat Jan 14 15:54:36 PST 2017
+
+Building pair table columns.
+
+--- Sat Jan 14 19:32:04 PST 2017
+
+Indexing pairs table. Need to rebuild due to finding a bug in how I'm
+tracking keywords in the table - now constraining it to the nogeom case.
+
+% ls -l meta_* meta/
+-rw-r--r--  1 priot  staff  105925945 Jan 14 19:28 meta_0_m
+-rw-r--r--  1 priot  staff   88613357 Jan 14 19:29 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   82516904 Jan 14 19:29 meta_1_m
+-rw-r--r--  1 priot  staff   67263809 Jan 14 19:30 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2808974 Jan 14 19:30 meta_2_m
+-rw-r--r--  1 priot  staff    2734915 Jan 14 19:30 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66243 Jan 14 19:30 meta_3_m
+-rw-r--r--  1 priot  staff      65816 Jan 14 19:30 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69471 Jan 14 19:30 meta_4_m
+-rw-r--r--  1 priot  staff      65866 Jan 14 19:30 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4515350 Jan 14 19:30 meta_5_m
+-rw-r--r--  1 priot  staff    3871390 Jan 14 19:30 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   19393974 Jan 14 19:30 meta_6_m
+-rw-r--r--  1 priot  staff   16239479 Jan 14 19:30 meta_6_m_nogeom
+
+meta/:
+total 771344
+-rw-r--r--  1 priot  staff  106109045 Dec 26 14:40 meta_0_m
+-rw-r--r--  1 priot  staff   88772183 Dec 26 14:40 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   82656055 Dec 26 14:41 meta_1_m
+-rw-r--r--  1 priot  staff   67380761 Dec 26 14:41 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2810561 Dec 26 14:41 meta_2_m
+-rw-r--r--  1 priot  staff    2736497 Dec 26 14:41 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66243 Dec 26 14:41 meta_3_m
+-rw-r--r--  1 priot  staff      65816 Dec 26 14:41 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69471 Dec 26 14:41 meta_4_m
+-rw-r--r--  1 priot  staff      65866 Dec 26 14:41 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4515350 Dec 26 14:41 meta_5_m
+-rw-r--r--  1 priot  staff    3871400 Dec 26 14:41 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   19469714 Dec 26 16:02 meta_6_m
+-rw-r--r--  1 priot  staff   16304079 Dec 26 16:02 meta_6_m_nogeom
+
+--- Sat Jan 14 20:08:17 PST 2017
+
+Fixed a bug whereby calcing pairs doubly populated the pic_pic_kwd table,
+not sure if I might have the above files inaccurate, so will recompute.
+
+--- Mon Jan 16 23:13:45 PST 2017
+
+All was well, new stuff pushed to site, with no approval icon on the pairs
+page for now. Coming down to the final stretch of my current pass since
+pushing:
+
+01/16 23:13:03.682 [qtp633070006-1788] INFO  com.priot.servlet.GetEngine - Color N 4062 TRIED 575 skipped_seen 1 1:7425 (sopp/b4) 5:4247 (clr/b5) 
+01/16 23:13:11.288 [qtp633070006-1788] INFO  com.priot.servlet.GetEngine - Color N 4064 TRIED 1090 skipped_seen 1 5:8609 (sopp/b0) 5:8498 (clr/b7) 
+01/16 23:13:17.350 [qtp633070006-1788] INFO  com.priot.servlet.GetEngine - Color N 4066 TRIED 630 skipped_seen 0 1:6756 (sopp/b5) 5:7732 (clr/b8) 
+01/16 23:13:24.538 [qtp633070006-1789] INFO  com.priot.servlet.GetEngine - Color N 4068 TRIED 516 skipped_seen 0 5:5572 (sopp/b6) 1:1644 (clr/b4) 
+
+
+
+--- Tue Jan 17 00:27:34 PST 2017
+
+01/17 00:24:06.184 [qtp633070006-41] INFO  com.priot.servlet.GetMult - 
+==> 3/IMG_4019a_sm.jpg  n: 4775 count: 4548 sel: ->seq
+01/17 00:24:06.185 [qtp633070006-41] INFO  com.priot.servlet.GetMult - 
+==> 3/IMG_4483b_sm.jpg  n: 4776 count: 4548 sel: ->seq
+...
+01/17 00:24:09.205 [qtp633070006-51] INFO  com.priot.servlet.GetEngine - DEFAULTING TO SEQUENTIAL SEARCH
+01/17 00:24:09.668 [qtp633070006-51] INFO  com.priot.servlet.GetEngine - DONE
+
+approved_pair is up to 2653 entries.
+6 passes * 2392 pairs => about 17% overall hit rate, down from 18% after the
+last pass.
+
+Now to write code to set the approved_pair.has_kwd correctly for the pre-has_kwd
+entries.
+
+--- Thu Jan 19 02:13:13 PST 2017
+
+I moved all approved pair selection under the public version of the 'a' option;
+privately, on localhost, 'a' just adds the current pair to the approved_pair 
+table, as originally, rather than selecting the next pic.
+
+--- Sun Jan 22 14:08:44 PST 2017
+
+I added 301 pairs from ~/Desktop/pairs_*.jpg. First I adapted boofcv's color
+histogram prog to take a random file to compare, then I loaded all the 400x400
+versions of the pics, and iteratively loaded pair_xxx.jpg files or screenshots
+of one or the other pic within the pair, seeing the top 10 matches listed by
+boofcv with scores and photos. 
+
+Usually both of the pics could be found among the matches, but often I'd have 
+to screenshot one of the pair to look it up individually; sometimes I'd have 
+to look up both.
+
+Then I had to clean up my typos, using my keyword-fixing code to look up the
+ids in the pairs and find which didn't exist, sleuthing whether the typo was 
+transposed numbers or a carried-over archive from the previous pair, using 
+snapshot creation times from the last few days aloing with pair_*.jpg file 
+names.
+
+I then deleted 62 duplicates that were added manually or by multiple browser
+sessions, and generalized the dupe filter to prevent any dupes from being
+added, vs. just keeping dupes unique by browser id.
+
+729 approved pairs have keywords. My plan is now to explore keywords and 
+approve more pairs.
+
+I am cleaning up 'building' first. I just decided to distinguish between
+singular and plural on that one.
+
+--- Sun Jan 22 15:01:47 PST 2017
+
+Went from 212 building+buildings to 168:
+
+  28 buildings
+ 140 building
+
+--- Sun Jan 22 15:31:40 PST 2017
+
+ 123 street
+
+  36 street
+  80 street_scape
+
+Ready to rebuild keywords.
+
+--- Sun Jan 22 16:20:27 PST 2017
+
+Minor shrinkage, seems about right. I think I should bifurcate building
+but I don't know what into, rejected ideas so far: free_standing_bldg,
+default_bldg, interesting_bldg, subject_bldg. Time for another round
+with the workbench, using the New option's popup obtusely-named 'SHA1' 
+field's remembered 'kdm:building' value to reload. 
+[kd=keyword, m=merged scheme]
+
+Actually, kdm:street is what was there. 
+I like building as it is. I like street_scape too.
+
+-rw-r--r--  1 priot  staff  105550218 Jan 22 16:07 meta_0_m
+-rw-r--r--  1 priot  staff   88209004 Jan 22 16:07 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   82271456 Jan 22 16:08 meta_1_m
+-rw-r--r--  1 priot  staff   66990010 Jan 22 16:08 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2801789 Jan 22 16:08 meta_2_m
+-rw-r--r--  1 priot  staff    2728037 Jan 22 16:08 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66324 Jan 22 16:08 meta_3_m
+-rw-r--r--  1 priot  staff      65897 Jan 22 16:08 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69249 Jan 22 16:08 meta_4_m
+-rw-r--r--  1 priot  staff      65649 Jan 22 16:08 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4511900 Jan 22 16:08 meta_5_m
+-rw-r--r--  1 priot  staff    3865877 Jan 22 16:08 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   19345794 Jan 22 16:09 meta_6_m
+-rw-r--r--  1 priot  staff   16185242 Jan 22 16:09 meta_6_m_nogeom
+
+meta/:
+total 769880
+-rw-r--r--  1 priot  staff  105925945 Jan 14 19:28 meta_0_m
+-rw-r--r--  1 priot  staff   88613357 Jan 14 19:29 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   82516904 Jan 14 19:29 meta_1_m
+-rw-r--r--  1 priot  staff   67263809 Jan 14 19:30 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2808974 Jan 14 19:30 meta_2_m
+-rw-r--r--  1 priot  staff    2734915 Jan 14 19:30 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66243 Jan 14 19:30 meta_3_m
+-rw-r--r--  1 priot  staff      65816 Jan 14 19:30 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69471 Jan 14 19:30 meta_4_m
+-rw-r--r--  1 priot  staff      65866 Jan 14 19:30 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4515350 Jan 14 19:30 meta_5_m
+-rw-r--r--  1 priot  staff    3871390 Jan 14 19:30 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   19393974 Jan 14 19:30 meta_6_m
+-rw-r--r--  1 priot  staff   16239479 Jan 14 19:30 meta_6_m_nogeom
+
+--- Sun Jan 22 17:54:22 PST 2017
+
+New keywords are in production, if anyone is interested.
+
+--- Tue Jan 24 15:42:31 PST 2017
+
+Finished another pass, with lots of keyword and some random at the end.
+Now 3318 approved pairs. About 1000 added in 10 days.
+
+I cleaned up random and fallback to linear search. I'm thinking of keeping
+the hash set of 'tried' pics in memory between calls, in a hashmap indexed 
+by browser id, to save trips to memory. The hashmaps would be limited by the 
+number of pics in the view, so 11K small strings at max, which doesn't seem 
+bad considering there's no traffic, and the cache is readily cleared by restart
+for now. It would save lots of db queries.
+
+--- Tue Jan 24 16:11:07 PST 2017
+
+Added and working. I'll have to get far along in a session to see if it makes
+any difference, and I doubt it's noticable except it might help my laptop run
+a little cooler. I miss seeing the count vary per call, vs. going up all the
+time. 
+
+--- Tue Jan 24 23:11:02 PST 2017
+
+I made the second kwd pic selection timing-dependent like the first, so it
+will vary fractal dimension, contrast, etc for the visible pair, as well
+as the match to the previous pair.
+
+--- Wed Jan 25 09:55:42 PST 2017
+
+The variation looked good at first, then I fell back to clicking through
+boring pairs.
+
+--- Wed Jan 25 23:34:29 PST 2017
+
+I looked at the approved pairs on the server and got embarrassed and deleted
+a few, now down to 3401; looks like I didn't record how many I had before
+deleting. I also fine-tuned the approved pair lookup, which falls through
+linear search to color-based lookup. Now there are 3325 approved pairs on
+the server.
+
+--- Wed Jan 25 23:58:37 PST 2017
+
+I made it so instead of falling back on color, approved should pop up an
+'option exhausted' msg and do nothing.
+
+--- Thu Jan 26 00:57:07 PST 2017
+
+On the server I was seeing off-putting variation in load times for the
+two pics, so I added a semaphore countdown in the browser to wait until 
+both images are loaded to display them, and now it's unnerving to see them 
+appear together.
+
+--- Sat Jan 28 21:21:51 PST 2017
+
+I'm used to simultaneous image load. The 'option exhausted' popup on end of 
+approved pairs is working. The keyword tie-in between pairs adds more of a
+plot to look for, so is a win beyond the speedup.
+
+--- Mon Jan 30 00:07:09 PST 2017
+
+Fixed a nullpointerexception on running out of keyword matches, and stopped
+it falling back to random on keyword matching the second pic, rather it uses 
+color. Also finished a pass approving mostly keyword pairs, with opposites 
+at the end when keywords were clearly failing. Latest approved_pair and 
+server pushed. 
+
+I got jetty upgraded to the latest after having problems on the server due 
+to me tar'ing up the distribution running on my Mac - I hadn't thought stuff
+would be written there, wasn't thinking much since I was dealing with the 
+fact the Mac had deleted the original zip file.
+
+--- Wed Feb  1 04:16:50 PST 2017
+
+Fixed skew calc for pairs keyword match, was always 0.0. Seeing a lot of
+interesting pairs due to adrenaline and late night working on Unity job test,
+along with committing to move to Vallejo.
+
+--- Thu Feb  2 22:10:07 PST 2017
+
+Finished another pass:
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  3873
+(1 row)
+
+pr=> select count(*) from pair_local ;
+ count 
+-------
+ 19810
+
+--- Sat Feb  4 01:26:56 PST 2017
+
+I finally figured out why keywords was falling back on random sometimes: I
+was rejecting a pair due to pair_local, but not checking the next possible
+second pic, just dropping through. I think. One thing that made it hard to
+figure is it seemed to be happening when the keyword-matching option
+dropped through the circumstance-specific reactions to the default one,
+so at first I thought it might be the drop-through (then I remembered that's
+how I planned it), then I thought it might be something about the default
+option (maybe it has a higher probability of picking a second pic that forms
+a seen pair). I suspect there still may be a case where it goes random when 
+there is still something else to try - if so, I may see it more as pair_local 
+gradually fills and I look at my next umpteen pics. It is now at ~20K of the
+total size possible of ~20M.
+
+I realized I can use pair_local minus approved_pair as my negative training
+cases for a pair generator, though it might be interesting to subselect the 
+20% or more that outright suck, training on three categories: good, ok, and 
+suck. Better to go for the jugular and leave the ok ones out altogether. But
+it means wading through 20K pairs again, rethinking each choice.
+
+Then I can categorize and train on pairs of pairs similarly, to derive a 
+pair sequencer.
+
+Raffaele is slowly picking pics for me - I'm encouraging him to try for 1,000.
+They are very interesting. He wanted guidance, so I told him I'm likely to
+edit out dick pics, though not sure if I'd edit out all.
+
+02/04 01:40:14.975 [qtp701141022-36] INFO  com.priot.servlet.GetEngine - Kwd happy: skipped_seen 1 ct2 1
+02/04 01:42:17.575 [qtp701141022-33] INFO  com.priot.servlet.GetEngine - Kwd happy: skipped_seen 0 ct2 0
+02/04 01:42:24.233 [qtp701141022-33] INFO  com.priot.servlet.GetEngine - Kwd happy: skipped_seen 1 ct2 1
+
+Posted on my overall photos page at photo.net:
+
+I renamed the a(pproved) option to the c(urated) one on my site's pairs page, after complicated negotiations with Sesame Street lawyers. This should give the green light to anyone holding back from that option because of authority issues. So far I have chosen about 3,800 pairs from about 25,000 looked at with the pairs page, out of 20 million possible pairs of the 4,500 pics the pairs are drawn from. Last I had exact numbers, I was marking about 18% of the pairs I saw as compelling.
+
+I made the 'c' option try to associate the next curated pair based on keywords, so the sequences can get interesting, as themes jump around between pics in pairs of pairs. If I get the resources, I will train a neural net to replicate my taste, and turn it loose on fresh pics to see what it will do, since looking at at least as many boring pairs as interesting ones gets old after 10,000 pairs or so. I continue to explore new pairs not only for humanity (so others don't have to suffer as much to see the good ones), but also because it is like each new unexpected meaningful combination I see, of photos I now know individually as well as anything I've studied, seems like a fresh dimension opening up in my brain, connecting the seemingly random places where the photos have lodged. The dimensionality experience resembles the crucial scene of the Amy Adams film, Arrival which I just saw; also in general, like in the movie, I am communicating with something no one else will open up to. (I don't want to give away the movie, else would go on at length.)
+
+--
+
+--- Mon Feb  6 00:28:37 PST 2017
+
+Another pass thru keywords:
+
+priot db% ls -l approved_pair_dump.sql
+-rw-r--r--  1 priot  staff  181540 Feb  2 22:07 approved_pair_dump.sql
+priot db% pg_dump -t approved_pair pr > approved_pair_dump.sql 
+priot db% ls -l approved_pair_dump.sql
+-rw-r--r--  1 priot  staff  199694 Feb  6 00:27 approved_pair_dump.sql
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  4263
+
+pr=> select count(*) from pair_local ;
+ count 
+-------
+ 22194
+
+--- Tue Feb  7 00:45:24 PST 2017
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  4615
+(1 row)
+
+pr=> select count(*) from pair_local ;
+ count 
+-------
+ 24563
+
+(4615-4263) / (24563-22194)
+352 / 2369
+15%
+
+--- Wed Feb  8 00:28:21 PST 2017
+
+I felt ready to do some deleting from approved_pair, so added mexpt2.html 
+with 'c a u' for curated, and approving/unapproving. After one pass:
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  4466
+
+--- Wed Feb  8 03:11:09 PST 2017
+
+I continued through non-approved pairs, approving more:
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  4585
+
+Also made first/second use opposite directions to pick, so theoretically
+heightening the personality by e.g. choosing a light image to start relative
+to the previous images, then choosing a dark one relative to that as per
+my original strategy developed for single-pic sequencing.
+
+--- Wed Feb  8 15:49:34 PST 2017
+
+No obvious intensificfation of personality. Looks like I'm down to spending
+time curating, which feels like a dead end in terms of survival. 
+
+--- Thu Feb  9 23:33:40 PST 2017
+
+Another pass adding:
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  4938
+
+Meanwhile selecting Raffaele and Scott's pics:
+
+priot bill8% cp 126_2644.JPG ../sel/img_0166.jpg
+priot bill8% cp 126_2645.JPG ../sel/img_0167.jpg
+priot bill8% cp 126_2646.JPG ../sel/img_0168.jpg
+priot bill8% cp 126_2689.JPG ../sel/img_0169.jpg
+
+--- Sat Feb 11 20:28:02 PST 2017
+
+I split brick:
+
+   3 bricks
+ 298 brick
+
+After:
+
+   2 brick_broken
+  42 brick_detail
+ 125 brick
+ 131 brick_close
+
+Some of the remaining 'brick' needs to be brick_broken.
+
+--- Sat Feb 11 21:59:44 PST 2017
+
+Built pic_pic unnecessarily, since only needed keywords table populated to look
+at brick again. Took break to watch movie with Pat.
+
+  10 brick_broken
+  42 brick_detail
+  91 brick
+ 157 brick_close
+
+-rw-r--r--  1 priot  staff  104588558 Feb 11 22:33 meta_0_m
+-rw-r--r--  1 priot  staff   87241367 Feb 11 22:33 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   81350155 Feb 11 22:34 meta_1_m
+-rw-r--r--  1 priot  staff   66061527 Feb 11 22:34 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2801752 Feb 11 22:34 meta_2_m
+-rw-r--r--  1 priot  staff    2728005 Feb 11 22:34 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66324 Feb 11 22:34 meta_3_m
+-rw-r--r--  1 priot  staff      65897 Feb 11 22:34 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69249 Feb 11 22:34 meta_4_m
+-rw-r--r--  1 priot  staff      65649 Feb 11 22:34 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4503955 Feb 11 22:34 meta_5_m
+-rw-r--r--  1 priot  staff    3857751 Feb 11 22:34 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   19146354 Feb 11 22:34 meta_6_m
+-rw-r--r--  1 priot  staff   15984511 Feb 11 22:35 meta_6_m_nogeom
+
+meta/:
+total 767112
+-rw-r--r--  1 priot  staff  105550218 Jan 22 16:07 meta_0_m
+-rw-r--r--  1 priot  staff   88209004 Jan 22 16:07 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   82271456 Jan 22 16:08 meta_1_m
+-rw-r--r--  1 priot  staff   66990010 Jan 22 16:08 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2801789 Jan 22 16:08 meta_2_m
+-rw-r--r--  1 priot  staff    2728037 Jan 22 16:08 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      66324 Jan 22 16:08 meta_3_m
+-rw-r--r--  1 priot  staff      65897 Jan 22 16:08 meta_3_m_nogeom
+-rw-r--r--  1 priot  staff      69249 Jan 22 16:08 meta_4_m
+-rw-r--r--  1 priot  staff      65649 Jan 22 16:08 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    4511900 Jan 22 16:08 meta_5_m
+-rw-r--r--  1 priot  staff    3865877 Jan 22 16:08 meta_5_m_nogeom
+-rw-r--r--  1 priot  staff   19345794 Jan 22 16:09 meta_6_m
+-rw-r--r--  1 priot  staff   16185242 Jan 22 16:09 meta_6_m_nogeom
+
+--- Sun Feb 12 02:35:46 PST 2017
+
+I made pairs use geom keywords too after 70% of the pics in the view have
+been seen.
+
+--- Mon Feb 13 00:33:04 PST 2017
+
+Downloading Raffaele's bill49.zip. 1900 into my current session, have to get
+to 3500 or so to see if the 70% math works ((int) (0.7 * x.size())).
+
+On the odd chance anyone ever wants to trace my development of the
+curated pairs list, pr/db/approved_pair_dump.sql is the place to look
+in the backups.
+
+--- Wed Feb 15 01:18:13 PST 2017
+
+I had to cast the size to double it seemed, else I missed my log msg; in
+any case, geometrical keywords don't make noticeable difference in the
+rate of falling back to color match.
+
+I was screening out geometrical keywords from my in-browser display,
+leading to confusing empty results on keyword matches. Geometrical keywords
+now displayed like "[round]". 
+
+--- Thu Feb 16 05:31:17 PST 2017
+
+I'm working on parallel loading of keyword maps. Compiles with two threads
+configged for my laptop's 2 cores.
+
+Historical data:
+
+  01/25 10:43:05.704 [main] INFO  com.priot.servlet.ServletData - Loading map: /Users/priot/meta/meta_0_m_nogeom
+  ...
+  01/25 10:43:20.329 [main] INFO  com.priot.servlet.ServletData - Loaded coderview m_nogeom_6 size 4764
+
+About 15 sec.
+
+02/16 05:50:51.731 [main] INFO  com.priot.servlet.ServletData - Loaded maps in 26378
+
+Same code with 1 thread:
+
+02/16 05:54:46.629 [main] INFO  com.priot.servlet.ServletData - Loaded maps in 19694
+
+4 threads:
+
+02/16 05:57:26.824 [main] INFO  com.priot.servlet.ServletData - Loaded maps in 22043
+
+8 threads:
+
+02/16 05:59:11.473 [main] INFO  com.priot.servlet.ServletData - Loaded maps in 24062
+
+Sequentially, no queueing:
+
+02/16 06:10:33.972 [main] INFO  com.priot.servlet.ServletData - Loaded maps in 21001
+
+I guess the difference in sequential times late January and now might be that
+I maybe started loading view 6 nogeom in the meantime. As it is, back to the
+queued/threaded model, but setting the thread num in the config file so I
+can play with it on the production system.
+
+--- Thu Feb 16 06:28:57 PST 2017
+
+1 thread:
+
+02/16 06:29:36.146 INFO  com.priot.servlet.ServletData - Loaded maps in 39718
+02/16 06:41:55.839 INFO  com.priot.servlet.ServletData - Loaded maps in 32743
+02/16 06:43:22.460 INFO  com.priot.servlet.ServletData - Loaded maps in 39001
+
+2 threads:
+
+02/16 06:32:07.445 INFO  com.priot.servlet.ServletData - Loaded maps in 31891
+02/16 06:33:34.895 INFO  com.priot.servlet.ServletData - Loaded maps in 28738
+02/16 06:35:00.057 INFO  com.priot.servlet.ServletData - Loaded maps in 34286
+
+3 threads:
+
+02/16 06:45:12.599 INFO  com.priot.servlet.ServletData - Loaded maps in 27364
+02/16 06:46:41.868 INFO  com.priot.servlet.ServletData - Loaded maps in 29139
+02/16 06:47:51.785 INFO  com.priot.servlet.ServletData - Loaded maps in 25361
+
+4 threads:
+
+02/16 06:37:04.649 INFO  com.priot.servlet.ServletData - Loaded maps in 35347
+02/16 06:38:30.982 INFO  com.priot.servlet.ServletData - Loaded maps in 35385
+02/16 06:40:12.678 INFO  com.priot.servlet.ServletData - Loaded maps in 33282
+
+5:
+
+02/16 06:49:37.074 INFO  com.priot.servlet.ServletData - Loaded maps in 33537
+
+15:
+
+02/16 06:52:37.449 INFO  com.priot.servlet.ServletData - Loaded maps in 30477
+02/16 06:54:18.627 INFO  com.priot.servlet.ServletData - Loaded maps in 34895
+02/16 06:55:33.738 INFO  com.priot.servlet.ServletData - Loaded maps in 25722
+
+--- Thu Feb 16 18:31:37 PST 2017
+
+The latest pushed pairs:
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  5227
+
+--- Wed Feb 22 02:10:48 PST 2017
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  5265
+
+I pushed that and Raffaele & Scott's pics last night. To get the pairs
+table indexes to build, I had to double my server disk (40->80G), which
+bumped me from $50/month to $100. I could probably delete 1500 of my own
+pics to drop the size again.
+
+--- Sat Feb 25 12:08:28 PST 2017
+
+I coded up to pic 500 of Raf&Skot last night.
+
+--- Sat Feb 25 23:55:17 PST 2017
+
+Just coded up to 900. Here is my design for merging the tilings:
+
+You'd Enter a View which would be named after someone(s) or All, 
+then across the top of the slide show there would be tiling control icons 
+next to Home - the icons would be light grey on grey, like the Home button - 
+left to right: a square, two side-by-side portrait-proportioned bars, 
+a side-by-side portrait + landscape bar, and two stacked landscape bars. 
+Offhand I don't have the graphics chops to make those icons.
+
+When you'd change tiling, the pics would be screened to fit going forward, 
+tho the initial flip may wind up with e.g. a portrait over a landscape.
+
+A big project to merge single and double-pic pages, since they each have a 
+raft of their own features and tie into different servlets.
+
+stopgap utf8 symbols
+
+  square &#9633; U+25A1 / checkbox #9744 x2610
+  2 portraits  &#9707; 
+  2 port-or-landscape 2port+
+  2 stacked landscape =
+
+--- Mon Feb 27 02:37:44 PST 2017
+
+The icons look ugly, but I've got switching between 1 and 2 pics in a 
+given view working. Going from 1->2 I just initialize with a random
+approved pair, but I want it to use the previous pic as the first in
+the new pair, so I have to make the server detect when the change
+occurs, not sure how to do that. Aha. Just do it automatically every time
+I initialize pairs.
+
+--- Mon Feb 27 03:35:33 PST 2017
+
+Done, first trying a matched approved pair, then a keyword match,
+then falling back to rgb32 if no keyword match or no kwds present.
+
+The next thing is to manage vertical and horizontal views. That can
+wait til morning.
+
+--- Mon Feb 27 15:48:07 PST 2017
+
+I have orientation correct for single-pic and double-portrait. Now to
+write the javascript for the double-anything (side by side).
+
+--- Mon Feb 27 21:59:29 PST 2017
+
+Double-anything now scales to max fit, but height jumping around from
+pair to pair is distracting, especially if one toggles one of the pics
+to a different size previous one.
+
+--- Tue Feb 28 02:39:49 PST 2017
+
+I decided to make the second doubles all wide rather than mixed, and
+stabilized the size by always setting it to the minimum for all pics
+seen. Fixed all sorts of confusing behavior while getting the horizontal
+tiling working. Display options are working for all tilings on Chrome, tho
+click-next-to-pic isn't working on horizontal tiling. Horizontal
+has a big gap between pics on Safari which a quick try hasn't solved. 
+Click on pic in horizontal mode is getting some vertical pics.
+
+--- Tue Feb 28 14:45:37 PST 2017
+
+Fixed horizontal gap on Safari, same on FF, apparently they don't let
+javascript reformat table element sizes if a default is specified.
+
+Next: get yellow '+' working for original show? I like the simplicity
+of [-|+] and am reluctant to undermine it, but I feel I owe it to myself
+to give it a try.
+
+Then get toggle working for horizontal stacking, keep track of pics
+for keywords when getting an individual pic in double mode, carry over
+both horizontals when switching between side/side over/under.
+
+Then better icons for tile toggling, and ready for another announcement.
+
+Maybe add keyword display to single pic.. not for now, code from
+double pic doesn't transfer, and click on pic gives color match. So
+hide the yellow +.
+
+--- Tue Feb 28 18:26:38 PST 2017
+
+I've got keywords/color/random info displaying, and the whole controls
+area is stabilized so it doesn't get displaced by keywords. All working
+in single-pic mode with 2 controls hidden, but I need to resize when they
+show, because they are wrapping.
+
+--- Tue Feb 28 20:57:56 PST 2017
+
+Controls are under control thanks to explicit sizing of that area and
+the surrounding two td's when switching between single and paired 
+pics.
+
+Next is to make the pics stay constant on swap of the two landscape modes.
+
+--- Tue Feb 28 22:02:33 PST 2017
+
+The secret to making the pics stay constant was just not to do anything,
+and let the existing screens reload.
+
+I notice some pics have wrong dimensions in the db, now that I'm using dims
+to select tiling, so am recalcing them, will need to reload db again. No
+idea how dims would be corrupted; it was in arch3 with 800x600 instead of
+425x523 or the like.
+
+It looks like I'll have to calc raw pixel counts to get the proportions
+to size the 3 options-line td's.
+
+--- Wed Mar  1 00:08:07 PST 2017
+
+Even calcing the pixels doesn't do it - oh, I forgot a fudge factor I
+added, let's see..
+
+--- Wed Mar  1 00:18:35 PST 2017
+
+I think tiling is ok across Chrome, FF, and Safari. I can't think of
+anything better to do than rebuild the picture table to get the dimensions
+fixed, plus I have fixed rotation on a few of Raf & Skot's pics. I'd like
+to think that's where the other dimensional problems entered (fixing
+rotations), but the wrong dims were more like defaults than swapped
+horiz/vert.
+
+--- Wed Mar  1 00:28:07 PST 2017
+
+That was easy enough. Next is to figure out keywords after clicking on a
+single pic to replace it.
+
+--- Wed Mar  1 01:07:21 PST 2017
+
+Click on pic now replaces with compatible size.
+
+--- Wed Mar  1 03:16:27 PST 2017
+
+I added config reporting after load, since I hadn't reloaded arch7 and
+was going nuts because it was defaulting to arch 0, so finally I saw arch7
+size was 0 and fixed it. I'm not sure where that code is; TODO. Also 
+confusing still is that older browser sessions still served arch7, until
+I started a new session. Now tiling is preserved across a new session.
+
+Now to make tiling cookied so that it remains when returning to/reloading
+the page.
+
+--- Wed Mar  1 04:00:50 PST 2017
+
+Done. Nope - pics cycled on returning to side-by-side. Ah, because I'm
+using setTile() for a new context.
+
+--- Wed Mar  1 04:20:10 PST 2017
+
+Fixed. Not quite: for keywords to work after returning to the page,
+pic depth indexes need to be cookied too. More too I expect. Tho I
+won't set up the ability to toggle to the previous pic for now.
+
+--- Wed Mar  1 04:48:55 PST 2017
+
+Fixed - keywords work across page reloads (not keeping track of prev pics,
+so toggle and toggle state are lost, but I will live with that).
+
+Now to sleep. Tomorrow to fix keywords and toggle when one pic is clicked/
+replaced. That might be it :-), except for fixing the tiling icons.
+
+Also the single pic isn't sized to match the other.
+
+Also toggle thinks there's no pic to go back to.
+
+--- Wed Mar  1 05:22:37 PST 2017
+
+Fixed toggle on side-by-side. Maybe to sleep.
+
+Also need to not send color info on kwd req when one of the pics is
+toggled. 
+
+--- Wed Mar  1 05:46:39 PST 2017
+
+Keywords remain constant when a single pic is toggled.
+
+--- Wed Mar  1 06:07:32 PST 2017
+
+I've been going over my horizontal keyword pairs, which are as refreshing
+as Raf&Skot's after going over the vertical pairs umpteen times while
+identifying curated pairs. I guess I need to do another umpteen times on
+the horizontal pairs, to catch them up on curation. Plus curation to do
+with Raf&Skot's once I finish keywording them.
+
+--- Wed Mar  1 06:26:29 PST 2017
+
+I took off the shrinking size aspect of horizontal pairs, and added a little
+more (clickable) border on the side to lessen the impact of the size change.
+I prefer having the full-sized images.
+
+It's getting light.
+
+--- Wed Mar  1 23:07:30 PST 2017
+
+Resuming coding Raf/Skot, cleaning up as I go:
+
+Adding 'prohibit' based on a sign with a circle/slash over a dog:
+
+   2 circle_people
+  41 circles
+ 221 circle
+
+   4 circle_people
+  39 circles
+ 210 circle
+
+--
+
+   2 sign_holder
+   9 stop_sign
+  30 signs
+ 466 sign
+
+   4 sign_holder
+  11 stop_sign
+  30 signs
+ 464 sign
+
+--
+
+  17 prohibit
+
+ANd back to classifying img_0912_sm.jpg.
+
+--- Thu Mar  2 20:16:31 PST 2017
+
+I finished to about 1005 before folding.
+
+Now I have a few cases where color match was being reported with a screen
+toggled taken care of. I thought I'd have to fix keywords or something
+when I replace a single pic by clicking on it for a keyword match, but
+everything seems to be working in status reporting, except that I just
+show blank when there is no match. Re-added 'curated' which got lost in
+the reorg, so now all that's left is to size properly when clicking on
+one pic in double landscape, which would ideally call for resizing both
+since the calc depends on both widths, but that might be jumpy so not
+much if any better than the small height mismatches I've seen so far.
+I could make a best effort, or at least size down, but it all seems too
+complicated for now, so maybe I'm done, pending some ... maybe I should
+size down.
+
+--- Thu Mar  2 21:07:28 PST 2017
+
+Sizing down works, still it jumps from side to side, but when I tried
+to fix that by redrawing both pics, it didn't like the object I used
+for the current other pic, and I'm giving up for now.
+
+I darkened the tiling icons earlier, and they look better, so I think
+I'm ready for release, except it would be nice to finish keywording
+the last 560 of Raf & Skot's pics, and curate 2-3000 horizontal pairs
+so that that option works in each view.
+
+--- Thu Mar  2 21:39:30 PST 2017
+
+I was browsing Raf&Skot's pics on the server, and thought I had a bug
+since the old original screen I hacked for horizontal wasn't resizing
+to fill the screen. I keep looking at my laptop log when I'm on the
+server, too.
+
+
+--- Thu Mar  2 22:35:21 PST 2017
+
+  36 street
+  91 street_scape
+
+  29 street
+  98 street_scape
+
+--- Thu Mar  2 23:44:33 PST 2017
+
+I decided to distinguish between singular and plural of 'chair'.
+
+--- Fri Mar  3 22:03:27 PST 2017
+
+ 484 vanishing
+
+   3 vanishing_side
+  30 vanishing_analog
+  37 vanishing_object
+ 146 vanishing_almost
+ 269 vanishing
+
+Part of coding Raf&Skot.
+
+--- Fri Mar  3 23:58:24 PST 2017
+
+Now distinguishing between singular and plural for fingers.
+
+--- Sat Mar  4 00:31:51 PST 2017
+
+I got the resize of both pics working on click-on-pic horizontals, it 
+looks weird to see the pic you didn't click on resize subliminally on
+the side, but I think I need to implement it for toggle pics too, since
+that looks rough.
+
+--- Sat Mar  4 11:16:38 PST 2017
+
+I've rewritten the draw logic so that I only save the original images
+received, and rescale/redraw on every toggle or new image. Way cleaner
+code, the other version was hard to follow and modify.
+
+But the vertical and horizontal side-by-side screens are mixed up.
+
+--- Sat Mar  4 13:10:23 PST 2017
+
+I found toggle between 1 and 2 verticals broken, finally got that fixed,
+plus jitter when switching 2->1, and it's pretty interesting just to
+go back and forth, since each time it goes to 2 there is a new pic, which
+is retained on going back to 1. But the new pic can appear on either
+side of the 2, so it isn't as easy to get tired of the pattern as you'd 
+think.
+
+Still have other tile toggles to diagnose and fix. But I wonder why I
+haven't seen any horizontals while testing with single pic and view=0.
+Just good luck for testing - 2 more and I get a horizontal. No, it's not
+good luck - I was always toggling to 1 from 2 verticals, that's why it
+was always vertical in single pic.
+
+On to testing 2 verticals to 2 horizontals and back.
+
+--- Sat Mar  4 13:49:07 PST 2017
+
+When I switch tiling, the history is showing.. 
+
+--- Sat Mar  4 14:06:35 PST 2017
+
+Needed to reset the depths to 0 on tile change. No known bugs for the
+moment.
+
+Except toggling on stacked horizontal.
+
+--- Sat Mar  4 15:05:17 PST 2017
+
+Fixed, but I had to make a fixed number of pixels of toggle space,
+since otherwise weird scaling was happening, and the photo td included a
+lot of grey.
+
+All known bugs fixed.
+
+--- Sat Mar  4 15:13:32 PST 2017
+
+The thin line between the stacked icon oblongs was looking indiscernably
+thin because of being long, so I darkened it more than the background to 
+stand out.
+
+No known bugs. TODO: 
+
+  - finish coding Raf&Skot, now at 1351
+  - add curating option to view.html and curate a bunch.
+
+--- Sat Mar  4 15:26:45 PST 2017
+
+I could make horizontal tiling square up at the pic edges, i.e. not 
+split the screen 50/50. That would give consistent semi-creepy reorg
+behavior when toggling previous or replacing a pic. I finally saw a
+horizontal pair that was interesting, so that implies I need to 
+handle curation according to stacking, a huge pain in the ass to
+double the amount of landcape curation.
+
+--- Sat Mar  4 17:12:13 PST 2017
+
+Split out big_hat from hat:
+
+   1 big_hats
+  20 big_hat
+  33 hats
+ 179 hat
+
+--- Sun Mar  5 01:03:42 PST 2017
+
+-rw-r--r--  1 priot  staff  104588558 Feb 11 22:33 meta/meta_0_m
+-rw-r--r--  1 priot  staff   87241367 Feb 11 22:33 meta/meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   81350155 Feb 11 22:34 meta/meta_1_m
+-rw-r--r--  1 priot  staff   66061527 Feb 11 22:34 meta/meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2801752 Feb 11 22:34 meta/meta_2_m
+-rw-r--r--  1 priot  staff    2728005 Feb 11 22:34 meta/meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      69249 Feb 11 22:34 meta/meta_4_m
+-rw-r--r--  1 priot  staff      65649 Feb 11 22:34 meta/meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   19146354 Feb 11 22:34 meta/meta_6_m
+-rw-r--r--  1 priot  staff   15984511 Feb 11 22:35 meta/meta_6_m_nogeom
+-rw-r--r--  1 priot  staff   32986610 Mar  5 00:43 meta_0_m
+-rw-r--r--  1 priot  staff   29564501 Mar  5 00:43 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   10905023 Mar  5 00:44 meta_1_m
+-rw-r--r--  1 priot  staff    9444279 Mar  5 00:44 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2967441 Mar  5 00:44 meta_2_m
+-rw-r--r--  1 priot  staff    2880258 Mar  5 00:44 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      68299 Mar  5 00:44 meta_4_m
+-rw-r--r--  1 priot  staff      65087 Mar  5 00:44 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3298103 Mar  5 00:44 meta_7_m
+-rw-r--r--  1 priot  staff    3075250 Mar  5 00:44 meta_7_m_nogeom
+
+
+-rw-r--r--  1 priot  staff  104588558 Feb 11 22:33 meta/meta_0_m
+-rw-r--r--  1 priot  staff   32986610 Mar  5 00:43 meta_0_m
+
+The file has shrunk instead of grown, something's wrong.
+
+Aha, I forgot to import archive1 keywords.
+
+--- Sun Mar  5 01:56:14 PST 2017
+
+-rw-r--r--  1 priot  staff  104588558 Feb 11 22:33 meta/meta_0_m
+-rw-r--r--  1 priot  staff   87241367 Feb 11 22:33 meta/meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   81350155 Feb 11 22:34 meta/meta_1_m
+-rw-r--r--  1 priot  staff   66061527 Feb 11 22:34 meta/meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2801752 Feb 11 22:34 meta/meta_2_m
+-rw-r--r--  1 priot  staff    2728005 Feb 11 22:34 meta/meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      69249 Feb 11 22:34 meta/meta_4_m
+-rw-r--r--  1 priot  staff      65649 Feb 11 22:34 meta/meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   19146354 Feb 11 22:34 meta/meta_6_m
+-rw-r--r--  1 priot  staff   15984511 Feb 11 22:35 meta/meta_6_m_nogeom
+-rw-r--r--  1 priot  staff  126532510 Mar  5 01:53 meta_0_m
+-rw-r--r--  1 priot  staff  106638281 Mar  5 01:54 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   79102185 Mar  5 01:54 meta_1_m
+-rw-r--r--  1 priot  staff   64085198 Mar  5 01:55 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2691034 Mar  5 01:55 meta_2_m
+-rw-r--r--  1 priot  staff    2617977 Mar  5 01:55 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      69362 Mar  5 01:55 meta_4_m
+-rw-r--r--  1 priot  staff      65809 Mar  5 01:55 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3147966 Mar  5 01:55 meta_7_m
+-rw-r--r--  1 priot  staff    2949930 Mar  5 01:55 meta_7_m_nogeom
+
+-rw-r--r--  1 priot  staff  104588558 Feb 11 22:33 meta/meta_0_m
+-rw-r--r--  1 priot  staff  126532510 Mar  5 01:53 meta_0_m
+
+Not as much growth as I expected.
+
+-rw-r--r--  1 priot  staff   81350155 Feb 11 22:34 meta/meta_1_m
+-rw-r--r--  1 priot  staff   79102185 Mar  5 01:54 meta_1_m
+
+The usual shrinkage from splitting keywords.
+
+--- Sun Mar  5 04:09:50 PST 2017
+
+I pushed it all to the site.
+
+--- Sun Mar  5 21:58:14 PST 2017
+
+I have photo credit displaying in the keyword area when you click on the
+copyright notice.
+
+--- Sun Mar  5 23:01:59 PST 2017
+
+I pushed the credit feature. I see 10 of these in the log:
+
+03/05 17:57:01.255 ERROR c.p.s.FileSystemResourceServlet - Couldn't find: [object HTMLImageElement] (/home/priot/ops/web/[object HTMLImageElement]): 74.95.0.186
+
+It might be Fred or Katy.
+
+It happens half a second after the 2nd of 2 images is loaded:
+
+03/05 17:56:01.528 INFO  com.priot.servlet.GetMult - Sending /home/priot/ops/ima
+ges/7/img_1199_sm.jpg
+03/05 17:56:01.984 ERROR c.p.s.FileSystemResourceServlet - Couldn't find: [objec
+t HTMLImageElement] (/home/priot/ops/web/[object HTMLImageElement]): 74.95.0.186
+
+03/05 17:56:12.184 INFO  com.priot.servlet.GetMult - Sending /home/priot/ops/ima
+ges/7/img_1185_sm.jpg
+03/05 17:56:12.668 ERROR c.p.s.FileSystemResourceServlet - Couldn't find: [object HTMLImageElement] (/home/priot/ops/web/[object HTMLImageElement]): 74.95.0.186
+
+The user comes back for another photo after another few seconds, so it
+might not be affecting the experience.
+
+--- Sun Mar  5 23:48:12 PST 2017
+
+Now to add curation add/delete buttons for localhost.
+
+--- Mon Mar  6 00:27:46 PST 2017
+
+Done, curated a cool pair. Turned on pair_local again, but before I go any
+further, I should delete all entries after I started logging Raffaele's or
+any number of horizontals, since at that point I was no longer using my
+curation page, and I passed over some good pairs I'd like to be able to
+curate now. Unfortunately I only add the pairs to the table, there is no
+other field to order by, so I need to find how to do a record order query.
+
+--- Mon Mar  6 01:29:59 PST 2017
+
+I cleaned up pair_local, after checking that the query yielded plausible
+order (Raf&Skot's pics only appeared near the end).
+
+Now I'm ready to churn out approved pairs with Raf&Skot's verticals and all 
+the horizontals, to prepare for a LinkedIn announcement.
+
+pr=> select count(*) from pair_local;
+ count 
+-------
+ 31054
+
+--- Mon Mar  6 02:06:38 PST 2017
+
+I got a horizontal on the verticals page for the 3rd time or so, so tracked
+it down to my query picking up secondary vertical versions where the primary
+was horizontal, so I restricted the type.
+
+Before/after:
+
+Verticals: 5953
+Verticals: 5093
+
+--- Mon Mar  6 02:40:32 PST 2017
+
+Thought that would solve it, but immediately got another horizontal.
+
+Two more cycles, and I think I'm good.
+
+Verticals: 5865
+
+Now to start approving pairs.
+
+--- Mon Mar  6 03:06:12 PST 2017
+
+I started on Ellen's, and found a kwd->fallbackrandom that wasn't taking
+verticality into account.
+
+--- Tue Mar  7 02:07:00 PST 2017
+
+I noticed an odd multi-session-with-few-pics, all on Raf&Skot, and traced
+it down to me not thinking about mobile devices when writing the 2-pic
+display code. For now, the normal code sort of works, and I'll need to
+think about sizing things for the mobile screen. One flaming bug is that
+the -|+ icons are stacked on iPhone no matter what dimensions I give their
+td, and the +-c|+ icons by contrast spead out and wrap once.
+
+--- Wed Mar  8 03:00:00 PST 2017
+
+Since mobile devices don't do mousedown, it doesn't hurt to just let the
+icons float on the iphone, todo is look into using a tap, I've got a web
+page saying how to do it.
+
+Meanwhile have been fixing the default pair click-on-pic when keywords
+are exhausted, and have it using 8 zones of the pic for determining where
+to start the keyword search or which color algorithm to fall back to. It
+was a pleasure to see that whatever code I wrote for single pic is picking
+up and sending the click loc correctly for at least the left double pic.
+While banging away looking for a match, I found that the color fallbacks
+were sometimes coming up with keyword matches, which I realized eventually 
+must be because I truncate my keyword lists, somewhat inadvertently, 
+because of an arbitrary multiplication factor and cutting off at 0. So I 
+upped the factor by 100 and default to 1 if the result of the multiply 
+rounds to 0.
+
+Rebuilding keywords now. I still have one of my favorite of Lorena's
+pics in the right hand tile, waiting to see if the new keywords will
+give me more pics without falling back.
+
+--- Wed Mar  8 03:23:23 PST 2017
+
+Meanwhile I started looking up previous pairs I've saved, to manually
+enter into approved_pairs, now that I'm caught up on Raf & Skot (actually
+Scott). I'm reloading 13,663 pics at rgb16 resolution, to see if it's 
+better than rgb12, which didn't nail the first pair I tried, which 
+wouldn't be fatal, but I forgot to convert the screen shot of the pic
+it didn't match from PNG to jpeg format, so BoofCV barfed; I should make
+it handle those exceptions without wasting all the load time.
+
+--- Wed Mar  8 03:48:33 PST 2017
+
+-rw-r--r--  1 priot  staff  161852530 Mar  8 03:41 meta_0_m
+-rw-r--r--  1 priot  staff  137560904 Mar  8 03:43 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   96019419 Mar  8 03:44 meta_1_m
+-rw-r--r--  1 priot  staff   78153925 Mar  8 03:44 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3947597 Mar  8 03:44 meta_2_m
+-rw-r--r--  1 priot  staff    3836186 Mar  8 03:44 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      74647 Mar  8 03:44 meta_4_m
+-rw-r--r--  1 priot  staff      70288 Mar  8 03:44 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3954969 Mar  8 03:44 meta_7_m
+-rw-r--r--  1 priot  staff    3700283 Mar  8 03:44 meta_7_m_nogeom
+
+meta/:
+total 757656
+-rw-r--r--  1 priot  staff  126532510 Mar  5 01:53 meta_0_m
+-rw-r--r--  1 priot  staff  106638281 Mar  5 01:54 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   79102185 Mar  5 01:54 meta_1_m
+-rw-r--r--  1 priot  staff   64085198 Mar  5 01:55 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    2691034 Mar  5 01:55 meta_2_m
+-rw-r--r--  1 priot  staff    2617977 Mar  5 01:55 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      69362 Mar  5 01:55 meta_4_m
+-rw-r--r--  1 priot  staff      65809 Mar  5 01:55 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3147966 Mar  5 01:55 meta_7_m
+-rw-r--r--  1 priot  staff    2949930 Mar  5 01:55 meta_7_m_nogeom
+
+
+-rw-r--r--  1 priot  staff  126532510 Mar  5 01:53 meta_0_m
+-rw-r--r--  1 priot  staff  161852530 Mar  8 03:41 meta_0_m
+
+That will make a difference to the experience. Not one that I can grok now,
+beyond getting a run of matches to the pic I want, before falling back on
+my now-polished distribution of color algorithms. Now backed up. 
+
+Effect on server load time:
+
+logs/jetty_2017-01-25.log:01/25 23:39:29.609 INIT Loading maps: 34345
+logs/jetty_2017-02-07.log:02/07 00:52:04.925 INIT Loading maps: 32720
+logs/jetty.log:03/08 04:21:31.236          - INIT Loading maps: 43666
+
+--- Wed Mar  8 13:02:10 PST 2017
+
+I made an announcement on craigslist - no bites yet.
+
+curb your enthusiasm < phobrain > 2017-03-08 11:22 
+
+Who cares if a DNA dynamics simulation is bouncing off your mouse clicks, and rattling in the dice shaken by my artificial intelligence, as it deals you another pair of photos in my interactive slide show?
+
+People like to read about it, but some run in fear of its mysterious photographic mumblings. Ok, some are bored too. Not for long though! Voila Viola, my greatest masterpiece. I have curated a bunch of pairs produced by my AI, so that you don't have to see how dumb it is right away (hit rate of pairs I chose is about 15%). And I've done it for 1500-odd snapshots drawn from 3500 contributed by a bohemian couple, which many will find unusual and interesting, especially as seen in the pairings which I have mined, like some kind of neural bitcoin.
+
+[pic pair_app_rafskot_sculptor_pillar_girl_run_sm]
+
+This link opens up on a single-pic view of the archive - to see the double-pic views, click on one of the boxy icons next to Home, and click on 'c' for the curated pics: http://phobrain.com/pr/home/view.html?k=m&v=7 There are more detailed instructions on the About link there. 
+
+Photo credit: Raf & Skot 
+
+--- Wed Mar  8 22:09:39 PST 2017
+
+No lookers to speak of from the ad.
+
+I curated some more, and fixed curation when a screen has been toggled.
+ALso I've worked on a bunch of stuff I'm not sure when I did. I know I
+just curated a bunch of pics, Lorena's were like pulling teeth, and I
+should prune her archive. But after a bunch of what seemed like 
+bending-the-rules choices that seemed trivial and even marginally dishonest,
+when I look at the curated stuff together it looks good.
+
+I figure that when I burn out on curation, I'll make a list of all pics
+that didn't get paired, and consider dumping each one.
+
+--- Fri Mar 10 00:58:51 PST 2017
+
+I fixed phone/tablet a little in a scratch version I'm working on, and
+copied a fix to firefox controls row sizing to the site.
+
+--- Fri Mar 10 05:06:34 PST 2017
+
+I've got phone/tablet working reasonably in vertical mode. Bigger icons, 
+custom sizing of the screen, different photo sizing formulas. I also
+cleaned up a bunch of nits the W3C html checker found.
+
+--- Fri Mar 10 05:23:33 PST 2017
+
+Resized the cmd icons smaller for iphone so they don't wrap.
+
+--- Sat Mar 11 15:23:07 PST 2017
+
+Split 'pair' into having biological or artistic unique life, or being about
+objects. Half the objects are windows and doors, so I'm thinking of having
+pair_obj_transit for that.
+
+ 243 pair_obj
+ 340 pair
+
+--- Sat Mar 11 21:03:35 PST 2017
+
+I added picClickImage handling to clicking on a single pic of a pair:
+if the user draws on the pic or clicks on a corner, color matching is used.
+Keyword matching is now confined to the center. The matching is relative
+to the other pic, even when the user traces a feature on the pic, because
+when I tried allowing the pics to diverge by not choosing relative to
+each other it made me feel uncomfortable immediately - I didn't even
+want to explore it.
+
+--- Sun Mar 12 01:32:47 PST 2017
+
+I came across a meta pic I'd put in, a photo of the screen showing the keyword
+display. I was horrified and deleted it, which means I have to redo the pairs
+table, so I coded and added ~130 of my own pics that I had figured would be
+the last batch I took off the camera before the move (scheduled Feb 20, didn't
+happen).
+
+While building color tables, I'm curating some more, and decided to not
+merge flowers into flower, which amounts to keeping this differentiation:
+
+ 150 flower
+ 272 flowers
+
+--- Sun Mar 12 12:05:25 PDT 2017
+
+-rw-r--r--  1 priot  staff  161852530 Mar  8 03:41 meta/meta_0_m
+-rw-r--r--  1 priot  staff  137560904 Mar  8 03:43 meta/meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   96019419 Mar  8 03:44 meta/meta_1_m
+-rw-r--r--  1 priot  staff   78153925 Mar  8 03:44 meta/meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3947597 Mar  8 03:44 meta/meta_2_m
+-rw-r--r--  1 priot  staff    3836186 Mar  8 03:44 meta/meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      74647 Mar  8 03:44 meta/meta_4_m
+-rw-r--r--  1 priot  staff      70288 Mar  8 03:44 meta/meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3954969 Mar  8 03:44 meta/meta_7_m
+-rw-r--r--  1 priot  staff    3700283 Mar  8 03:44 meta/meta_7_m_nogeom
+-rw-r--r--  1 priot  staff  161390432 Mar 12 12:01 meta_0_m
+-rw-r--r--  1 priot  staff  136314927 Mar 12 12:02 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   97175990 Mar 12 12:03 meta_1_m
+-rw-r--r--  1 priot  staff   78648075 Mar 12 12:03 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3921321 Mar 12 12:03 meta_2_m
+-rw-r--r--  1 priot  staff    3809920 Mar 12 12:03 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      71736 Mar 12 12:03 meta_4_m
+-rw-r--r--  1 priot  staff      67377 Mar 12 12:03 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3826733 Mar 12 12:03 meta_7_m
+-rw-r--r--  1 priot  staff    3561610 Mar 12 12:03 meta_7_m_nogeom
+
+--- Sun Mar 12 21:08:35 PDT 2017
+
+Pairs table copied to site, keywords being copied. I added calc of the
+average num of pics keyword-linked to each pic in each view:
+
+-- kwd maps
+m_0     13793 avg 685
+m_1     10642 avg 520
+m_2     1365 avg 177
+m_4     214 avg 16
+m_7     1562 avg 144
+m_nogeom_0      13762 avg 581
+m_nogeom_1      10613 avg 422
+m_nogeom_2      1365 avg 171
+m_nogeom_4      212 avg 15
+m_nogeom_7      1553 avg 134
+
+Also just added arg parsing to boofcv, so I can fire off one job to
+eventually calc columns 4-9 of the pairs table the next time I add pics.
+
+--- Sun Mar 12 23:44:02 PDT 2017
+
+Everything new is on the site, including my new pics which, after the meta
+pic I reacted to, triggered it all, which I forgot until I was browsing 
+curateds on the site and hit a pair that used one. 
+
+The most interesting thing to see is the approved pairs, which I let 
+myself go on and uploaded without review. So far they look pretty good, 
+so I'm happy and ready to turn in early if I can as part of getting on a 
+normal schedule for a job interview Tue afternoon.
+
+--- Mon Mar 13 14:23:10 PDT 2017
+
+  47 trio_obj
+ 126 trio
+
+--- Thu Mar 16 22:22:34 PDT 2017
+
+I finished looking at verticals and horizontals of all pics, fixing a
+few bugs wherein the wrong aspect would appear, as well as restoring some
+balance to click time handling for keywords. Latest server and approved_pairs
+pushed.
+
+The vertical pairs seem constricted, old, jejeune, way fewer than I thought,
+though at times entrancing when I edited them before shipping. Landscape
+feels like it can breathe, has more possibilities, maybe better pictures.
+
+
+https://www.reddit.com/r/MachineLearning/comments/601atx/developing_a_language_of_pictures_for_a/
+
+--- Sun Mar 19 13:36:30 PDT 2017
+
+I removed multiple versions of pics (only applies to archive 1, ss4k) from
+the master list for better accounting of where I am in a session:
+
+before
+
+0: arch 1 2 3 4 5 7: Size 17454 First 106 Best 900
+1: arch 1 3 5: Size 14305 First 87 Best 605
+
+after
+
+0: arch 1 2 3 4 5 7: Size 13795 First 106 Best 900
+1: arch 1 3 5: Size 10646 First 87 Best 605
+
+--- Mon Mar 20 15:22:51 PDT 2017
+
+I made the ratio used to pick approved pairs more robust, so depending on
+whether the last click was longer than the previous it will start its center-
+outward search of the list at (0.5 +- ratio) * list_size.
+
+--- Wed Mar 22 23:08:10 PDT 2017
+
+Before:
+
+ 118 windows
+ 339 window
+
+--- Wed Mar 22 23:59:50 PDT 2017
+
+  51 window_matrix
+ 168 windows
+ 238 window
+
+Also preserving the window/windows distinction in MiscUtil.
+
+--- Thu Mar 23 00:45:58 PDT 2017
+
+-rw-r--r--  1 priot  staff  161390432 Mar 12 12:01 meta_0_m
+-rw-r--r--  1 priot  staff  159331597 Mar 23 00:38 meta_0_m
+
+-rw-r--r--  1 priot  staff  136314927 Mar 12 12:02 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  134312760 Mar 23 00:39 meta_0_m_nogeom
+
+-rw-r--r--  1 priot  staff   97175990 Mar 12 12:03 meta_1_m
+-rw-r--r--  1 priot  staff   95454851 Mar 23 00:39 meta_1_m
+
+-rw-r--r--  1 priot  staff   78648075 Mar 12 12:03 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   76964581 Mar 23 00:40 meta_1_m_nogeom
+
+-rw-r--r--  1 priot  staff    3921321 Mar 12 12:03 meta_2_m
+-rw-r--r--  1 priot  staff    3919419 Mar 23 00:40 meta_2_m
+
+-rw-r--r--  1 priot  staff    3809920 Mar 12 12:03 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff    3807958 Mar 23 00:40 meta_2_m_nogeom
+
+-rw-r--r--  1 priot  staff      71736 Mar 12 12:03 meta_4_m
+-rw-r--r--  1 priot  staff      71173 Mar 23 00:40 meta_4_m
+
+-rw-r--r--  1 priot  staff      67377 Mar 12 12:03 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff      67032 Mar 23 00:40 meta_4_m_nogeom
+
+-rw-r--r--  1 priot  staff    3826733 Mar 12 12:03 meta_7_m
+-rw-r--r--  1 priot  staff    3821803 Mar 23 00:40 meta_7_m
+
+-rw-r--r--  1 priot  staff    3561610 Mar 12 12:03 meta_7_m_nogeom
+-rw-r--r--  1 priot  staff    3556675 Mar 23 00:40 meta_7_m_nogeom
+
+
+--- Sat Mar 25 01:53:40 PDT 2017
+
+pr=> select count(*) from approved_pair ;
+ count 
+-------
+  8097
+
+--- Sun Mar 26 17:15:49 PDT 2017
+
+I changed the default load of the view page to be 2xportrait, and changed the
+Home link top left to a dropdown menu called Phob, with Home and tiling
+options dropping down under it. I'm trying to talk myself into making the
+About link top right a dropdown called 'rain' to match 'Phob', or maybe
+calling it Help, with a popup showing option descriptions.
+
+--- Sun Mar 26 19:44:17 PDT 2017
+
+Now that I have a dropdown menu, I'll give it a toggle for switching between
+standard-options mode and the new curation-first based on click on pic mode
+without other options that I've been mulling over.
+
+--- Mon Mar 27 01:29:48 PDT 2017
+
+All done: tiling options now only in dropdown, followed by the mode toggle
+option, and I morphed About on the top right to 'rain' with a down-triangle
+before it, and it contains and About link and short descriptions of the
+cmd modes. Metadata 
+
+--- Thu Mar 30 13:19:59 PDT 2017
+
+Moved a lot of 'flower' to 'flowers'.
+
+ 105 flower
+ 317 flowers
+
+I should split 'flowers' into flowers_mass vs. 2-5ish.
+
+I wrote a do-it-yourself pairing page, mypairs.html, and yesterday added 
+load-from-net to the load-from-local-file option.
+
+--- Thu Mar 30 13:57:36 PDT 2017
+
+With flowers getting bigger and cumulative small changes, a slight 
+increase in size.
+
+-rw-r--r--  1 priot  staff  159429310 Mar 30 13:54 meta_0_m
+-rw-r--r--  1 priot  staff  134418012 Mar 30 13:55 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   95497916 Mar 30 13:55 meta_1_m
+-rw-r--r--  1 priot  staff   77013103 Mar 30 13:56 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3914762 Mar 30 13:56 meta_2_m
+-rw-r--r--  1 priot  staff    3803301 Mar 30 13:56 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      71027 Mar 30 13:56 meta_4_m
+-rw-r--r--  1 priot  staff      66886 Mar 30 13:56 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3821194 Mar 30 13:56 meta_7_m
+-rw-r--r--  1 priot  staff    3556061 Mar 30 13:56 meta_7_m_nogeom
+
+meta/:
+total 940104
+-rw-r--r--  1 priot  staff  159331597 Mar 23 00:38 meta_0_m
+-rw-r--r--  1 priot  staff  134312760 Mar 23 00:39 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   95454851 Mar 23 00:39 meta_1_m
+-rw-r--r--  1 priot  staff   76964581 Mar 23 00:40 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3919419 Mar 23 00:40 meta_2_m
+-rw-r--r--  1 priot  staff    3807958 Mar 23 00:40 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      71173 Mar 23 00:40 meta_4_m
+-rw-r--r--  1 priot  staff      67032 Mar 23 00:40 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3821803 Mar 23 00:40 meta_7_m
+-rw-r--r--  1 priot  staff    3556675 Mar 23 00:40 meta_7_m_nogeom
+
+--- Thu Mar 30 14:34:53 PDT 2017
+
+All I had the heart for was to split cut flowers out, which I called
+
+  76 flowers_bunch
+ 241 flowers
+
+--- Thu Mar 30 17:38:31 PDT 2017
+
+New fiber bandwidth: scp goes from 8 hours to 5 minutes (wireless):
+
+pairs_dump.sql.gz                                 100% 2939MB 104.0KB/s 8:02:18    
+
+pairs_dump.sql.gz                                 100% 2939MB  10.2MB/s   04:49
+pairs_dump.sql.gz                                 100% 2939MB   7.8MB/s   06:15    
+pairs_dump.sql.gz                                 100% 2939MB   9.8MB/s   04:59    
+
+Wired:
+
+pairs_dump.sql.gz                                 100% 2939MB   9.2MB/s   05:19    
+pairs_dump.sql.gz                                 100% 2939MB  10.4MB/s   04:44    
+
+--- Fri Mar 31 22:33:27 PDT 2017
+
+I made the menu and copyright items 50pt for mobile devices.
+
+--- Sat Apr  1 11:18:07 PDT 2017
+
+I've been thinking of pruning pics I don't like to save money and save myself
+the chore of hoing they will make nice pairs someday. There are 5693 pics not
+in pairs, so I have hacked a view with them to try to whittle the list down
+with internal pairs. Ideally I'd have one pic from this group match any other
+pic, but this is expedient.
+
+Bingo on the 1st, 2 pairs of flowers one orange one pink.
+
+--- Sat Apr  1 11:46:41 PDT 2017
+
+That wasn't quite right, I forgot to build a keyword index for the pairs, so
+wrote the ids to log, grep/awked them into view_6, and built that view and
+changed it from dummy to file. view 7 (== arch 7) s ~ 1500 pics.
+
+-rw-r--r--  1 priot  staff   26292811 Apr  1 11:47 meta_6_m
+-rw-r--r--  1 priot  staff   22745558 Apr  1 11:47 meta_6_m_nogeom
+-rw-r--r--  1 priot  staff    3821194 Mar 30 13:56 meta_7_m
+-rw-r--r--  1 priot  staff    3556061 Mar 30 13:56 meta_7_m_nogeom
+
+--- Sat Apr  1 14:05:53 PDT 2017
+
+Fixed a picClik bug wherein choosefirstfromlist needed to use the viewnum
+to filter the choices; might have had other cases, all closed now.
+
+--- Sat Apr  1 20:35:07 PDT 2017
+
+Fixed wobbliness on side-by-side landscapes, not for first time, by increasing
+ADMIN_PIX.
+
+--- Sun Apr  2 13:58:03 PDT 2017
+
+4851 unpaired pics left after one pass. 
+
+-rw-r--r--  1 priot  staff  26292811 Apr  1 11:47 meta/meta_6_m
+-rw-r--r--  1 priot  staff  22745558 Apr  1 11:47 meta/meta_6_m_nogeom
+-rw-r--r--  1 priot  staff  18625295 Apr  2 13:58 meta_6_m
+-rw-r--r--  1 priot  staff  16256765 Apr  2 13:58 meta_6_m_nogeom
+
+--- Sun Apr  2 17:47:34 PDT 2017
+
+priot image_desc% grep '^--'  arch1/0MERGE | wc -l
+      21
+priot image_desc% grep '^--'  arch1/0MERGE | wc -l
+    1143
+
+About 300 pics commented out.
+
+--- Sun Apr  2 22:56:30 PDT 2017
+
+More done in the other archives, maybe 500 total.
+
+I'm running the sequential do-it-all boofcv script for the first time.
+
+--- Mon Apr  3 13:28:03 PDT 2017
+
+Old sizes (gzip -2):
+
+-rw-r--r--  1 priot priot 7282269996 Mar 12 20:42 pairs_dump.sql
+-rw-r--r--  1 priot priot 3082095677 Mar 30 17:44 pairs_dump.sql.gz
+
+New:
+
+-rw-r--r--  1 priot staff  6734669453 Apr  3 13:23 pairs_dump.sql
+
+I'm trying the concurrent index build for the first time.
+
+r=> \i ../../image_desc/pair/pairs_dump.sql 
+SET
+SET
+SET
+SET
+SET
+SET
+SET
+SET
+SET
+psql:../../image_desc/pair/pairs_dump.sql:28032196: out of memory
+
+ANd it exited. Trying again, same.
+
+I blithely deleted the old one locally and on server. Trying restarting
+the db server. Same result. Presumably the concurrent indexing? Trying
+without CONCURRENTLY.
+
+CREATE INDEX CONCURRENTLY pair_1_idx ON pairs USING btree (id1);
+CREATE INDEX CONCURRENTLY pair_2_idx ON pairs USING btree (id2);
+
+Same. I realized I must have done something else when I added that,
+and on unpacking an old backup and diffing, indeed I left my new 
+drop table if exists statement terminated by an open paren instead 
+of a semicolon.
+
+--- Mon Apr  3 14:20:51 PDT 2017
+
+Rebuilt the file for a clean test since I'd deleted the indexing lines,
+now seeing if concurrent will fly.
+
+Looks like only one process is doing the index build. On the server,
+I'll try it using pg_restore. Copying now.
+
+meta/:
+total 1008784
+-rw-r--r--  1 priot  staff  159429310 Mar 30 13:54 meta_0_m
+-rw-r--r--  1 priot  staff  134418012 Mar 30 13:55 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   95497916 Mar 30 13:55 meta_1_m
+-rw-r--r--  1 priot  staff   77013103 Mar 30 13:56 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3914762 Mar 30 13:56 meta_2_m
+-rw-r--r--  1 priot  staff    3803301 Mar 30 13:56 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      71027 Mar 30 13:56 meta_4_m
+-rw-r--r--  1 priot  staff      66886 Mar 30 13:56 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff   18625295 Apr  2 13:58 meta_6_m
+-rw-r--r--  1 priot  staff   16256765 Apr  2 13:58 meta_6_m_nogeom
+-rw-r--r--  1 priot  staff    3821194 Mar 30 13:56 meta_7_m
+-rw-r--r--  1 priot  staff    3556061 Mar 30 13:56 meta_7_m_nogeom
+
+-rw-r--r--  1 priot  staff  149409368 Apr  3 14:38 meta_0_m
+-rw-r--r--  1 priot  staff  125525903 Apr  3 14:38 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   88041692 Apr  3 14:39 meta_1_m
+-rw-r--r--  1 priot  staff   70471286 Apr  3 14:39 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff    3753593 Apr  3 14:40 meta_2_m
+-rw-r--r--  1 priot  staff    3646892 Apr  3 14:40 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff      67802 Apr  3 14:40 meta_4_m
+-rw-r--r--  1 priot  staff      63651 Apr  3 14:40 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    3824229 Apr  3 14:40 meta_7_m
+-rw-r--r--  1 priot  staff    3558706 Apr  3 14:40 meta_7_m_nogeom
+
+Not like in the old days:
+
+pairs_dump.sql.gz                             100% 2714MB  10.3MB/s   04:23    
+real	4m31.295s
+user	0m20.803s
+sys	0m30.512s
+
+meta_0_m                                      100%  142MB  11.0MB/s   00:13    
+meta_0_m_nogeom                               100%  120MB   6.7MB/s   00:18    
+meta_1_m                                      100%   84MB   8.4MB/s   00:10    
+meta_1_m_nogeom                               100%   67MB   2.2MB/s   00:30    
+meta_2_m                                      100% 3666KB   3.6MB/s   00:00    
+meta_2_m_nogeom                               100% 3561KB   3.5MB/s   00:00    
+meta_4_m                                      100%   66KB  66.2KB/s   00:00    
+meta_4_m_nogeom                               100%   62KB  62.2KB/s   00:00    
+meta_7_m                                      100% 3735KB   3.7MB/s   00:00    
+meta_7_m_nogeom                               100% 3475KB   1.7MB/s   00:02   
+
+I forgot - pg_restore doesn't like .sql files. Since the first index is
+still building on the laptop, I'm taking a leap of faith and launching
+the psql restore on the server.
+
+--- Mon Apr  3 15:21:52 PDT 2017
+
+Server has finished first index, while laptop still chugging.
+
+It looks like my only bet for parallizing the index builds is to do it
+manually from separate psql sessions.
+
+--- Mon Apr  3 15:52:02 PDT 2017
+
+The site seems to be working ok. I started the server on the laptop
+while waiting for the second index to build, and it's intersting to see
+how it feels without the expectation of cringe-worthy pics. Difference:
+
+Before:
+
+-- views:
+0: arch 1 2 3 4 5 7: Size 13795 First 106 Best 900
+1: arch 1 3 5: Size 10646 First 87 Best 605
+2: arch 2: Size 1365 First 14 Best 155
+3: dummy: Size 0 First 0 Best 41
+4: arch 4: Size 219 First 5 Best 16
+5: dummy: Size 0 First 0 Best 83
+6: file: Size 5690 First 30 Best 30
+7: arch 7: Size 1565 First 0 Best 0
+Verticals: 6026
+Unseen: 0
+-- kwd maps
+m_0     13793 avg 677
+m_1     10642 avg 511
+m_2     1365 avg 176
+m_4     214 avg 16
+m_6     5681 avg 270
+m_7     1562 avg 144
+m_nogeom_0      13762 avg 574
+m_nogeom_1      10613 avg 413
+m_nogeom_2      1365 avg 171
+m_nogeom_4      212 avg 15
+m_nogeom_6      5663 avg 233
+m_nogeom_7      1553 avg 134
+
+Now:
+
+-- views:
+0: arch 1 2 3 4 5 7: Size 13264 First 106 Best 900
+1: arch 1 3 5: Size 10160 First 87 Best 605
+2: arch 2: Size 1323 First 14 Best 155
+3: dummy: Size 0 First 0 Best 41
+4: arch 4: Size 216 First 5 Best 16
+5: dummy: Size 0 First 0 Best 83
+6: file: Size 4282 First 20 Best 20
+7: arch 7: Size 1565 First 0 Best 0
+Verticals: 5765
+Unseen: 0
+-- kwd maps
+m_0     13262 avg 661
+m_1     10155 avg 495
+m_2     1323 avg 175
+m_4     211 avg 16
+m_6     4273 avg 209
+m_7     1562 avg 144
+m_nogeom_0      13232 avg 558
+m_nogeom_1      10127 avg 397
+m_nogeom_2      1323 avg 170
+m_nogeom_4      209 avg 15
+m_nogeom_6      4262 avg 181
+m_nogeom_7      1553 avg 134
+
+I estimated ~500 removed correctly:
+
+0: arch 1 2 3 4 5 7: Size 13795 First 106 Best 900
+0: arch 1 2 3 4 5 7: Size 13264 First 106 Best 900
+
+--- Mon Apr  3 17:35:25 PDT 2017
+
+I was going nuts because there aren't any curated pairs in view_6, then
+I realized I recalculated it to exclude the pairs I just added, which
+means I can't easily curate those pairs, except by ordering all by date 
+and working backwards, once I've finished adding pair curating to the
+workbench. On the site I find myself cringing at some of the pairs, so
+realize I need to review my curation methodically rather than by looking
+at whatever comes up with the 'c' option.
+
+--- Mon Apr  3 19:04:19 PDT 2017
+
+I've got pairs showing sequentially - I decided to modify pairs.html
+rather than graft pairs mode into mnbvcxz.html. Now to add delete pairs
+capability.
+
+--- Mon Apr  3 19:41:47 PDT 2017
+
+Now I can delete approved pairs (and re-add them until I refetch my list
+from the dbase). Now I need a Goto to navigate the list with.
+
+--- Mon Apr  3 22:04:43 PDT 2017
+
+Goto works.
+
+--- Tue Apr  4 00:23:01 PDT 2017
+
+I want to select pairs by vertical or not, as the 1st slice and dice of many
+perhaps. So added vertical to the approved_pair record, updated all the
+old ones, and I see I've got plenty of verticals for now.
+
+pr=> select count(*) from approved_pair where vertical is true;
+  6152
+
+pr=> select count(*) from approved_pair where vertical is false;
+  2724
+
+I'm getting pairs in chronological order, but it makes more sense for the
+workbench to get them ordered by id0, id1. That imposes a slightly more 
+logical ordering on the approved pair list fallback search.
+
+--- Tue Apr  4 00:47:49 PDT 2017
+
+That's working now. The final bit I want before settling in to audit the
+approved pairs is a counter display showing how far I've gotten.
+
+--- Tue Apr  4 01:05:15 PDT 2017
+
+I've got that plus display of the ids of the current pair of pics, so I'm
+ready to audit away.
+
+--- Tue Apr  4 01:10:34 PDT 2017
+
+It's so cool to see them grouped! It helps in pruning them to see the
+alternate pairings.
+
+--- Tue Apr  4 03:39:10 PDT 2017
+
+I just added ordering by id0 or id1, structuring the list on user action
+before using the same parameter to select from the list, and giving me
+complementary views for editing.
+
+--- Tue Apr  4 03:49:39 PDT 2017
+
+The ordering seems to give dynamite results for the view.html. Aha,
+it hasn't been invoked yet, that was just keyword juice, cool.
+
+So I forced it by reloading my mnbpair.html session ordering on id1,
+and it's trippy to see a sort of mirror image of the ordering I was
+just looking at. It raises the question of whether to let the user
+experience pic repeats when pivoting pairs on a photo. Certainly I
+would do it if I had some basis for understanding where the user is
+at.
+
+--- Tue Apr  4 04:43:06 PDT 2017
+
+It seems like I should reuse photos once at least, a minor chore to see
+if a photo was reused once already. The user's choice would determine
+the photo to match, which would be much stronger a result than the
+keyword association, so would motivate users to choose more actively
+than I have at least.
+
+  1. find pairs with pic in same position, search those from a midpoint
+  2. find pairs with pic in opposite position, midpoint search
+  3. find pairs with keyword match to pic the current way, with
+     final fallback to the newly structured pairs list
+
+--- Tue Apr  4 06:13:26 PDT 2017
+
+It sucks as a user experience compared to the freer association of
+keywords. Maybe I'll soften in time.. but glad I didn't invest time
+in checking if the pic has repeated already. Code is commented out in
+case I get bold later. The repeated picture just seemed like dead space.
+
+--- Tue Apr  4 14:49:52 PDT 2017
+
+Progress on verticals: 	578/6142	1:2759 1:2228
+
+When I'm done with the audit, and maybe after adding more horizontals
+for balance, I'll approach some galleries, send another letter to the
+director of SFMoMA, and make a 2.0 or 3.0 announcement on Linkedin.
+
+--- Tue Apr  4 17:17:53 PDT 2017
+
+	1004/6142	1:2256 1:3070
+
+--- Tue Apr  4 20:41:43 PDT 2017
+
+In addition to sorting the pairs list by first or second pic primarily,
+I can sort ascending or descending, depending on whether the last time 
+is longer than average.
+
+--- Tue Apr  4 20:58:37 PDT 2017
+
+Done. A nice change from looking at pairs:
+
+	1257/6142	5:9520 1:353	
+
+--- Thu Apr  6 12:17:39 PDT 2017
+
+The website host, Media Temple, has been down all morning. The phone lines
+are saturated. Their admin interface was up this morning with a message
+about the outage, but now it's down too. The most obvious answer is that
+they were hacked big time, and will maybe go out of business.
+
+--- Thu Apr  6 18:35:53 PDT 2017
+
+	2100/6106   1:1232 1:5003
+
+Ssh and scp access were intermittent, but web access to MT was restored
+maybe by 3.
+
+--- Thu Apr  6 21:40:59 PDT 2017
+
+	3006/6106   1:6322 1:6603
+
+--- Thu Apr  6 22:57:19 PDT 2017
+
+	3512/6106   1:8370 1:7764
+
+--- Fri Apr  7 00:28:57 PDT 2017
+
+	4000/6106   1:4601 3:2765
+
+Also worked on adding horizontal pairs from the unpaired pics.
+
+--- Fri Apr  7 19:38:04 PDT 2017
+
+	4500/6106   4:195 4:207
+
+I started selecting from Raffaele's new batch, and have 265 so far. It was
+nice to switch back to curation for a while just now.
+
+--- Fri Apr  7 22:10:10 PDT 2017
+
+	5000/6106   5:7990 5:756
+
+Got 434 of Raffaele's.
+
+--- Sat Apr  8 02:01:51 PDT 2017
+
+	5532/6106   5:7602 5:8394
+
+Raffaele: 554
+
+Also added a bunch of horizontal pairs.
+
+--- Sat Apr  8 02:30:23 PDT 2017
+
+	6106/6106   7:523 7:976
+
+--- Sat Apr  8 12:13:13 PDT 2017
+
+Added pairs count to startup conf print:
+
+Pairs: 8960 V: 6025 H: 2935
+
+--- Sat Apr  8 12:58:34 PDT 2017
+
+Raffaele: 590
+
+I decided to write a review program, so I can just click to go to the next
+pic and another click to select, rather than double-click on pic to get to
+preview, then go to cmd line.
+
+priot work% cp IMG_3947.JPG ../new/img_2153.jpg
+priot work% cp IMG_3948.JPG ../new/img_2154.jpg
+priot work% cp IMG_3950.JPG ../new/img_2155.jpg
+priot work% cp IMG_3951.JPG ../new/img_2156.jpg
+
+--- Sat Apr  8 15:02:10 PDT 2017
+
+The hard part is relearning Swing. I can step through the images, scaling
+each to fit the desired window. Now I need to add some buttons.
+
+--- Sat Apr  8 17:40:49 PDT 2017
+
+I've got images as jlabels showing in a frame, so now I can add buttons.
+
+--- Sat Apr  8 18:37:32 PDT 2017
+
+Layout is good, now need to hook the buttons up.
+
+--- Sat Apr  8 19:45:55 PDT 2017
+
+Buttons are hooked up, and buttons remain fixed when image size/orientation
+change.
+
+--- Sat Apr  8 20:20:43 PDT 2017
+
+File name displays. Needs centering and to match background, but on to
+tracking the copy file index.
+
+--- Sat Apr  8 21:32:13 PDT 2017
+
+I can copy files with numbers continuing from the last number in the 
+'new' dir, but I need a goto function so I can continue working where
+I left off. 
+
+--- Sat Apr  8 21:58:36 PDT 2017
+
+Done, and first file copied and compared. 
+
+priot work% cmp -b IMG_3952.JPG new/img_2157.jpg 
+priot work% 
+
+I guess I can just continue working like I envisioned now.
+
+--- Sat Apr  8 22:35:23 PDT 2017
+
+Up to 724. Taking a break to add a progress indicator.
+
+--- Sat Apr  8 22:40:33 PDT 2017
+
+IMG_4480.JPG   1305/2106
+
+Back to work. I'll have to rotate and lighten various pix after this phase.
+
+--- Sun Apr  9 00:59:27 PDT 2017
+
+Up to 1129.
+
+--- Sun Apr  9 01:41:55 PDT 2017
+
+Up to 1245. About 900 left to review. Then keyword while fixing darkness 
+and rotation. Enough for tonight.
+
+--- Sun Apr  9 20:40:31 PDT 2017
+
+I realized I can separate geom and nogeom keywords completely, and save
+memory vs. having an all-in-one to fall back on when nogeom fails, and 
+replicate most of the tries of seen pics. A significant rewrite. I'm
+building keywords now.
+
+About 250 of Raffaele's pics left to review, 1703 pics selected.
+
+-rw-r--r--  1 priot  staff   27885859 Apr  9 20:56 meta_0_m_geom
+-rw-r--r--  1 priot  staff  125525903 Apr  9 20:57 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   20483006 Apr  9 20:57 meta_1_m_geom
+-rw-r--r--  1 priot  staff   70471286 Apr  9 20:58 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff     162072 Apr  9 20:58 meta_2_m_geom
+-rw-r--r--  1 priot  staff    3646892 Apr  9 20:58 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff       7228 Apr  9 20:58 meta_4_m_geom
+-rw-r--r--  1 priot  staff      63651 Apr  9 20:58 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff    2467659 Apr  9 20:58 meta_6_m_geom
+-rw-r--r--  1 priot  staff   13263561 Apr  9 20:58 meta_6_m_nogeom
+-rw-r--r--  1 priot  staff     344410 Apr  9 20:58 meta_7_m_geom
+-rw-r--r--  1 priot  staff    3558706 Apr  9 20:58 meta_7_m_nogeom
+
+-rw-r--r--  1 priot  staff  125525903 Apr  3 14:38 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  125525903 Apr  9 20:57 meta_0_m_nogeom
+
+-rw-r--r--  1 priot  staff      63651 Apr  3 14:40 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff      63651 Apr  9 20:58 meta_4_m_nogeom
+
+Looks good. Now to rewire all the keyword-based searches to fall back
+properly.
+
+--- Sun Apr  9 23:05:00 PDT 2017
+
+Server compiles. Something might work, at least using less memory. Now
+it's 3.77G.
+
+Hm, with the change it's 3.88G.
+
+--- Sun Apr  9 23:38:26 PDT 2017
+
+I had forgotten to remove the old default indexes. Now it's 2.55G.
+Startup time has gone from 45s to 25s. It all seems to be working.
+But what would really save space is to exclude the non-geom matches
+from the geom lists. I vaguely remember how I had plans for these 
+optimizations if the nogeom option panned out.
+
+It's painful to look at single pics now, and I was doing to verify the 
+changes. I feel like no wonder people weren't interested in it before.
+
+--- Mon Apr 10 02:20:51 PDT 2017
+
+Finished first round selection of Raffaele's pics: 1835. Now a week of
+keywording.
+
+--- Mon Apr 10 13:58:59 PDT 2017
+
+I took a chance (after backing up) and ran fixed rotation (fixrot.sh) on
+all of Raffaele's pics, and they load much faster now in my app for some 
+reason. Dimensions and file sizes remain the same. Maybe it was doing a
+gratuitous rotation before, but it took seconds to open each file, and now
+the delay is imperceptible.
+
+--- Mon Apr 10 15:19:11 PDT 2017
+
+I'm trying to build screened geom lists:
+
+-rw-r--r--  1 priot  staff   27885859 Apr  9 20:56 meta_0_m_geom
+-rw-r--r--  1 priot  staff   26342551 Apr 10 15:18 meta_0_m_geom
+
+I thought there would be more saving. Startup time is still 25s. Memory
+is 2.50G.
+
+If correct, this means the geom keywords add much more info than I 
+expected.
+
+--- Tue Apr 11 13:10:57 PDT 2017
+
+I've coded up to #1700 of Raffaele's, up to #3401 to go.
+9120 approved pairs.
+
+--- Tue Apr 11 14:16:28 PDT 2017
+
+Split out small_bridge:
+
+  13 small_bridge
+ 136 bridge
+
+--- Tue Apr 11 14:56:42 PDT 2017
+
+Split out tree_flowers, only when no individual ones are the focus:
+
+  15 tree_flowers
+ 225 flowers
+
+--- Tue Apr 11 16:24:12 PDT 2017
+
+Split out on_roof for people/animals:
+
+  22 on_roof
+ 102 roof
+
+--- Tue Apr 11 17:17:44 PDT 2017
+
+Split uninteresting buildings off:
+
+  24 building_plain
+ 141 building
+
+--- Tue Apr 11 17:30:33 PDT 2017
+
+Split indoor stairs:
+
+  25 in_stairs
+ 222 stairs
+
+--- Tue Apr 11 17:56:38 PDT 2017
+
+Raffaele: 1800
+
+--- Tue Apr 11 18:29:46 PDT 2017
+
+Approved pairs: 9210, 9120 at last check, all horizontal from the unpaired
+2K or so, second or third pass.
+
+--- Tue Apr 11 19:07:15 PDT 2017
+
+Split off mirroring and mirror_convex:
+
+   3 mirror_convex
+   5 mirrors
+   6 mirroring
+  28 mirror
+
+--- Tue Apr 11 22:38:15 PDT 2017
+
+Pairs at 9382, 6027 vertical. Coding at 1875.
+
+--- Wed Apr 12 01:23:48 PDT 2017
+
+Pairs at 9413, coding at 2002.
+
+--- Wed Apr 12 01:49:10 PDT 2017
+
+Rebuilt meta_6 to exclude the new pairs I've added:
+
+-rw-r--r--  1 priot  staff   2351865 Apr 10 15:33 meta/meta_6_m_geom
+-rw-r--r--  1 priot  staff  13263561 Apr 10 15:33 meta/meta_6_m_nogeom
+-rw-r--r--  1 priot  staff   1189281 Apr 12 01:46 meta_6_m_geom
+-rw-r--r--  1 priot  staff   7816320 Apr 12 01:46 meta_6_m_nogeom
+
+------ CONFIG
+-- views:
+0: arch 1 2 3 4 5 7: Size 13264 First 106 Best 900
+1: arch 1 3 5: Size 10160 First 87 Best 605
+2: arch 2: Size 1323 First 14 Best 155
+3: dummy: Size 0 First 0 Best 41
+4: arch 4: Size 216 First 5 Best 16
+5: dummy: Size 0 First 0 Best 83
+6: file: Size 3259 First 11 Best 11
+7: arch 7: Size 1565 First 0 Best 0
+Verticals: 5765
+Unseen: 0
+Pairs: 9415 V: 6027 H: 3388
+-- kwd maps
+m_geom_0	4219 avg 329
+m_geom_1	3601 avg 279
+m_geom_2	206 avg 32
+m_geom_4	37 avg 7
+m_geom_6	847 avg 72
+m_geom_7	349 avg 46
+m_nogeom_0	13232 avg 558
+m_nogeom_1	10127 avg 397
+m_nogeom_2	1323 avg 170
+m_nogeom_4	209 avg 15
+m_nogeom_6	3243 avg 139
+m_nogeom_7	1553 avg 134
+-------------------------------------
+
+--- Wed Apr 12 03:35:10 PDT 2017
+
+I realized from Raffaele's pics that Apple's Preview editor can make 
+significant improvements in Lorena's pics with just some darkening or 
+lightening, so I've done up to #300.
+
+--- Wed Apr 12 12:39:51 PDT 2017
+
+I've done up to #500 of Lorena's. I started to work on the original files,
+but the slow loading/saving times dissuaded me.
+
+--- Wed Apr 12 13:01:02 PDT 2017
+
+Done to #600.
+
+--- Wed Apr 12 13:40:00 PDT 2017
+
+Done to #700.
+
+--- Wed Apr 12 14:10:34 PDT 2017
+
+Up to #800.
+
+--- Wed Apr 12 14:30:34 PDT 2017
+
+Up to #900. Over halfway.
+
+--- Wed Apr 12 14:50:40 PDT 2017
+
+Up to 1000, skipping a lot of Gaultier.
+
+--- Wed Apr 12 15:16:48 PDT 2017
+
+Up to 1100.
+
+--- Wed Apr 12 17:19:40 PDT 2017
+
+1200.
+
+--- Wed Apr 12 17:41:27 PDT 2017
+
+1300.
+
+--- Wed Apr 12 18:03:19 PDT 2017
+
+1400.
+
+--- Wed Apr 12 18:42:59 PDT 2017
+
+Done to 1504, which is all I took in, though they go to 1679, so I can
+add some more.
+
+--- Wed Apr 12 19:35:32 PDT 2017
+
+It turned out most were dupes, only 10 new ones. Back to coding 
+Raffaele's pics.
+
+--- Wed Apr 12 21:45:55 PDT 2017
+
+Differentiating plurals for 'cracks'.
+
+  19 cracks
+  32 crack
+
+At Raffaele #2100.
+
+--- Thu Apr 13 00:57:52 PDT 2017
+
+At 2200.
+
+--- Thu Apr 13 16:58:40 PDT 2017
+
+At 2300.
+
+--- Thu Apr 13 23:26:37 PDT 2017
+
+At 2400.
+
+--- Fri Apr 14 01:00:52 PDT 2017
+
+At 2500.
+
+--- Fri Apr 14 01:34:41 PDT 2017
+
+I selected the last 39 from 1..9999 of the first series of the Canon 20D,
+so once those are coded, arch5 will be complete, the only one to reach
+logical completion, assuming I keep numbers <10K in file names. The
+200CANON series of folders will be arch8, and I have 200+ for that 
+on the win2k machine waiting to be edited.
+
+--- Fri Apr 14 16:03:07 PDT 2017
+
+At 2600. 441 to go, if I remember right. Plowing through all these pics
+reminds me why I blew money on having Lorena help, charitable reasons
+aside.
+
+--- Sat Apr 15 01:53:15 PDT 2017
+
+At 2700.
+
+--- Sat Apr 15 14:51:55 PDT 2017
+
+At 2800. I realized it goes to 3401, not 3041.
+
+--- Sat Apr 15 19:14:49 PDT 2017
+
+At 2900.
+
+--- Sat Apr 15 20:21:28 PDT 2017
+
+Fixed cmds not showing on reload of single-photo, plus cmd centering in
+all cases.
+
+--- Sat Apr 15 23:13:54 PDT 2017
+
+Added 'horns' to distinguished plurals, and revised detection of such to
+use a set rather than a list of single-word comparisons, not that it's a
+speed problem, but it makes the code more concise.
+
+--- Sun Apr 16 02:03:07 PDT 2017
+
+At 3000.
+
+--- Sun Apr 16 13:51:27 PDT 2017
+
+I made merry_go_round auto-include amusement_park.
+
+--- Sun Apr 16 15:43:39 PDT 2017
+
+At 3100.
+
+--- Sun Apr 16 17:45:19 PDT 2017
+
+At 3200.
+
+--- Sun Apr 16 20:42:59 PDT 2017
+
+At 3300.
+
+--- Sun Apr 16 22:52:32 PDT 2017
+
+Done: 3401.
+
+--- Mon Apr 17 03:12:32 PDT 2017
+
+-rw-r--r--  1 priot  staff   26342551 Apr 10 15:33 meta_0_m_geom
+-rw-r--r--  1 priot  staff   29033458 Apr 17 03:03 meta_0_m_geom
+
+-rw-r--r--  1 priot  staff  125525903 Apr 10 15:33 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  154826440 Apr 17 03:03 meta_0_m_nogeom
+
+-rw-r--r--  1 priot  staff   19233660 Apr 10 15:33 meta_1_m_geom
+-rw-r--r--  1 priot  staff   19363336 Apr 17 03:04 meta_1_m_geom
+
+-rw-r--r--  1 priot  staff   70471286 Apr 10 15:33 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   70556156 Apr 17 03:04 meta_1_m_nogeom
+
+-rw-r--r--  1 priot  staff     135083 Apr 10 15:33 meta_2_m_geom
+-rw-r--r--  1 priot  staff     135210 Apr 17 03:04 meta_2_m_geom
+
+-rw-r--r--  1 priot  staff    3646892 Apr 10 15:33 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff    3663486 Apr 17 03:04 meta_2_m_nogeom
+
+-rw-r--r--  1 priot  staff       6720 Apr 10 15:33 meta_4_m_geom
+-rw-r--r--  1 priot  staff       6720 Apr 17 03:04 meta_4_m_geom
+
+-rw-r--r--  1 priot  staff      63651 Apr 10 15:33 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff      58230 Apr 17 03:04 meta_4_m_nogeom
+
+-rw-r--r--  1 priot  staff    1189281 Apr 12 01:46 meta_6_m_geom
+-rw-r--r--  1 priot  staff    1188389 Apr 17 03:04 meta_6_m_geom
+
+-rw-r--r--  1 priot  staff    7816320 Apr 12 01:46 meta_6_m_nogeom
+-rw-r--r--  1 priot  staff    7743842 Apr 17 03:04 meta_6_m_nogeom
+
+-rw-r--r--  1 priot  staff     312342 Apr 10 15:34 meta_7_m_geom
+-rw-r--r--  1 priot  staff     715611 Apr 17 03:05 meta_7_m_geom
+
+-rw-r--r--  1 priot  staff    3558706 Apr 10 15:34 meta_7_m_nogeom
+-rw-r--r--  1 priot  staff   12309320 Apr 17 03:05 meta_7_m_nogeom
+
+------ CONFIG
+-- views:
+0: arch 1 2 3 4 5 7: Size 15125 First 106 Best 900
+1: arch 1 3 5: Size 10197 First 87 Best 605
+2: arch 2: Size 1333 First 14 Best 155
+3: dummy: Size 0 First 0 Best 41
+4: arch 4: Size 216 First 5 Best 16
+5: dummy: Size 0 First 0 Best 83
+6: file: Size 3259 First 11 Best 11
+7: arch 7: Size 3379 First 0 Best 0
+Verticals: 6558
+Unseen: 1861
+Pairs: 9623 V: 6073 H: 3550
+-- kwd maps
+m_geom_0	4448 avg 344
+m_geom_1	3612 avg 280
+m_geom_2	207 avg 32
+m_geom_4	37 avg 7
+m_geom_6	847 avg 72
+m_geom_7	569 avg 65
+m_nogeom_0	15090 avg 604
+m_nogeom_1	10165 avg 396
+m_nogeom_2	1333 avg 169
+m_nogeom_4	209 avg 13
+m_nogeom_6	3243 avg 138
+m_nogeom_7	3359 avg 212
+-------------------------------------
+
+Adding new pics to view 6:
+
+m_geom_6	847 avg 72
+m_geom_6	957 avg 79
+
+m_nogeom_6	3243 avg 138
+m_nogeom_6	4698 avg 179
+
+--- Mon Apr 17 11:47:23 PDT 2017
+
+Building the pairs dump file.
+
+-rw-r--r--  1 priot  staff  6734669452 Apr  3 14:20 pairs_dump.sqlzzz
+-rw-r--r--  1 priot  staff  8763674859 Apr 17 12:00 pairs_dump.sql
+
+--- Mon Apr 17 16:19:09 PDT 2017
+
+Analyzed the bytes/pixel for the different archives:
+
+Source          Average (bytes/pixel * 100)	N
+Scanned slides  49	11737
+Misc 1          40	1512
+Canon A95       29	1510
+Misc 2          36	219
+Canon 20D       42	2523
+Misc 3          70	3379
+
+--- Mon Apr 17 22:35:33 PDT 2017
+
+Pushed the new pix to production a while back.
+
+The densities are puzzling, dropping for stretches when viewing archives 
+sequentially, which suggests processing artifacts. Nonethless, I've decided
+to use an archive-normalized value as the fallback for the keywords option.
+
+Though it makes sense to get the size from the file in java and do it there,
+I've already written the scripts to do it in bash.
+
+--- Mon Apr 17 23:10:54 PDT 2017
+
+Densities are loaded as file hashes and inserted in the picture table
+with the other info. Now to add the code to exploit it, drool.
+
+--- Mon Apr 17 23:26:59 PDT 2017
+
+Done, no exception thrown at least:
+
+04/17 23:28:07.757 [qtp701141022-27] INFO  com.priot.servlet.GetMult - 
+==> 7/img_2152_sm.jpg  n: 1661 count: 274 sel: mi/f/dfl_s/den0
+04/17 23:28:07.759 [qtp701141022-27] INFO  com.priot.servlet.GetMult - 
+==> 7/img_2204_sm.jpg  n: 1662 count: 274 sel: mi/f/dfl_s/den
+
+--- Tue Apr 18 03:45:52 PDT 2017
+
+I split vanishing some more:
+
+   1 vanishing_flat
+   5 vanishing_vista
+   9 vanishing_oblique
+  28 vanishing_left
+  43 vanishing_right
+ 178 vanishing
+
+Done earlier:
+
+  35 vanishing_object
+  38 vanishing_analog
+ 161 vanishing_almost
+
+--- Tue Apr 18 04:06:15 PDT 2017
+
+-rw-r--r--  1 priot  staff   29033458 Apr 17 03:03 meta_0_m_geom
+-rw-r--r--  1 priot  staff   29047826 Apr 18 04:03 meta_0_m_geom
+
+-rw-r--r--  1 priot  staff  154826440 Apr 17 03:03 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  154304550 Apr 18 04:03 meta_0_m_nogeom
+
+--- Tue Apr 18 19:37:31 PDT 2017
+
+Just fixed an indexing problem seen in production, where I was checking 
+against the size of the wrong list before getting an element. It looks
+like people from upgrade.com, where I interviewed this afternoon, have
+generated a surge of activity: 71 pairs seen by two people since 
+yesterday afternoon.
+
+The next thing on the agenda is to curate the new pairs, but I've been
+churning on the unpaired old pics for so long that all the new pairs
+look good, and I fear I've rejected good ones as I throw up my defenses
+against liking everything.
+
+--- Tue Apr 18 21:58:31 PDT 2017
+
+I just fixed a bunch of 'leather' that should be black_leather, i.e.
+fetishistic - I'd forgotten about plain leather when looking at Raffaele's
+pics.
+
+--- Wed Apr 19 11:45:03 PDT 2017
+
+I just changed the password on the site, as part of regular maintenance.
+
+--- Sat Apr 22 14:11:03 PDT 2017
+
+I've done all the curating I plan to do before my 3.0 announcement, now
+the plan is to review all the horizontal pairs, and I'm at 272/4884.
+
+But meanwhile Raffaele is interested in curating, so I've just adapted
+view.html to curate.html with the cmds auto-displaying, and added a 
+prompt for a user name.
+
+--- Sat Apr 22 16:37:45 PDT 2017
+
+I added curator and enabled fields to approved_pair, and can add and delete
+pairs, with reviewers other than me unable to delete other reviewers' pairs.
+
+So far, no pairs are enabled. I'm at the crux of whether to replace deleting
+with disabling, and how to choose disabled ones to review. Also what to do
+with a bunch of disabled ones. I think I need more than enabled/disabled,
+rather new, accepted, rejected. I could mark all the vertical pairs as 
+accepted, and mark all the horizontals as new, and do my review on them.
+
+--- Sat Apr 22 21:05:03 PDT 2017
+
+I've got status=0 on pair insert, with status=1 being used by the server.
+All verticals are marked 1, and I'm edging toward having mnbpair.html
+toggle status instead of deleting. Also pair_local is used if the client
+is a curator, and it has the curator name and create_time now too. So
+it's essentially done except for the mnbpair work.
+
+--- Sat Apr 22 23:13:22 PDT 2017
+
+I've got "< i p o >" buttons in mnbpair for going forward/back and toggling 
+status, where 'i'=init, p=published, o=offline. Only curate.html can delete
+curated pairs, which I'd like to restrict maybe to ones it has just inserted,
+otherwise it could offline curated pairs it encountered naturally if the 
+user has permission.
+
+--- Sat Apr 22 23:46:29 PDT 2017
+
+Done and tested. Deferred is having mnbpair take a user name, since for
+now I'm keeping it to myself. It selects on status, and I have all the initial
+horizontal pairs loaded. I could push it all and inform Raffaele now, but
+likely I'll find a bug in the next hour. Also I need to review the horizontals
+or they won't show when I push. And from then on the server will be the
+source of truth on approved pairs instead of my laptop. Which is inconvenient
+since I won't be able to curate at all with development code, unless I
+start migrating selected records from pair_local and approved_pair.
+
+--- Sun Apr 23 01:13:41 PDT 2017
+
+500/4831 reviewed. A few offlined, not many.
+
+--- Sun Apr 23 01:59:46 PDT 2017
+
+At 1023.
+
+I just realized the pics displayed aren't matching the ids shown. Nope.
+I'm just forgetting who took what photos. I thought two of mine in a row
+in arch1/ss4k were Lorena's or Raffaele's.
+
+--- Sun Apr 23 03:13:40 PDT 2017
+
+At 2024. It's nerve-wracking to see one challenging pic after another,
+without any easy rejects. I found myself releasing breath each time I
+clicked, or holding it for a few pairs.
+
+--- Sun Apr 23 14:12:37 PDT 2017
+
+2000 minus 7 to go. I accidentally relaoded mnbpair, so lost my count
+of pairs processed.
+
+--- Sun Apr 23 14:29:39 PDT 2017
+
+It sort of hurts to keep climbing the hill of each pair, to feel like
+it's an accomplishment, then to see there are about 1800 to go.
+
+--- Sun Apr 23 15:47:01 PDT 2017
+
+All reviewed! I'm rebuilding the pair table to eliminate some dupes in
+Raffaele's pics. I rejected 23 of the horizontal pairs.
+
+--- Sun Apr 23 18:11:21 PDT 2017
+
+Net change from deleting a few pics and a few small keyword fixes:
+
+-rw-r--r--  1 priot  staff   29047826 Apr 18 04:03 meta_0_m_geom
+-rw-r--r--  1 priot  staff   29047680 Apr 23 17:53 meta_0_m_geom
+
+-rw-r--r--  1 priot  staff  154304550 Apr 18 04:03 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  154336450 Apr 23 17:53 meta_0_m_nogeom
+
+--- Sun Apr 23 21:48:02 PDT 2017
+
+Watching the last of b9_rgb32 calcing. probably I could have just
+egrep -v the 3 pics I deleted from the pair_dump.sql file rather than
+an afternoon of recalculation.
+
+--- Sun Apr 23 22:09:07 PDT 2017
+
+I deleted a wrong pic from real_img, so doing all those pair color calcs 
+over again. It's worth it not to have extra pairs forming with them and
+being curated.
+
+--- Mon Apr 24 04:25:30 PDT 2017
+
+After reinserting raf's pics in the picture table and egrepping out a couple
+of pics from the b0 table, I got it all built and in production. Curation
+is now on the server, and mail sent to Raffaele per curation and Fred and Katy
+per pairlist.html.
+
+--- Mon Apr 24 13:05:22 PDT 2017
+
+I just reviewed 22 pairs on the site that I added to the db before moving the
+center of truth. At first I thought they'd be Raffaele's, but then I
+recognized the pics. There was a bunch of NPE in the log this morning because I 
+accidentally deleted keyword indexes for Ellen's pics. I hardened against
+that. I should make the server ext if it doesn't have the config specified.
+
+--- Thu Apr 27 00:24:05 PDT 2017
+
+I've started editing brightness curves in arch5, encouraged by the results
+with Raffaele's and Lorena's pics. I've done about 100 so far, #893 down to
+783. I've been working on a Phobrain 3 announcement on Linkedin - sent the
+draft to a recruiter and he pointed out that it's illegal to publicly
+seek investors, so I'm glad I delayed release of the announcement while
+being considered for a job.
+
+So far no curation by Raffaele.
+
+--- Thu Apr 27 01:57:05 PDT 2017
+
+Done to the beginning of arch5, #312. It's a major difference in lots of pics. 
+
+--- Sat Apr 29 20:54:24 PDT 2017
+
+Up to #9500 of arch5, with some curation during breaks.
+
+--- Sat Apr 29 21:43:09 PDT 2017
+
+Done. I just edited the smaller web versions for convenience; future 
+generations will have to figure the edits and apply them to the full-sized
+versions when it comes time to rule the world with building-sized photos.
+
+--- Sun Apr 30 00:15:58 PDT 2017
+
+Recalcing color table, on last column b9 (leaving gist alone since it doesn't
+get used and is so flaky anyway). The dimensions in arch5 seem to have changed 
+orientation, but everything seems correct on display, so I'm updating the
+dimensions from the new versions and recalcing color centers and the like.
+
+2446 total pics in arch5.
+
+--- Sun Apr 30 01:01:05 PDT 2017
+
+Now recalcing center-center potentials.
+
+--- Sun Apr 30 19:08:15 PDT 2017
+
+I put it up last night, enjoying the boost to arch5 and planning to do it
+to arch1 and arch3 at some point.
+
+I just rejiggered the hacky 'tried' list of supposedly seen pics to be a
+real db cache. Once it compiled, all the features seem to work ok.
+
+The thing that is needing optimization is the pairs table, since queries
+there are what are often taking longer than a second.
+
+--- Wed May  3 11:48:30 PDT 2017
+
+I've been playing with angles between pics, using histograms as coords,
+and found a peak at 90 degrees that sharpens with the number of dimensions.
+If I use more angles, that will grow the pair table. I'm already adding
+the angle between vectors in RGB space.
+
+--- Wed May  3 21:46:07 PDT 2017
+
+I got spiralling in and out with angles working (new 'g' option), but
+it was making me sick. I was using the angles between RGB centers with
+the distance from calculating rgb2 histograms since I didn't have the
+per-pic RGB distances to center handy yet. Just for fun I switched to
+using the rgb2 angles to match the rgb2 distances, and it looks great!
+
+--- Wed May  3 23:51:46 PDT 2017
+
+Now working in production, and announced on the boofcv list.
+
+--- Thu May  4 05:20:10 PDT 2017
+
+Announced on FB and craigslist too, and some emails sent.
+
+--- Sat May  6 05:09:06 PDT 2017
+
+Yesterday got 2D and 3D working, i.e. '2 3 8' options replace 'g',
+and just now got 2D doing a continuous rotation using the picture table,
+without touching the pairs table, so it's blindingly fast and will save
+on pairs table size. Actually I'll reuse that space for the 2x2 AB
+histogram I'm trying out.
+
+--- Sat May  6 14:18:57 PDT 2017
+
+Adding another column to the pairs table for ab 2x2:
+
+-rw-r--r-- 1 priot priot  9925993756 May  6 14:17 pairs_dump.sql
+-rw-r--r-- 1 priot staff 10313762627 May  6 14:06 image_desc/pair/pairs_dump.sql
+
+--- Sat May  6 15:34:47 PDT 2017
+
+Building indexes on both machines. Found a bug in 8D in that I was using
+maybe rgb pair distance as the 8D angle, using column b0 instead of b10,
+introduced with the trifurcation. I haven't looked at it enough to see
+if it made as much sense as the others, and now it's fixed.
+
+The options sure look ugly, with grey numbers:
+
+   + - c 2 3 4 8 | + 
+
+I'm thinking of adding pastel shades to the angular ones to liven it up.
+
+--- Sat May  6 18:29:02 PDT 2017
+
+b10_rgb2x2x2_ang
+select count(*) from pairs where b10 in (137,138);
+1475222
+
+b11_ab2x2_ang
+1561744
+
+ab_angle (2D)
+1250805
+
+rgb_angle (3D)
+1154786
+
+Times ~20 bytes/record = 109M
+Vs having all angles in the pairs table:
+388M times 4 = 1,551M 
+
+--- Sun May  7 16:09:49 PDT 2017
+
+But maybe I'll want to use other angles?
+
+Meanwhile I've converted ClickPanel to UserProfile, and have put skew there,
+which I'm using to index into the angular pics instead of spiraling in and
+out, to make it fresher.
+
+--- Sun May  7 21:42:51 PDT 2017
+
+I've made 2D left pic be at the same angle as the previous right pic, and
+in higher dimensions the left pic is the closest in RGB 32x32x32 to the
+previous right pic.
+
+Also clikPic top-right now does a 2D match 137 degrees from the other pic,
+which allows going backwards left to right.
+
+--- Mon May  8 00:18:28 PDT 2017
+
+I curated my curations, 100 vertical and maybe 500 or more horizontal,
+rejecting only a few, and backed up the approved_pair and pair_local
+tables to the laptop and USB with the latest backup.
+
+It feels like I've been picking a jillion horizontal pairs, but they are
+still behind:
+
+pr=> select count(*) from approved_pair where vertical;
+  6316
+
+pr=> select count(*) from approved_pair where not vertical;
+  4878
+
+--- Wed May 10 01:50:29 PDT 2017
+
+I started liking RGB 2x2x2 so much I tried 3x3x3, and now I'm rolling
+up 4x4x4. The nature of the distributions is that fewer are at 137ish,
+since the peak at 90 gets sharper, but it seems like enough and with a
+high rate of interesting ones.
+
+--- Wed May 10 02:57:49 PDT 2017
+
+4x4x4 is index-building now. The index build of 3x3x3 on my laptop never
+finished before I started the 4x4x4 (plus everything else) reload - I'm
+up to b12 in my pairs columns.
+
+--- Wed May 10 03:45:15 PDT 2017
+
+Indexes built in production, server restarted, page updated.
+
+--- Wed May 10 13:10:09 PDT 2017
+
+pr=> select count(*) from pair_local where create_time > '5/3/2017';;
+  2691
+
+pr=> select count(*) from approved_pair where create_time > '5/3/2017';;
+   514
+
+That's 20% - not bad. A significant number are criss-cross rgb32 matches,
+but I'll accept it.
+
+
+--- Fri May 12 00:32:06 PDT 2017
+
+I finished brightening arch3, files are in production, now rerunning 
+boofcv. 64D hasn't turned up any interesting pairs, but I like 27D.
+
+--- Fri May 12 16:06:50 PDT 2017
+
+Recalculated centers, radii, and angles with the new setup, and reloaded
+the new picture and pairs tables in production.
+
+Fixed a bug wherein approved pair status wasn't required to be 1 for
+keyword-based matches.
+
+--- Fri May 12 17:50:40 PDT 2017
+
+Vetted 585 pending horizontal approved pairs, rejecting a few more than
+usual, challenging angle-based ones.
+
+--- Sat May 13 14:45:51 PDT 2017
+
+I looked at hs64, h64, h16, and h8 (Hue angle 8 bins), and the 
+distribution for h8 shows about 2/5ths of max height around 137 degrees,
+so I'm building a new pairs table with that for column b12 now.
+
+--- Sun May 14 00:52:33 PDT 2017
+
+h8 didn't show any useful pairs, and pickings were slim on 27d and 8d as
+well, then I got some interesting matches on color.
+
+I just tried biasing mobile device pair response by density (bytes/pixel),
+in case it might be simpler pics for smaller screens, but no obvious benefit
+on the android nexus 9 emulator.
+
+--- Mon May 15 04:43:28 PDT 2017
+
+Fixed wrong-sense choice in mobile, haven't looked at result much yet.
+
+Adjusted b12 to rgb32-based look at shoulder of distribution around 98
+degrees. Got tired of that and now trying 89-91 degrees.
+
+--- Tue May 16 22:38:34 PDT 2017
+
+Added screenshotting to mypairs.html and curate.html.
+
+Someone in New York has looked at 664 pairs, mostly in the Browse screen:
+664: 0.10 7.2 9.2 10.648 11.2
+
+--- Wed May 17 02:15:59 PDT 2017
+
+No further action from browser 1470 in NY.
+
+pr=> select count(*) from approved_pair where not vertical;
+  6668
+
+pr=> select count(*) from approved_pair where vertical;
+  6433
+
+I finished my horizontal pass, so have reloaded the curation page with
+the screensave and larger pics since I don't mind if the options move
+slightly.
+
+Now I'm finding angle > 120 with 32x32x32 RGB is interesting.
+
+--- Thu May 18 02:11:47 PDT 2017
+
+I noticed IP's reloading view.html repeatedly without anything else loading, 
+and surmised it might be people with javascript disabled, so added a <noscript>
+message with some Mervyn Peake poetry:
+
+  Lost in the venal void our dreams deflate
+  By easy stages through green atmosphere,
+  Imagination's bright balloon is late, like the blue whale,
+  In coming up for air.
+
+Also I decided to add an orientation column to the pairs table, so I
+won't have to check orientation in code anymore, and maybe will get some
+speedup.
+
+Studying slightly for a Google interview gave me a template for thinking
+how much I could shrink the pairs table if I do away with the single-pic
+view, so I'd only need pure vertical or horizontal pairs:
+
+  2 * ( N/2 )^2
+
+= half the table size. Tempting, in that I could go back to $500/year for
+the site, especially given that even I don't look at it any more. I will
+definitely do it if I add a bunch more pics, rather than upgrade again,
+unless the pics come with some money and customer demand for single-pic.
+
+--- Thu May 18 23:10:15 PDT 2017
+
+I am looking at the single-photo screen again, and it's like I'm
+a stranger coming to the site and wondering what the hell it is, not
+able or patient enough to tell the difference between what the three 
+options do. The single photo onscreen seems small and uninviting. The
+themes seem obvious and held for boring stretches.
+
+On the plus side, I've really supercharged it by adding the double
+screen and curated pairs, since November or so. On the negative side,
+I might still be out of touch with reality in seeing anything in it
+now.
+
+--- Sat May 20 00:33:23 PDT 2017
+
+This might be all it takes to do the job:
+
+                if (bp2.p.vertical != bp1.p.vertical) {
+                    continue;
+                }
+
+Except I have to add something similar to boofcv, and gist if it's still
+worth keeping, since it's only used for last resort situations now that
+I've replaced top-right picClick with angle selection (which I think I'll 
+move from GoldenAB to 27D).
+
+Keywords into db:
+
+  real	0m23.219s
+
+Keywords from db:
+
+  elapsed: 1 minutes and 21 seconds.
+
+meta/:
+total 566072
+-rw-r--r--  1 priot  staff   29047680 Apr 30 01:52 meta_0_m_geom
+-rw-r--r--  1 priot  staff   15900650 May 20 00:47 meta_0_m_geom
+
+-rw-r--r--  1 priot  staff  154336450 Apr 30 01:52 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff   80675360 May 20 00:47 meta_0_m_nogeom
+
+-rw-r--r--  1 priot  staff   19374720 Apr 30 01:53 meta_1_m_geom
+-rw-r--r--  1 priot  staff   10168765 May 20 00:48 meta_1_m_geom
+
+-rw-r--r--  1 priot  staff   70154738 Apr 30 01:52 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff   36845205 May 20 00:48 meta_1_m_nogeom
+
+-rw-r--r--  1 priot  staff     135210 Apr 30 01:53 meta_2_m_geom
+-rw-r--r--  1 priot  staff      92408 May 20 00:48 meta_2_m_geom
+
+-rw-r--r--  1 priot  staff    3667089 Apr 30 01:53 meta_2_m_nogeom
+-rw-r--r--  1 priot  staff    2407975 May 20 00:48 meta_2_m_nogeom
+
+-rw-r--r--  1 priot  staff       6720 Apr 30 01:53 meta_4_m_geom
+-rw-r--r--  1 priot  staff       5415 May 20 00:48 meta_4_m_geom
+
+-rw-r--r--  1 priot  staff      58119 Apr 30 01:53 meta_4_m_nogeom
+-rw-r--r--  1 priot  staff      38642 May 20 00:48 meta_4_m_nogeom
+
+-rw-r--r--  1 priot  staff     715986 Apr 30 01:53 meta_7_m_geom
+-rw-r--r--  1 priot  staff     530513 May 20 00:48 meta_7_m_geom
+
+-rw-r--r--  1 priot  staff   12312445 Apr 30 01:53 meta_7_m_nogeom
+-rw-r--r--  1 priot  staff    6894060 May 20 00:48 meta_7_m_nogeom
+
+--- Sat May 20 02:36:02 PDT 2017
+
+Tiptoeing toward a new pairs table:
+
+-rw-r--r--  1 priot  staff  2225294364 May 12 01:50 pair/b8_rgb24
+-rw-r--r--  1 priot  staff  1131151860 May 20 02:05 b8_rgb24
+
+Except
+
+% wc -l pair/b0_1_2_lab_dist 
+ 58161733 pair/b0_1_2_lab_dist
+
+% wc -l ../boofcv/b8_rgb24
+ 58155763 ../boofcv/b8_rgb24
+
+It's rotated a95 pics, unwanted side-effect of the Preview brightness
+editing. 6000 pairs.. 3 pics needing rotation. Recalculating..
+
+real	15m58.141s
+
+% wc -l b4_grey
+ 58161733 b4_grey
+
+Phew. Redoing the other calcs.
+
+Times
+
+Distances
+
+Grey  15m58.141s
+hs24  17m20.470s
+hs48  16m24.934s
+rgb12 18m53.326s
+rgb24 35m10.695s
+rgb32 67m34.346s
+gist  71m44.696s
+
+[last 2 run together, with 3 threads total while loading files,
+cpu has 2 threads, also possible memory contention]
+
+Angles
+
+rgb2  16m55.026s
+rgb3  17m33.137s
+rgb32 58m21.365s
+
+As usual, I'm acting as if I was adding a new feature, running in parallel 
+to get it out as fast as possible, though what I'm doing is taking something 
+away. It's more the fun of running racecars.
+
+A further optimization would be to replace the actual angles with booleans
+in the table, though I'd lose the ordering.
+
+Hopefully the pairs are the same, as well as having the same number.
+
+--- Sat May 20 11:44:03 PDT 2017
+
+Building pairs dump file.
+
+9m30.326s
+
+Yay!
+
+-rw-r--r-- 1 priot priot 10913317462 May 18 02:25 pairs_dump.sql
+-rw-r--r-- 1 priot staff  5510439670 May 20 11:53 pairs_dump.sql
+
+I hesitate to take the orientation code out of the server-side, since
+that feels like a bigger commitment. The cost:
+
+  -- hash set checks on every id seen
+  -- pairs queries look at orientation field for each record 
+     [just added for optimization]
+
+Once I verify the current code with the new data division, maybe I'll
+rip that out too.
+
+------ CONFIG
+-- views:
+0: arch 1 2 3 4 5 7: Size 15123 V 6612 H 8511 First 106 Best 900
+1: arch 1 3 5: Size 10197 V 5134 H 5063 First 87 Best 605
+2: arch 2: Size 1333 V 307 H 1026 First 14 Best 155
+3: dummy: Size 0 V 0 H 0 First 0 Best 41
+4: arch 4: Size 216 V 115 H 101 First 5 Best 16
+5: arch 5: Size 2382 V 1150 H 1232 First 11 Best 94
+6: file: Size 4722 V 1876 H 2846 First 11 Best 11
+7: arch 7: Size 3377 V 1056 H 2321 First 0 Best 0
+Verticals: 6612
+Unseen: 0
+Pairs: 11150 V: 6296 H: 4854
+-- kwd maps
+m_geom_0	4448 avg 187
+m_geom_1	3611 avg 146
+m_geom_2	200 avg 22
+m_geom_4	28 avg 7
+m_geom_7	565 avg 48
+m_nogeom_0	15078 avg 313
+m_nogeom_1	10156 avg 205
+m_nogeom_2	1329 avg 110
+m_nogeom_4	201 avg 8
+m_nogeom_7	3339 avg 118
+-------------------------------------
+
+Started @14390ms
+
+Vs.
+
+@23774ms
+@24110ms
+@25153ms
+@24638ms
+@28158ms
+@22275ms
+@21272ms
+@27951ms
+@21667ms
+@26063ms
+@22309ms
+
+On server while index is building:
+
+@15242ms
+
+Disk is down from ~55% to 39%.
+
+--- Sat May 20 17:35:09 PDT 2017
+
+I downgraded the server, with no obvious effect on response time. Cost
+goes from $100/mo to $50/mo, with $310 or so in credit, $600 balance.
+I added phobrawn.com and fauxbrawn.com to name service too.
+
+--- Sun May 21 18:17:34 PDT 2017
+
+Fixed mobile trying to adjust commented-out single-photo option elements. I've
+got to remember to test on mobile when I change the page.
+
+I'm preparing the first 919 of arch8 on the Win2k machine, then I'll
+select and touch up on the mac.
+
+--- Mon May 22 14:09:49 PDT 2017
+
+Pics are on the mac, first pass of touch up and selection is up to 409, next
+pass will be keywords and final selection.
+
+--- Mon May 22 15:14:26 PDT 2017
+
+at 509.
+
+--- Mon May 22 16:36:03 PDT 2017
+
+at 609.
+
+--- Mon May 22 23:01:39 PDT 2017
+
+at 809. Lots will still need to be culled.
+
+--- Tue May 23 15:22:20 PDT 2017
+
+Done. Now I need to log out and in again to get my new X server going, which
+I foolishly allowed to upgrade because it fixes memory leaks, but I don't
+want to have to restart all my windows, and maybe the windows won't go away
+when I do.
+
+--- Tue May 23 15:54:55 PDT 2017
+
+Finally made curate.html remember the session, since the reboot caused one
+session reset too many.
+
+--- Wed May 24 00:17:29 PDT 2017
+
+I made default click-pic-kwd-next-pair use weights with DNA mods when 
+traversing the list of keyword matches looking for an approved pair. It might
+just be more work for virtually the same result as the picking an arbitrary
+target in the list and searching around it linearly gave, since approved pair 
+coverage is relatively sparse statistically, but it gives me something to 
+believe in, and to motivate my curation efforts.
+
+Keywords are up to #80.
+
+--- Wed May 24 01:53:43 PDT 2017
+
+Keywords to 109.
+
+I am blown away by the quality I'm seeing in view.html Browse Mode. Even bad 
+pairs are interesting.
+
+--- Wed May 24 18:50:07 PDT 2017
+
+Went to some galleries today, left card, came home and sent an email to
+Fraenkel.
+
+--- Thu May 25 02:16:39 PDT 2017
+
+Up to #252. 143 actual pics.
+
+--- Thu May 25 19:57:43 PDT 2017
+
+#409, 219 total.
+
+Went to pairnic and pointed fauxbrawn.com and phobrawn.com at site.
+
+--- Thu May 25 20:38:52 PDT 2017
+
+In checking that, I saw that I still had -|+ on the front page.
+
+--- Thu May 25 21:42:16 PDT 2017
+
+I moved juxtapose_color from geom to nogeom.
+
+--- Thu May 25 22:47:47 PDT 2017
+
+#509/291
+
+--- Fri May 26 00:16:59 PDT 2017
+
+Just did an overdue rewrite of explain.html for the pair-only site.
+
+Earlier announced on Linkedin:
+
+San Francisco -- In a naked display of business acumen, Phobrain.com 
+has acquired Fauxbrawn.com, and all users are now being served by a 
+single puny website.
+
+--- Fri May 26 01:32:12 PDT 2017
+
+#609/367
+
+
+---Fri May 26 03:05:24 PDT 2017
+
+pr=> select status, count(*) from approved_pair group by status;
+ status | count 
+--------+-------
+      0 |   289
+      1 | 13178
+      2 |   152
+
+pr=> select count(*) from pair_local ;
+ count 
+-------
+ 76651
+
+17% - could the golden angle pairs be lifting the average? Last I checked
+it was 15%. Maybe I'm wrong about that.
+
+--- Fri May 26 21:30:44 PDT 2017
+
+#710/419
+
+--- Fri May 26 22:04:46 PDT 2017
+
+Made 'wires' keep plural.
+
+--- Fri May 26 22:36:37 PDT 2017
+
+#810/468
+
+--- Sat May 27 00:25:16 PDT 2017
+
+#914/537, done.
+
+--- Sat May 27 04:21:12 PDT 2017
+
+I split update of radii from import into a new prog, running boofcv for
+final input now. Meanwhile, keywords:
+
+-rw-r--r--  1 priot  staff  15900650 May 20 00:47 meta_0_m_geom
+-rw-r--r--  1 priot  staff  16958823 May 27 03:30 meta_0_m_geom
+
+-rw-r--r--  1 priot  staff  80675360 May 20 00:47 meta_0_m_nogeom
+-rw-r--r--  1 priot  staff  84657612 May 27 03:30 meta_0_m_nogeom
+
+-rw-r--r--  1 priot  staff  10168765 May 20 00:48 meta_1_m_geom
+-rw-r--r--  1 priot  staff  11072793 May 27 03:30 meta_1_m_geom
+
+-rw-r--r--  1 priot  staff  36845205 May 20 00:48 meta_1_m_nogeom
+-rw-r--r--  1 priot  staff  39781399 May 27 03:30 meta_1_m_nogeom
+
+--- Sat May 27 12:26:38 PDT 2017
+
+wrw-r--r-- 1 priot priot 5510439670 May 20 12:03 pairs_dump.sql
+-rw-r--r-- 1 priot priot 5904754255 May 27 12:24 pairs_dump.sql
+
+--- Sat May 27 13:57:47 PDT 2017
+
+I made building_shadow universal, having just introduced it in arch8.
+
+--- Sun May 28 20:05:21 PDT 2017
+
+I pushed new keywords yesterday, happy with the building shadows I've seen.
+
+I just moved the selection of photographer onto view.html, and it looks
+rather elegant, except when you return to the page it's not obvious
+which view is up unless you go Phob->Photographers to see which option
+is greyed out.
+
+--- Mon May 29 03:34:56 PDT 2017
+
+I made the pics bigger on my approved pair reviewer, mnbpair.html, which
+took a lot of research and trial and error since there are so many balanced
+settings for element sizes.
+
+I've initiated a lot of approved pairs in an orgy of keyword use, not
+sure how well they'll stand. I'm chopping heavier than usual on the mnbpair
+side at the moment, which is what I planned but it slows me down as I
+wonder about each one, often going off to do something else before
+deciding after varying intervals.
+
+Wow, I've initiated 656 new vertical approved pairs since I started
+reviewing the last batch of ~250.
+
+--- Mon May 29 05:03:48 PDT 2017
+
+I expanded picture size for view.html, and gave curate.html the same ability
+to change photographers.
+
+--- Mon May 29 14:44:40 PDT 2017
+
+I added the size adjustment of the new menu elements for android and 
+iphone, tested on android. The crude sizing of the pics for android 
+makes them too big on the Nexus9, but since it is good on my phone,
+leaving it for now. I think I need to set size based on actual
+proportions of the screen, rather than making height 0.6 * width.
+
+--- Wed May 31 04:59:59 PDT 2017
+
+Lots of keyword pairs approved.
+
+pr=> select count(*) from pair_local ;
+ count 
+-------
+ 79584
+
+pr=> select status, count(*) from approved_pair group by status;
+ status | count 
+--------+-------
+      0 |  1019
+      1 | 13982
+      2 |   233
+
+The acceptance rate hasn't gotten up to 18% yet, but it could be creeping
+higher. Hopefully this is all money in the bank that I'll be able to tap
+while still alive.
+
+--- Wed May 31 14:53:38 PDT 2017
+
+This is my first day after deciding to go for broke on Phobrain, since
+I don't have the stamina to wrangle Pat into a cheaper place, and don't
+have a good attitude for getting a job. It feels like the universe has
+deputized me, but I am working with an almost blank slate, my current
+notion being that maybe introducing strategic delays will make it seem
+more alive. I've graphed view time vs load time and vice versa, but
+no obvious pattern that I can get an idea from. I have myself, another
+SF user for 25 clicks, and Pat in London for 26 clicks, so not much
+data to go on. The whole idea seems easy to backfire. My sense that it's
+too fast (most responses in less than half a second) may be more about
+missing the slower response in angle search mode, since I've been doing
+a lot of that. In the big picture, with minimal net latency, I think
+delays might be critically important, but I'm not sure if there's
+anything effective I can do now, especially given I don't have users
+to experiment on. I'd have to delay the POST response based on the
+net response time of the previous POST+GETx2 and user/pic params,
+and I'm also thinking about trying fractal dimension on view times
+again, if only because it introduces its own garbage collection delay. :-)
+
+It's all more concrete than trying to solve the big problem of how to
+get people to like the site, i.e. keeps me working, so I'm going to
+look into it. Mainly I want fractal to be fast, one way could be to
+keep the UserProfile with history in memory and update incrementally,
+but I think that I don't have the math to do a partial recalc of
+fractal dim with one point added and one removed, if it's even possible.
+
+On the picture side, I'm thinking lightness, contrast, density, my
+color radius function (maybe I should try that with RGB instead of
+Lab, come to think of it), and of course fractal dimension. On the
+user side as usual there's just view time if I want to care about
+phones and tablets. I think the sense of dialog is only present with
+view times less than a few seconds, 5 comes to mind. 2 seconds is
+the longest I can see for intended load times, pending a model that
+can intentionally create drama based on content.
+
+--- Wed May 31 17:03:53 PDT 2017
+
+It seems to work off the bat with my guessed params on the local server:
+
+05/31 17:04:27.683 [qtp2110245805-26] INFO  com.priot.servlet.GetEngine - HIGUCHI -0.26155976769684397 target 348 t 6
+05/31 17:04:30.207 [qtp2110245805-29] INFO  com.priot.servlet.GetEngine - HIGUCHI 0.140710245554029 target 428 t 6
+05/31 17:04:33.547 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - HIGUCHI 0.026703845121615943 target 405 t 4
+05/31 17:04:37.310 [qtp2110245805-26] INFO  com.priot.servlet.GetEngine - HIGUCHI -0.12474270488508465 target 376 t 6
+05/31 17:04:41.519 [qtp2110245805-29] INFO  com.priot.servlet.GetEngine - HIGUCHI -0.2373077716908738 target 353 t 9
+
+Reasonable balance of positive/negative (around my eyeballed target of
+1.7). Maybe the target could fluctuate some more.
+
+More playing around, target dim now 1.66, target millis for the POST
+computation is 600 +- 500 * (1.66-dim). It feels more right than a 
+longer target did.
+
+05/31 17:22:22.254 [qtp2110245805-27] INFO  com.priot.servlet.GetEngine - HIGUCHI target 707 t 62 d 1.8757032301852372
+05/31 17:22:26.104 [qtp2110245805-12] INFO  com.priot.servlet.GetEngine - HIGUCHI target 628 t 8 d 1.7170408002297246
+05/31 17:22:29.486 [qtp2110245805-10] INFO  com.priot.servlet.GetEngine - HIGUCHI target 557 t 13 d 1.5735319500637743
+05/31 17:22:32.935 [qtp2110245805-11] INFO  com.priot.servlet.GetEngine - HIGUCHI target 499 t 12 d 1.4563145634808201
+05/31 17:22:37.767 [qtp2110245805-12] INFO  com.priot.servlet.GetEngine - HIGUCHI target 493 t 7 d 1.4458093947543504
+05/31 17:22:44.254 [qtp2110245805-11] INFO  com.priot.servlet.GetEngine - HIGUCHI target 633 t 9 d 1.7260139001624122
+05/31 17:22:48.854 [qtp2110245805-12] INFO  com.priot.servlet.GetEngine - HIGUCHI target 725 t 8 d 1.9117976758496618
+
+Irritating to know that it's waiting for nothing, but I think I'll
+try it in production. Maybe more variation would be good.
+
+05/31 17:32:41.411 [qtp2110245805-12] INFO  com.priot.servlet.GetEngine - HIGUCHI target 539 t 7 d 1.583026250270113
+05/31 17:32:45.241 [qtp2110245805-13] INFO  com.priot.servlet.GetEngine - HIGUCHI target 624 t 7 d 1.691118201386003
+05/31 17:32:58.008 [qtp2110245805-27] INFO  com.priot.servlet.GetEngine - HIGUCHI target 693 t 6 d 1.7767707004763913
+05/31 17:33:01.719 [qtp2110245805-12] INFO  com.priot.servlet.GetEngine - HIGUCHI target 702 t 6 d 1.7877695107083238
+05/31 17:33:05.011 [qtp2110245805-13] INFO  com.priot.servlet.GetEngine - HIGUCHI target 659 t 8 d 1.7339349954293968
+05/31 17:33:08.258 [qtp2110245805-11] INFO  com.priot.servlet.GetEngine - HIGUCHI target 653 t 7 d 1.7267872886566706
+05/31 17:33:11.024 [qtp2110245805-10] INFO  com.priot.servlet.GetEngine - HIGUCHI target 761 t 6 d 1.8619162242978773
+05/31 17:33:15.323 [qtp2110245805-27] INFO  com.priot.servlet.GetEngine - HIGUCHI target 827 t 8 d 1.94395228144295
+
+Shorter time, more variation. Different approach:
+
+05/31 17:48:29.536 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - HIGUCHI target 726 t 8 d 1.7264740713499491
+05/31 17:48:32.254 [qtp2110245805-10] INFO  com.priot.servlet.GetEngine - HIGUCHI target 610 t 9 d 1.9103978461571445
+05/31 17:48:34.474 [qtp2110245805-13] INFO  com.priot.servlet.GetEngine - HIGUCHI target 429 t 4 d 1.5711475048355668
+05/31 17:48:36.428 [qtp2110245805-27] INFO  com.priot.servlet.GetEngine - HIGUCHI target 702 t 6 d 1.7022634039171667
+05/31 17:48:39.382 [qtp2110245805-11] INFO  com.priot.servlet.GetEngine - HIGUCHI target 376 t 8 d 1.6245251267390914
+05/31 17:48:41.923 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - HIGUCHI target 215 t 4 d 1.4850905932287286
+
+Now using up.longerThanSecondLastUserTime to decide whether to go longer
+or shorter than target. It might make more sense to base it completely
+on picture characteristics, maybe even the deltas between the two pics.
+
+--- Wed May 31 21:01:51 PDT 2017
+
+Factored in the difference in radius between the pics in rgb32^3 space, so 
+net result is
+
+05/31 20:58:34.028 INFO  com.priot.servlet.GetEngine - SLEEP 187
+05/31 20:58:38.999 INFO  com.priot.servlet.GetEngine - SLEEP 762
+05/31 20:58:47.404 INFO  com.priot.servlet.GetEngine - SLEEP 812
+05/31 20:58:51.738 INFO  com.priot.servlet.GetEngine - SLEEP 216
+05/31 20:59:00.183 INFO  com.priot.servlet.GetEngine - SLEEP 789
+05/31 20:59:06.879 INFO  com.priot.servlet.GetEngine - SLEEP 78
+05/31 20:59:11.585 INFO  com.priot.servlet.GetEngine - SLEEP 128
+05/31 20:59:14.805 INFO  com.priot.servlet.GetEngine - SLEEP 307
+05/31 20:59:17.828 INFO  com.priot.servlet.GetEngine - SLEEP 100
+05/31 20:59:23.726 INFO  com.priot.servlet.GetEngine - SLEEP 703
+05/31 20:59:35.993 INFO  com.priot.servlet.GetEngine - SLEEP 614
+05/31 20:59:45.148 INFO  com.priot.servlet.GetEngine - SLEEP 123
+05/31 20:59:48.537 INFO  com.priot.servlet.GetEngine - SLEEP 228
+
+I couldn't tell the difference between RGB radius, RGB32 radius, and
+the current, density. If there's anything else to try, it's using the 
+values of the pics compared to an average over all pics.
+
+--- Thu Jun  1 18:05:31 PDT 2017
+
+This is looking good at the moment:
+
+pic.delay.alg=contrast
+pic.delay.alg.up=true
+big.delay.alg.up=true
+big.delay.up.sleep=100
+big.delay.down.sleep=500 #unused
+
+06/01 18:09:11.941 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 111
+06/01 18:09:16.418 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 119
+06/01 18:09:19.633 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 201
+06/01 18:09:22.848 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 116
+06/01 18:09:25.787 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 311
+06/01 18:09:29.056 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 120
+06/01 18:09:32.515 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 112
+06/01 18:09:34.919 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 117
+
+06/01 18:26:32.752 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 322
+06/01 18:26:36.322 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 247
+06/01 18:26:39.104 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 111
+06/01 18:26:42.416 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 114
+06/01 18:26:45.601 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 76
+06/01 18:26:53.099 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 113
+06/01 18:26:57.284 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 114
+06/01 18:27:03.508 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 114
+06/01 18:27:08.843 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 117
+06/01 18:27:31.561 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 209
+06/01 18:27:41.050 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 107
+06/01 18:27:49.097 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 311
+
+I find I'm getting into the pics more than thinking about the delay,
+so that's good for my distance to the server for now.
+
+The time I'm measuring in the browser is the last pic load.
+and the two GETs. I should measure the POST time separately, in order
+to get a correction factor for the base sleep times.
+
+--- Thu Jun  1 22:07:23 PDT 2017
+
+I've moved the higSleep call to handle all the non-initial initialScreens
+cases, so I'll see the benefit and be able to QA it when I'm curating too.
+
+Here it is; I need to reload the page to set lastBig, hopefully it will
+keep its session as planned.
+
+06/01 22:10:58.736 INFO  com.priot.servlet.GetEngine - HIG cut target 100
+06/01 22:10:58.736 INFO  com.priot.servlet.GetEngine - HIGUCHI target 171 t 73 higd 1.5642000263753333 rat 0.11428571428571428 higdelay 64 picDelay 57 totDelay 121 lastBig -1
+06/01 22:10:58.737 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 98
+06/01 22:11:18.347 INFO  com.priot.servlet.GetEngine - Sqrting totDiff/HIG 684
+06/01 22:11:18.347 INFO  com.priot.servlet.GetEngine - HIG cut target 100
+06/01 22:11:18.347 INFO  com.priot.servlet.GetEngine - HIGUCHI target 76 t 36 higd 1.722243587895078 rat 0.9257142857142857 higdelay 222 picDelay 462 totDelay 26 lastBig -1
+06/01 22:11:18.347 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 40
+06/01 22:12:19.801 INFO  com.priot.servlet.GetEngine - SCALE/HIG 1.3828571428571428
+06/01 22:12:19.801 INFO  com.priot.servlet.GetEngine - HIG cut target 100
+06/01 22:12:19.801 INFO  com.priot.servlet.GetEngine - HIGUCHI target 227 t 48 higd 1.908292084610605 rat 0.1382857142857143 higdelay 108 picDelay 69 totDelay 177 lastBig -1
+06/01 22:12:19.801 INFO  com.priot.servlet.GetEngine - SLEEP/HIG 179
+
+Looks like it kept its session intact with reload.
+
+--- Fri Jun  2 04:57:39 PDT 2017
+
+Added Higuchi dimension of load times, which includes network latency and
+delay time, for a sympathetic vibration to the user's experience of the net
+and the system.
+
+--- Fri Jun  2 14:17:56 PDT 2017
+
+Now about to add another pic-based term using the delta between the two pairs,
+I just spot-checked that picture.ll (from Lab space conversion) is reasonable,
+so I'll try that to start. Then maybe picture distance in RGB space and
+RGB histogram space.
+
+--- Fri Jun  2 15:05:42 PDT 2017
+
+Success, though no clearly observable difference, since it's a matter
+of ((old_avg_ll - new_avg_ll) / (sum)) * 100, and in this case lost
+being small (deltaDelay) and then being further lost in a sqrt:
+
+06/02 15:02:18.386 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - HIGuchi t_calc 0
+06/02 15:02:18.387 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - SCALE/HIG 4.457857142857143
+06/02 15:02:18.388 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - Sqrting totDiff/HIG 413
+06/02 15:02:18.388 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - HIGUCHI target 120 t 12 higd.user 2.1493775926671312 higd.net 1.6380814479456263 rat 0.4457857142857143 rat2 0.04 target0 100 higdelay 187 picDelay 222 deltaDelay 4 totDelay 20 lastBig 498
+06/02 15:02:18.388 [qtp2110245805-14] INFO  com.priot.servlet.GetEngine - SLEEP/HIG 108
+
+I need to up the factor used. 200 seems ok, oddly I feel very averse to
+changing it, even though I've hardly seen any results. Still, I've made it a
+configurable.
+
+--- Fri Jun  2 17:30:46 PDT 2017
+
+Now it's 500. I added bigStime for server time on bigone(), so now I'm
+logging the travel times. On laptop:
+
+06/02 17:32:24.862 INFO  com.priot.servlet.GetEngine - HIGBIG 8
+06/02 17:32:27.938 INFO  com.priot.servlet.GetEngine - HIGBIG 13
+06/02 17:32:30.683 INFO  com.priot.servlet.GetEngine - HIGBIG 8
+06/02 17:32:33.390 INFO  com.priot.servlet.GetEngine - HIGBIG 8
+06/02 17:32:38.279 INFO  com.priot.servlet.GetEngine - HIGBIG 15
+06/02 17:32:41.086 INFO  com.priot.servlet.GetEngine - HIGBIG 9
+
+On server:
+
+06/02 17:29:37.628 INFO  com.priot.servlet.GetEngine - HIGBIG 468
+06/02 17:29:44.503 INFO  com.priot.servlet.GetEngine - HIGBIG 165
+06/02 17:30:05.219 INFO  com.priot.servlet.GetEngine - HIGBIG 183
+06/02 17:30:18.566 INFO  com.priot.servlet.GetEngine - HIGBIG 147
+06/02 17:33:27.065 INFO  com.priot.servlet.GetEngine - HIGBIG 98
+06/02 17:33:32.803 INFO  com.priot.servlet.GetEngine - HIGBIG 195
+06/02 17:33:46.448 INFO  com.priot.servlet.GetEngine - HIGBIG 84
+06/02 17:33:52.427 INFO  com.priot.servlet.GetEngine - HIGBIG 81
+06/02 17:33:56.124 INFO  com.priot.servlet.GetEngine - HIGBIG 84
+
+Now I only trim the base time if higbig-higbigServertime > 1000.
+Also using pure net latency for the higuchi network calc, but only
+using that term if the last latency was > 20 and < 1000.
+
+--- Fri Jun  2 18:16:29 PDT 2017
+
+Nothing I can think of on the agenda, programming-wise.
+
+--- Fri Jun  2 21:15:47 PDT 2017
+
+I went back to having the second higuchi component be plain bigone
+time, always incorporated, to reflect an awareness of what the user 
+perceives.
+
+--- Sat Jun  3 01:45:03 PDT 2017
+
+I made the base sleep amount decrease depending on net latency, with a
+configged cutoff.
+
+I just finished reviewing 1599 horizontal pairs, nerve-wracking at times,
+as I've been adding more borderline cases based on keywords, since it's
+easy to get into a rhythym. What to do next?
+
+pr=> select count(*), status from approved_pair group by status;
+ count | status 
+-------+--------
+    47 |      0
+ 15487 |      1
+   327 |      2
+
+pr=> select count(*) from pair_local ;
+ count 
+-------
+ 80674
+
+My curation rate is up to 19%, thanks to keywords!
+
+pr=> select count(*), vertical from approved_pair group by vertical;
+ count | vertical 
+-------+----------
+  8386 | f
+  7475 | t
+
+where status=1
+
+ count | vertical 
+-------+----------
+  8126 | f
+  7361 | t
+
+
+--- Sat Jun  3 08:23:46 PDT 2017
+
+I went on a mission to finish off the current pass through the horizontal
+pics before starting the vertical ones to catch up, and wound up with 1280
+more approved pairs and no sleep yet.
+
+

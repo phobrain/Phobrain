@@ -1,0 +1,21 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: CC-BY-SA-4.0
+#
+
+=== pr/proj/histogram - histogram info calced, an adapted boofcv demo.
+
+Scripts here are now called via launch of ../[12]_*.sh scripts.
+
+
+$ ./run_ml_hist_all.sh
+
+    Create histograms for training nets.
+
+$ ./run_full_pairs_tbl.sh <v|h>
+
+    For color tables/training, calcs from real_img_orient.
+
+Can be used to load a tree and search for pics interactively 
+as well, showing ordered match pics..

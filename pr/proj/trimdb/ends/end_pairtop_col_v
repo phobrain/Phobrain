@@ -1,0 +1,18 @@
+/*
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+
+DROP INDEX IF EXISTS pr.pairtop_col_v_1_idx;
+DROP INDEX IF EXISTS pr.pairtop_col_v_2_idx;
+
+\echo 'rm dump, then'
+
+\echo 'CREATE INDEX pairtop_col_v_1_idx ON pr.pairtop_col_v USING btree (id1, tag);'
+\echo 'CREATE INDEX pairtop_col_v_2_idx ON pr.pairtop_col_v USING btree (id2, tag);'
+
+REVOKE ALL ON TABLE pr.pairtop_col_v FROM PUBLIC;
+REVOKE ALL ON TABLE pr.pairtop_col_v FROM pr;
+GRANT ALL ON TABLE pr.pairtop_col_v TO pr;

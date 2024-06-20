@@ -1,0 +1,1869 @@
+<!-- !DOCTYPE html -->
+<html lang="en">
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<head>
+  <link rel="canonical" href="http://phobrain.com" />
+  <meta charset="UTF-8" />
+  <link rel="icon" href="favicon.ico"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+
+  <title>Phobrain Slideshow</title>
+
+  <script src="js/jquery/jquery-1.11.3.min.js"></script>
+
+  <script src="js/bootstrap/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css"
+         href="js/bootstrap/bootstrap.min.css" />
+
+  <link rel="stylesheet" type="text/css"
+         href="css/footer.css" />
+
+<style>
+
+.rotate {
+  /* FF3.5+ */
+  -moz-transform: rotate(-90.0deg);
+  /* Opera 10.5 */
+  -o-transform: rotate(-90.0deg);
+  /* Saf3.1+, Chrome */
+  -webkit-transform: rotate(-90.0deg);
+  /* IE6,IE7 */
+  filter: progid: DXImageTransform.Microsoft.BasicImage(rotation=0.083);
+  /* IE8 */
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)";
+  /* Standard */
+  transform: rotate(-90.0deg);
+}
+
+</style>
+<style>A{text-decoration:none}</style>
+
+<style>
+
+img.selected{ border: 4px solid #b0b0b0; } 
+
+.blackBut {
+  color:black;
+  font-size: 18pt; 
+  font-family:'Courier New',Courier,monospace;
+  text-align:left;
+}
+.greyBut {
+  margin:left;
+  color:rgba(255,255,255,0.4);
+  display:inline;
+  font-size: 18pt; 
+  font-family:'Courier New',Courier,monospace;"
+}
+
+</style>
+
+<script src="js/jqplot/jquery.jqplot.min.js"></script>
+<script src="js/jqplot/plugins/jqplot.canvasTextRenderer.js"></script>
+<script src="js/jqplot/plugins/jqplot.canvasAxisLabelRenderer.js"></script>
+<script src="js/jqplot/plugins/jqplot.cursor.js"></script>
+<script src="js/jqplot/plugins/jqplot.highlighter.js"></script>
+<script src="js/jqplot/plugins/jqplot.pointLabels.js"></script>
+<link rel="stylesheet" type="text/css" href="js/jqplot/jquery.jqplot.min.css" />
+
+<script>
+<!--
+
+function getHTTP()
+{
+  var xmlHttp;
+  try {
+    // Firefox, Opera 8.0+, Safari
+    xmlHttp = new XMLHttpRequest();
+  } catch (e) {
+    // Internet Explorer
+    try {
+      xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        throw("Your browser does not support AJAX!");
+      }
+    }
+  }
+  return xmlHttp;
+}
+
+function addListener(type, callback)
+{
+  if (document.addEventListener) {
+    document.addEventListener(type, callback, false);
+  } else if (document.attachEvent) {
+    document.attachEvent("on" + type, callback, false);
+  }
+}
+
+function removeListener(type, callback)
+{
+  if (document.removeEventListener) {
+    document.removeEventListener(type, callback, false);
+  } else if (document.detachEvent) {
+    document.detachEvent("on" + type, callback, false);
+  }
+}
+
+// e.g. 
+// <div id="fubar" 
+//  style="left:200px; top:100px; width:500px; height:80px;"
+//  onmouseup="handleUp(event);"> MeasureBar</div>
+//
+// function handleUp(e)
+// {
+//   var e = new MouseEvent(e);
+//   removeListener("mouseup", handleUp); // if listener added
+//   offsetX = e.x - parseInt(fubar.style.left);
+//
+// function handleDown(e)
+// {
+//   var e = new MouseEvent(e);
+//   addListener("mouseup", handleUp);
+//
+function MouseEvent(e)
+{
+  if (e) {
+    this.e = e;
+  } else {
+    this.e = window.event;
+  }
+  if (e.pageX) {
+    this.x = e.pageX;
+  } else {
+    this.x = e.clientX;
+  }
+  if (e.pageY) {
+    this.y = e.pageY;
+  } else {
+    this.y = e.clientY
+  }
+  if (e.target) {
+    this.target = e.target;
+  } else {
+    this.target = e.srcElement;
+  }
+}
+
+// start photoriot
+
+
+
+var servletRoot = "/pr";  // set in proj/web/build.gradle
+var SEP = "&"
+
+
+
+var sessionID = "none";
+var browserID = "";
+
+function getSessionId(rating)
+{
+  var t = browserID;
+  browserID = prompt("SHA1:", browserID);
+  if (browserID == null) {
+    browserID = t;
+    return;
+  }
+
+  //console.log("getSessionId " + rating);
+  sessionID = "init";
+
+  var xmlHttp;
+  try {
+    xmlHttp = getHTTP();
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+        sessionID = xmlHttp.responseText;
+        console.log("sessionID " + sessionID);
+      } else {
+        var errtxt = xmlHttp.responseText;
+        var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+        if (errdoc != null) {
+            errtxt = errdoc.title;
+        }
+        console.log(""+xmlHttp.status + ": " + errtxt);
+        if (xmlHttp.status < 500) {
+            alert(errtxt);
+        } else if (xmlHttp.status == 500) {
+            alert("Server error, try reloading page.");
+        } else { 
+            if (!suppressPicLoadErr) {
+              alert("Server error, try reloading page (1): " + errtxt);
+            }
+        }
+        return;
+      }
+
+      loadSession();
+      //showDog();
+    }
+  };
+
+  session = null;
+  viewTimes = [];
+  max_view = 0;
+  viewTimes2 = [];
+  vt2_max = 0;
+  ratings = [];
+  clickTimes = [];
+  max_click = 0;
+  loadTimes = [];
+  max_load = 0;
+  mouseDists = [];
+  max_dist = 0;
+  mouseAvgDists = [];
+  max_avg_dist = 0;
+  mouseDistRatios = [];
+  mouseDists2 = [];
+  max_dist2 = 0;
+  mouseAvgVs = [];
+  max_avg_v = 0;
+  mouseMaxVs = [];
+  max_max_v = 0;
+  mouseMaxAs = [];
+  max_a = 0;
+  mouseMaxJs = [];
+  max_j = 0;
+  mouseMinAs = [];
+  max_min_a = 0;
+  pixInPic = [];
+  max_ppic = 0;
+  dotCounts = [];
+  max_dot = 0;
+  pixOutPic = [];
+  max_pop = 0;
+
+
+  timeFracV1 = [];
+  timeFracV2 = [];
+  time2FracV1 = [];
+  time2FracV2 = [];
+  clickFracV1 = [];
+  clickFracV2 = [];
+  distFracV1 = [];
+  distFracV2 = [];
+  dist2FracV1 = [];
+  dist2FracV2 = [];
+  areaFracV1 = [];
+  areaFracV2 = [];
+
+//%%%
+
+  var d = new Date();
+  var userName = "ripplay";
+  var url = servletRoot + "/getsession";
+  var params = "tzoff=" + d.getTimezoneOffset() + SEP +
+               "hour=" + d.getHours() + SEP +
+               "browser=" + browserID + SEP +
+               "version=" + navigator.appVersion + SEP +
+               "platform=" + navigator.platform + SEP +
+               "lang=" + navigator.language + SEP +
+               "useragent=" + navigator.userAgent + SEP +
+               "username=" + userName + SEP +
+               "session=ripplay";
+  try {
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                             "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+
+
+var showKwd = true;
+var cachedKwd = null;
+var file = null;
+var showingInfo = null;
+var session = null;
+var viewTimes = [];
+var max_view = 0;
+var viewTimes2 = [];
+var vt2_max = 0;
+var ratings = [];
+var clickTimes = [];
+var max_click = 0;
+var loadTimes = [];
+var max_load = 0;
+var mouseDists = [];
+var max_dist = 0;
+var mouseAvgDists = [];
+var max_avg_dist = 0;
+var mouseDistRatios = [];
+var mouseDists2 = [];
+var max_dist2 = 0;
+var mouseAvgVs = [];
+var max_avg_v = 0;
+var mouseMaxVs = [];
+var max_max_v = 0;
+var mouseMaxAs = [];
+var max_a = 0;
+var mouseMaxJs = [];
+var max_j = 0;
+var mouseMinAs = [];
+var max_min_a = 0;
+var pixInPic = [];
+var max_ppic = 0;
+var dotCount = [];
+var max_dot = 0;
+var pixOutPic = [];
+var max_pop = 0;
+var rating = null;
+
+//%%%
+var timeFracV1 = [];
+var timeFracV2 = [];
+var time2FracV1 = [];
+var time2FracV2 = [];
+var clickFracV1 = [];
+var clickFracV2 = [];
+var distFracV1 = [];
+var distFracV2 = [];
+var dist2FracV1 = [];
+var dist2FracV2 = [];
+var areaFracV1 = [];
+var areaFracV2 = [];
+
+
+function toggleKwdDisplay()
+{
+/*
+  if (showKwd) {
+    document.getElementById("kwdButton").innerHTML = "kwd";
+    showKwd = false;
+  } else {
+    document.getElementById("kwdButton").innerHTML = getKwdStr();
+    showKwd = true;
+  }
+*/
+}
+
+var pause = false;
+var fast = false;
+var timer = null;
+
+function hidePause()
+{
+  clearTimeout(timer);
+  pause = true;
+  document.getElementById("pause").innerHTML = "";
+}
+
+function showPause()
+{
+  clearTimeout(timer);
+  pause = true;
+  document.getElementById("pause").innerHTML = "Resume &nbsp;&nbsp;&nbsp;";
+}
+
+
+function togglePause()
+{
+    if (pause) {
+       pause = false;
+       document.getElementById("pause").innerHTML = "Pause &nbsp;&nbsp;&nbsp;";
+       if (mode === 'replay_rand') {
+         loadImage(randomImgNum());
+       } else if (mode === 'replay' || mode === 'replay_graph') {
+         if (imageNum >= 0  &&  imageNum < session.length-1) {
+           nextImage(imageNum+1); 
+         }
+       }
+    } else {
+       fast = false;
+       clearTimeout(timer);
+       document.getElementById("pause").innerHTML = "Resume &nbsp;&nbsp;&nbsp;";
+       pause = true;
+       //alert("VT\n" + viewTimes);
+    }
+}
+
+var GRAPHS = 
+  [ "lt_graph", "vt_graph", "vtfv1_graph", "vtfv2_graph",
+    "vt2_graph", "vt2fv1_graph", "vt2fv2_graph", "ratings_graph",
+    "ct_graph", "ctf1_graph", "ctf2_graph",
+    "md_graph", "mdf1_graph", "mdf2_graph",
+    "mdav_graph", "md2_graph", "md2f1_graph", "md2f2_graph",
+    "mav_graph", "mmv_graph", "mma_graph", "mmina_graph", 
+    "mmj_graph", "mr_graph", "pip_graph", "dc_graph", "pop_graph"];
+var graphs = [];
+
+var replayInterval = 2200;
+
+function setKwdInterval()
+{
+  var x = prompt("Delay (sec) between pics in play keywords mode", 2);
+  if (x === "") return;
+  var y = parseFloat(x);
+  if (y < 0.5) y = 0.5;
+  if (y > 10) y = 10;
+  replayInterval = 1000 * y;
+}
+  
+var goto = false;
+
+function gotoPic() 
+{
+    var x = prompt("imageNum (1.." + session.length + ")", session.length);
+    if (x === "") return;
+    var y = parseInt(x);
+    if (y < 1) {
+      alert("Can't go lower.");
+      return;
+    }
+    if (y > session.length) {
+      alert("Max is " + session.length);
+      return;
+    }
+    imageNum = y - 1;
+    if (!pause) {
+      togglePause();
+    }
+    switch (mode) {
+      case 'choice':
+        plotPick(imageNum); break;
+      case 'toggle_last':
+        plotToggleLast(imageNum); break;
+      case 'graph':
+        break;
+      case 'replay':
+      case 'replay_graph':
+      case 'replay_rand':
+        goto = true;
+        loadImage(imageNum);
+        break;
+      default:
+        alert("Unexpected mode: " + mode);
+    }
+}
+
+var direction = 'forward';
+
+function back()
+{
+  if (imageNum > 0) {
+
+    direction = 'back';
+
+    if (mode === 'choice') {
+      plotPick(imageNum-1);
+    } else if (mode === 'toggle_last') {
+      plotToggleLast(imageNum-1);
+    } else {
+      if (!pause) {
+        togglePause();
+      }
+      clearTimeout(timer);
+      timer = setTimeout(function() { nextImage(imageNum-1) }, 200);
+    }
+  } else {
+    alert("Can't go back: at " + imageNum);
+  }
+}
+
+function forward()
+{
+  console.log("forward mode " + mode);
+  if (imageNum < session.length-1) {
+
+    direction = 'forward';
+
+    if (mode === 'choice') {
+      plotPick(imageNum+1);
+    } else if (mode === 'toggle_last') {
+      plotToggleLast(imageNum+1);
+    } else {
+      if (!pause) {
+        togglePause();
+      }
+      clearTimeout(timer);
+      timer = setTimeout(function() { nextImage(imageNum+1) }, 200);
+    }
+  } else {
+    alert("Can't go past " + (imageNum+1));
+  }
+}
+
+
+
+var lastID;
+var picCount = 0;
+var prevID = 0;
+var prevTime;
+var t1;
+
+var VT_DISPLAY_MAX = 10000; // cut off at 10 sec
+var VT2_DISPLAY_MAX = 10000; // cut off at 10 sec
+var CT_DISPLAY_MAX = 500; 
+var MAX_MAX_V_A_J = 2000;
+var MAX_DIST = 10000;
+var MOUSE_DIST_RATIO_DISPLAY_MAX = 1.0;
+
+//var lastPP;
+
+function popPic(ev, seriesIndex, pointIndex, data) 
+{
+  ev.stopImmediatePropagation();
+  var si = session[data[0] - 1];
+  var w = window.open('', '',"width=600,height=600");
+  w.document.writeln('<head> <title>' + data[0] + ": " + 
+    si.showing.archive + "/" + si.showing.fileName +
+    '<\/title> <script>var showingInfo; function popInfo(text) { var w = window.open(\'\', \'\',\"width=600,height=600\"); w.document.writeln(\'<pre>\' + text  + \'</pre>\'); }<\/script><\/head> <body bgcolor=\"#909090\"><center>'); 
+  w.showingInfo = si;
+  var code = '<img src=\"/pr/images/' + si.hash + '\"'  +
+          ' onclick=\"popInfo(JSON.stringify(showingInfo, null, 2));\">'
+  w.document.writeln(code);
+  w.document.writeln('<\/center> <\/body> <\/html>');
+  w.document.close();
+}
+
+function popDesc() 
+{
+
+  var desc = JSON.stringify(session[imageNum], null, 2);
+  var w = window.open('', '',"width=600,height=600");
+  w.document.writeln('<head> <title>' + 
+    session[imageNum].showing.archive + ':' +
+    session[imageNum].showing.fileName + '</title><body><pre>'
+    + desc + '</pre></body>');
+  w.document.close();
+}
+
+function plotIt(graph_elt, data, ymax, yLabel)
+{
+  console.log("plot " + graph_elt);
+
+  var ti;
+  if (imageNum < 12) {
+    ti = 1;
+  } else if (imageNum < 20) {
+    ti = 2;
+  } else if (imageNum < 500) {
+    ti = Math.floor(imageNum / 10) + 1;
+  } else if (imageNum < 1500) {
+    ti = 50;
+  } else {
+    ti = 100;
+  }
+  var tmax = 0;
+  for (var i=0; i<imageNum; i++) {
+    if (data[i] > tmax) {
+      tmax = data[i];
+    }
+  }
+//alert("im " + imageNum + " ti: " + ti);
+//console.log("tmax " + tmax);
+  var plot1 = $.jqplot (graph_elt, [data], {
+    axes: {xaxis: {min: 0, pad: 0, max:imageNum+1, tickInterval:ti,
+            tickOptions: { formatString: "%d" }},
+           yaxis: { min: 0, max: tmax, label: yLabel, tickOptions: { 
+      formatter: function(format, value) { 
+       var str = "" + value;
+       if (str.length > 5) {
+         if (str.indexOf(".") == -1) {
+           return "tobig";
+         }
+         str = str.substring(0, 5);
+       } else {
+         var len = 5 - str.length;
+         for (i=0; i<len; i++) {
+           str = "&nbsp;" + str;
+         }
+       }
+       return "<span style=\"font-family:'Courier New',Courier,monospace;font-weight:bold;font-size:12px\">" 
+          + str + "</span>";
+      } }}},
+    series:[ {lineWidth:1, markerOptions:{size:1}, neighborThreshold: 10}],
+    axesDefaults: { labelRenderer: $.jqplot.CanvasAxisLabelRenderer },
+    cursor:{show:true,zoom:true},
+    highlighter:{show: true,sizeAdjust: 7.0}
+  });
+  $('#'+graph_elt).bind('jqplotDataClick', popPic);
+  graphs.push(plot1);
+}
+
+var newdata = false;
+
+function graphIt()
+{
+console.log("graphit " + mode);
+
+  for (i=0; i<graphs.length; i++) {
+    graphs[i].destroy();
+  }
+  graphs = [];
+
+  if (newdata) {
+    console.log("graphit: newdata");
+    for (var i=0; i<session.length; i++) {
+      var si = session[i];
+
+      // basics from db
+
+      var showing = si.showing;
+      if (showing.id == -1) {
+        return;
+      }
+
+      ratings.push(showing.rating);
+
+      var x = showing.clickTime;
+      if (x > CT_DISPLAY_MAX) x = CT_DISPLAY_MAX;
+      clickTimes.push(x);
+      if (x > max_click) {
+        max_click = x;
+      }
+
+      x = showing.loadTime;
+      loadTimes.push(x);
+      if (x > max_load) {
+        max_load = x;
+      }
+
+      x = showing.userTime;
+      if (x > VT_DISPLAY_MAX) x = VT_DISPLAY_MAX;
+      viewTimes.push(x);
+      if (x > max_view) {
+        max_view = x;
+      }
+
+      x = showing.userTime2;
+      if (x > VT_DISPLAY_MAX) x = VT_DISPLAY_MAX;
+      if (x > vt2_max) vt2_max = x;
+      viewTimes2.push(x);
+
+      x = showing.mouseDist;
+      if (x > MAX_DIST) x = MAX_DIST;
+      mouseDists.push(x);
+      if (x > max_dist) {
+        max_dist = x;
+      }
+
+      x = Math.round(Math.sqrt(showing.mouseVecx * showing.mouseVecx +
+                               showing.mouseVecy * showing.mouseVecy));
+      mouseAvgDists.push(x);
+      if (x > max_avg_dist) {
+        max_avg_dist = x;
+      }
+
+      if (showing.mouseDx == 0  ||  showing.mouseDy == 0) {
+        x = 0;
+      } else {
+        x = showing.mouseDist / (showing.mouseDx * showing.mouseDy);
+        if (x > MOUSE_DIST_RATIO_DISPLAY_MAX) x = MOUSE_DIST_RATIO_DISPLAY_MAX;
+      }
+      mouseDistRatios.push(x);
+
+      x = showing.mouseDist2;
+      if (x > MAX_MAX_V_A_J) x = MAX_MAX_V_A_J;
+      mouseDists2.push(x);
+      if (x > max_dist2) {
+        max_dist2 = x;
+      }
+
+      if (showing.userTime > 0) {
+        var v = showing.mouseDist / showing.userTime;
+        mouseAvgVs.push(v);
+        if (v > max_avg_v) {
+          max_avg_v = v;
+        }
+      } else {
+        mouseAvgVs.push(0);
+      }
+      x = showing.mouseMaxv;
+      if (x > MAX_MAX_V_A_J) x = MAX_MAX_V_A_J;
+      mouseMaxVs.push(x);
+      if (x > max_max_v) {
+        max_max_v = x;
+      }
+      x = showing.mouseMaxa;
+      if (x > MAX_MAX_V_A_J) x = MAX_MAX_V_A_J;
+      mouseMaxAs.push(x);
+      if (x > max_a) {
+        max_a = x;
+      }
+      x = showing.mouseMaxj;
+      if (x > MAX_MAX_V_A_J) x = MAX_MAX_V_A_J;
+      mouseMaxJs.push(x);
+      if (x > max_j) {
+        max_j = x;
+      }
+
+      if (showing.mouseMina == 0) {
+        x = 0;
+      } else {
+        x = showing.mouseMaxa / showing.mouseMina * -1;
+      }
+      mouseMinAs.push(x);
+      if (x > max_min_a) {
+        max_min_a = x;
+      }
+
+      x = showing.pixInPic;
+      pixInPic.push(x);
+      if (x > max_ppic) {
+        max_ppic = x;
+      }
+
+      x = showing.dotCount;
+      dotCount.push(x);
+      if (x > max_dot) {
+        max_dot = x;
+      }
+
+      x = showing.pixOutPic;
+      pixOutPic.push(x);
+      if (x > max_pop) {
+        max_pop = x;
+      }
+
+      // synthetic measurements from server
+
+      timeFracV1.push(si.timeFrac[0]);
+      timeFracV2.push(si.timeFrac[1]);
+
+      time2FracV1.push(si.time2Frac[0]);
+      time2FracV2.push(si.time2Frac[1]);
+
+      clickFracV1.push(si.clickFrac[0]);
+      clickFracV2.push(si.clickFrac[1]);
+
+      distFracV1.push(si.distFrac[0]);
+      distFracV2.push(si.distFrac[1]);
+
+      dist2FracV1.push(si.dist2Frac[0]);
+      dist2FracV2.push(si.dist2Frac[1]);
+
+      areaFracV1.push(si.areaFrac[0]);
+      areaFracV2.push(si.areaFrac[1]);
+    }
+    newdata = false;
+  }
+
+  if (session[0].showing.id == -1) {
+    console.log("not graphing for kwd images");
+    return;
+  }
+  console.log("plotting " + imageNum);
+
+  plotIt('lt_graph', loadTimes, max_load, "LoadT");
+
+  // viewTimes, timeFracV1,2
+
+  plotIt('vt_graph', viewTimes, max_view, "ViewT");
+  plotIt('vtfv1_graph', timeFracV1, 3, "ViewTf1");
+  plotIt('vtfv2_graph', timeFracV2, 3, "ViewTf2");
+
+  // ratings = choice
+
+  plotIt('ratings_graph', ratings, 20, "Choice");
+
+  // viewTimes2, time2FracV1,2
+
+  plotIt('vt2_graph', viewTimes2, vt2_max, "ViewT2");
+  plotIt('vt2fv1_graph', time2FracV1, 3, "View2Tf1");
+  plotIt('vt2fv2_graph', time2FracV2, 3, "View2Tf2");
+
+  // clickTimes, clickFracV1,2
+
+  plotIt('ct_graph', clickTimes, max_click, "ClickT");
+  plotIt('ctf1_graph', clickFracV1, 3, "ClickTf1");
+  plotIt('ctf2_graph', clickFracV2, 3, "ClickTf2");
+
+  // mouse dist / area
+
+  plotIt('mr_graph', mouseDistRatios, MOUSE_DIST_RATIO_DISPLAY_MAX, "Dist/Area");
+
+  // mouseDists, distFracV1,2
+
+  plotIt('md_graph', mouseDists, max_dist, "Dist");
+  plotIt('mdf1_graph', distFracV1, 3, "DistF1");
+  plotIt('mdf2_graph', distFracV2, 3, "DistF2");
+
+  // mouseAvgDists
+
+  plotIt('mdav_graph', mouseAvgDists, max_avg_dist, "Avg Dist");
+
+  // mouseDists2, dist2FracV1,2
+
+  plotIt('md2_graph', mouseDists2, max_dist2, "Dist2");
+  plotIt('md2f1_graph', dist2FracV1, 3, "Dist2F1");
+  plotIt('md2f2_graph', dist2FracV2, 3, "Dist2F2");
+
+  // mouseAvgVs, mouseMaxVs, mouseMaxAs, mouseMinAs, mouseMaxJs
+
+  plotIt('mav_graph', mouseAvgVs, max_avg_v, "AvgV");
+  plotIt('mmv_graph', mouseMaxVs, max_max_v, "MaxV");
+  plotIt('mma_graph', mouseMaxAs, max_a, "MaxA");
+  plotIt('mmina_graph', mouseMinAs, max_min_a, "Amax/min");
+  plotIt('mmj_graph', mouseMaxJs, max_j, "Jmax");
+
+  // sample-based: pixInPic, dotCount, pixOutPic
+
+  plotIt('pip_graph', pixInPic, max_ppic, "PixInPic");
+  plotIt('dc_graph', dotCount, max_dot, "dotCount");
+  plotIt('pop_graph', pixOutPic, max_pop, "PixOutPic");
+}
+
+
+function popPickPic(ev, seriesIndex, pointIndex, data) 
+{
+  ev.stopImmediatePropagation();
+  var lh = session[imageNum].lh;
+  if (lh == null) {
+    alert("no lh " + imageNum + " " + session[imageNum].showing.fileName);
+    return;
+  }
+  var id2 = lh.id2_l[data[0] - 1];
+  var w = window.open('', '',"width=600,height=600");
+  w.document.writeln('<head> <title>' + id2 +
+    '<\/title> <script>var showingInfo; function popInfo(text) { var w = window.open(\'\', \'\',\"width=600,height=600\"); w.document.writeln(\'<pre>\' + text  + \'</pre>\'); }<\/script><\/head> <body bgcolor=\"#909090\"><center>'); 
+  var code = '<img src=\"/pr/images/' + session[imageNum].hash + '/'  + id2 + '\">';
+  w.document.writeln(code);
+  w.document.writeln('<\/center> <\/body> <\/html>');
+  w.document.close();
+}
+
+var pickGraph = null;
+
+function plotPick(count)
+{
+console.log("plot " + count);
+
+  if ("" + count === "NaN") {
+    return;
+  }
+  if (count >= session.length) {
+    alert("cut it out");
+    return;
+  }
+
+  imageNum = count;
+
+  $('#pickGraph').empty();
+
+  var s = session[count].showing;
+  var id2 = s.archive + ":" + s.picSeq;
+  
+  document.getElementById("kwdButton").innerHTML = "" + (imageNum+1) + " " +
+     s.selMethod;
+
+  var lh = session[count].lh;
+  if (lh == null  ||  lh.id2_l.length == 0) {
+    console.log("No list to plot");
+    return;
+  }
+
+  var ti;
+  if (lh.id2_l.length < 12) {
+    ti = 1;
+  } else if (lh.id2_l.length < 20) {
+    ti = 2;
+  } else if (lh.id2_l.length < 500) {
+    ti = Math.floor(lh.id2_l.length / 10) + 1;
+  } else if (lh.id2_l.length < 1500) {
+    ti = 50;
+  } else {
+    ti = 100;
+  }
+//QQQ
+  var tmax = 0;
+  var data = [];
+  var list = lh.dbl_l;
+  if (list == null) {
+    list = lh.value_l;
+  }
+//alert("List " + list);
+  var foundMatch = false;
+  for (var i=0; i<list.length; i++) {
+    var t = list[i];
+    if (t > tmax) tmax = t;
+    if (lh.id2_l[i] === id2) {
+      data.push([i+1, t, list[i] + '/' + id2]);
+      foundMatch = true;
+    } else {
+      data.push([i+1, t, null]);
+    }
+  }
+
+console.log("jqplotit foundMatch " + foundMatch);
+  pickGraph = $.jqplot('pickGraph', [data], {
+    title: 'Choices', 
+    axes: {xaxis: {min: 0, pad: 0, max:lh.value_l.length+1, tickInterval:ti},
+           yaxis: { min: 0, max: tmax, label: 'Values', tickOptions: {
+      formatter: function(format, value) {
+       if (""+Math.round(value) === "NaN") {
+         return value;
+       }
+       var str = "" + Math.round(value);
+       return "<span style=\"font-family:'Courier New',Courier,monospace;font-weight:bold;font-size:12px\">"
+          + str + "</span>";
+      } }}},
+    seriesDefaults: {
+      showLine: false, 
+      showMarker: true, 
+      markerOptions: { size: 6 },
+      pointLabels:{ show:true, location:'s', ypadding:3 }
+    },
+    axesDefaults: { labelRenderer: $.jqplot.CanvasAxisLabelRenderer },
+    cursor:{show:true,zoom:true},
+    highlighter:{show: true,sizeAdjust: 7.0}
+    //axes:{ yaxis:{ pad: 1.3 } }
+  });
+  $('#pickGraph').bind('jqplotDataClick', popPickPic);
+//alert("plot " + lh.value_l.length + " " + ti + " " + tmax + ": " + data);
+}
+
+var toggleLastGraph = null;
+
+function plotToggleLast(count)
+{
+console.log("plotTog " + count + " togs: " + session[count].showing.nTogs);
+
+  if ("" + count === "NaN") {
+    return;
+  }
+  if (count >= session.length) {
+    alert("cut it out");
+    return;
+  }
+
+  imageNum = count;
+
+  $('#toggleLastGraph').empty();
+
+  var s = session[count].showing;
+  var id2 = s.archive + ":" + s.picSeq;
+  
+  document.getElementById("kwdButton").innerHTML = "" + (imageNum+1) + " " +
+     s.selMethod;
+
+  if (s.togTimes == null  ||  s.togTimes.length == 0) {
+    console.log("No toglist to plot");
+    return;
+  }
+
+  var ti;
+  if (s.togTimes.length < 12) {
+    ti = 1;
+  } else if (s.togTimes.length < 20) {
+    ti = 2;
+  } else if (s.togTimes.length < 500) {
+    ti = Math.floor(s.togTimes.length / 10) + 1;
+  } else if (s.togTimes.length < 1500) {
+    ti = 50;
+  } else {
+    ti = 100;
+  }
+//QQQ
+  var tmax = 0;
+  var data = [];
+  var list = s.togTimes;
+//alert("List " + list);
+  for (var i=0; i<list.length; i++) {
+    var t = list[i];
+    if (t > tmax) tmax = t;
+    data.push([i+1, t]);
+  }
+
+  toggleLastGraph = $.jqplot('toggleLastGraph', [data], {
+    title: 'Toggles', 
+    axes: {xaxis: {min: 0, pad: 0, max:list.length+1, tickInterval:ti},
+           yaxis: { min: 0, max: tmax, label: 'Time (ms)', tickOptions: {
+      formatter: function(format, value) {
+       if (""+Math.round(value) === "NaN") {
+         return value;
+       }
+       var str = "" + Math.round(value);
+       return "<span style=\"font-family:'Courier New',Courier,monospace;font-weight:bold;font-size:12px\">"
+          + str + "</span>";
+      } }}},
+    seriesDefaults: {
+      showLine: false, 
+      showMarker: true, 
+      markerOptions: { size: 6 },
+      pointLabels:{ show:true, location:'s', ypadding:3 }
+    },
+    axesDefaults: { labelRenderer: $.jqplot.CanvasAxisLabelRenderer },
+    cursor:{show:true,zoom:true},
+    highlighter:{show: true,sizeAdjust: 7.0}
+    //axes:{ yaxis:{ pad: 1.3 } }
+  });
+  //$('#pickGraph').bind('jqplotDataClick', popPickPic);
+}
+
+function loadSession()
+{
+
+  var xmlHttp;
+  try {
+    xmlHttp = getHTTP();
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+
+        //console.log(xmlHttp.responseText);
+
+        clearTimeout(timer);
+        session = JSON.parse(xmlHttp.responseText);
+        if (session.length == 0) {
+          alert("No pics/pairs");
+          return;
+        }
+        if ("pr" == browserID) {
+// QQQ
+        } else {
+          var x = 0;
+          for (var i=0; i<session.length; i++) {
+            if (session[i].showing == null) {
+                x++;
+            }
+          }
+          if (x > 0) {
+            alert("Error: missing showing info on " + x + "/" + session.length);
+            return;
+          }
+
+          newdata = true;
+          noChoice = true;
+          noToggle = true;
+          for (var i=0; i<session.length; i++) {
+            if (session[i].lh != null) {
+              noChoice = false;
+            }
+            if (session[i].showing == null) {
+                console.log("null showing " + i);
+            } else if (session[i].showing.nTogs > 0) {
+              noToggle = false;
+            }
+          }
+          if (session[0].showing.id == -1) {
+            // keyword-based selection
+            imageNum = 0;
+            if (!pause) togglePause();
+            if (mode === 'replay') {
+              loadImage(0);
+            } else {
+              toggleMode(2);
+            }
+          } else {
+            imageNum = session.length;
+            hidePause(); // in case initial load
+            adjustGraphs(); // in case initial load
+            toggleMode(1); // in case coming from another opt
+            graphIt(); 
+            document.getElementById("kwdButton").innerHTML = browserID;
+          }
+        }
+      } else {
+        // untested on this page
+        var errtxt = xmlHttp.responseText;
+        var errdoc = new DOMParser().parseFromString(errtxt, "text/html");
+        if (errdoc != null) {
+            errtxt = errdoc.title;
+        }
+        console.log(""+xmlHttp.status + ": " + errtxt);
+        if (xmlHttp.status < 500) {
+            alert(errtxt);
+        } else if (xmlHttp.status == 500) {
+            alert("Server error, try reloading page.");
+        } else { 
+            if (!suppressPicLoadErr) {
+              alert("Server error, try reloading page (1): " + errtxt);
+            }
+        }
+        return;
+      }
+    }
+  }
+  var url = servletRoot + "/renext";
+  var params = "sess=" + sessionID + "\n";
+  try {
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                             "application/x-www-form-urlencoded");
+    //alert("PARAMS: " + params);
+    xmlHttp.send(params);
+
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+}
+
+
+var imageNum = 0;
+
+
+function loadImage(count)
+{
+  imageNum = count;
+
+  console.log('loadimage ' + count);
+
+  t1 = (new Date()).getTime();
+
+  // jquery reset any setting from before
+  $('#image').removeAttr('height');
+  $('#image').removeAttr('width');
+
+  var newimage = new Image();
+  newimage.onerror=function(evt) {
+    if (direction === 'forward') {
+      count++;
+      if (count >= session.length) {
+        alert("Error loading - no more to try going forward");
+        return;
+      }
+    } else {
+      count--;
+      if (count < 0) {
+        alert("Error loading - no more to try going back");
+        return;
+      }
+    }
+    alert("Error loading - trying next " + direction);
+    loadImage(count);
+    return;
+  }
+  newimage.onload=function() {
+    // when image is loaded, make it visible
+
+    // reset button(s)
+
+    document.getElementById("image").classList.remove('selected');
+    document.getElementById("minus").style.background = "#909090";
+    document.getElementById("bar").style.background = "#909090";
+    document.getElementById("plus").style.background = "#909090";
+    document.getElementById("sidebut").innerHTML = "";
+
+    document["image"].src = newimage.src;
+    resizeImg();
+
+    if (showKwd) {
+console.log("kwd str");
+      document.getElementById("kwdButton").innerHTML = getKwdStr();
+    }
+else alert("no show kwd");
+    
+    if (mode === 'replay_graph') {
+      graphIt();
+    }
+    prevTime = new Date();
+    if (count+1 == session.length  &&  mode != 'replay_rand') {
+      if (!goto) {
+        //alert("DONE");
+      }
+      return;
+    }
+    goto = false;
+    var viewTime = session[count].showing.userTime;
+    if (viewTime == 0) {
+      // page reload, fall back on server-side measurement
+      viewTime = session[count].dbTime;
+    }
+    if (viewTime > 10000) {
+      viewTime = 10000;
+    }
+    if (fastTime) {
+      viewTime = 1100;
+    } else if (session[0].showing.id == -1) {
+      viewTime = replayInterval;
+    }
+    if (!pause) {
+      clearTimeout(timer); // just in case
+      if (mode === 'replay_rand') {
+        timer = setTimeout(function() { nextImage(randomImgNum()); }, viewTime);
+      } else {
+        timer = setTimeout(function() { nextImage(count+1); }, viewTime);
+      }
+    }
+  }
+  // start load of image into memory
+  newimage.src = "/pr/images/" + session[count].hash;
+
+}
+
+
+function resizeImg() {
+  var tot_height = window.innerHeight;
+  var avail_height = tot_height - 200; // for selector/footer
+  var img_td = document.getElementById("img_td");
+  img_td.setAttribute("height", avail_height);
+  var img = document.getElementById("image");
+  //console.log("avail ht " + avail_height + " img ht " + img.height);
+  if (img.height > avail_height) {
+
+    console.log("resize height " + img.height + " to " + avail_height +
+                " tot_height " + window.innerHeight);
+
+    var scaled_width = (avail_height / img.height) * img.width;
+
+    var canvas = document.createElement( 'canvas' );
+    canvas.width = scaled_width;
+    canvas.height = avail_height;
+    var tmp = new Image();
+    tmp.src = img.src;
+    context = canvas.getContext( '2d' );
+    context.drawImage( tmp, 0, 0, scaled_width, avail_height);
+    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
+
+  }
+  img.style.opacity = "1.0";
+}
+
+function fancySeq(fileName)
+{
+  var startNum = fileName.replace(/^\D+/g, '').replace(/^0+/g, '');
+  var i1 = startNum.indexOf('.');
+  var i2 = startNum.indexOf('_');
+  if (i2 != -1  &&  i2 < i1) {
+    i1 = i2;
+  }
+  return startNum.substring(0, i1);
+}
+
+function getKwdStr()
+{
+  var si = session[imageNum];
+  var s1 = si.kwdMatch;
+  var s2 = si.kwdNoMatch;
+//alert("kwd: ["+s1+"] [" + s2+"]");
+  var kwdstr = "" + (imageNum+1) + "/" + (session.length) + "&nbsp;&nbsp;" +
+               si.showing.archive1 + ":" + fancySeq(si.showing.fileName1);  
+  if (s1 != null && s1.length > 0) {
+    kwdstr = kwdstr + " | " + s1;
+  }
+  if (s2 != null  &&  s2.length > 0) {
+    kwdstr = kwdstr + " (" + s2 + ")";
+  }
+  return kwdstr;
+}
+
+function nextImage(count)
+{
+  if (session == null) {
+    alert("Session is null. count=" + count);
+    return;
+  }
+  if (count >= session.length) {
+    clearTimeout(timer); // just in case
+    alert("DONE");
+    return;
+  }
+
+  if (count > 0) {
+    // get rating of prev pic to show button press b4 load
+    var ratebut = null;
+    var rating = session[count-1].showing.rating;
+    if (rating == 1) {
+      ratebut = document.getElementById("minus");
+    } else if (rating == 2) {
+      ratebut = document.getElementById("bar");
+    } else if (rating == 3) {
+      ratebut = document.getElementById("plus");
+    } else if (rating == 4) {
+      document.getElementById("image").classList.add('selected');
+    } else if (rating == 0) {
+      // load page symbol is all down
+      document.getElementById("minus").style.background = "#a0a0a0";
+      document.getElementById("bar").style.background = "#a0a0a0";
+      document.getElementById("plus").style.background = "#a0a0a0";
+    } else {
+      var sidebut = document.getElementById("sidebut");
+      sidebut.innerHTML = rating;
+    }
+    if (ratebut != null) {
+      ratebut.style.background = "#a0a0a0"; // vs. "#909090"
+    }
+  }
+  // plan to hold button down if relevant
+  var clickTime = 0;
+  if (count > 0) {
+    clickTime = session[count-1].showing.clickTime;
+  }
+  clearTimeout(timer); // just in case
+  timer = setTimeout(function() { loadImage(count); }, clickTime);
+}
+
+function fade(element) {
+    var op = 1;  // initial opacity
+    var ttimer = setInterval(function () {
+        if (op <= 0.1){
+            clearInterval(ttimer);
+            nextImage(0);
+        }
+        element.style.opacity = op;
+        element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+        op -= op * 0.3;
+    }, 50);
+}
+
+function showDog() {
+  var newimage = new Image();
+  newimage.onload=function() {
+    // when image is loaded, make it visible
+    var img = document.getElementById("image");
+    img.src = newimage.src;
+    img.width = window.innerWidth;
+    img.setAttribute("height", "auto");
+    img.setAttribute("vertical-align", "top");
+    img.setAttribute("float", "right");
+    fade(img);
+  };
+  // start load of image into memory
+  newimage.src = "dog_eyes2.jpg";
+}
+
+var picMode = 'single';
+
+var mode = 'graph';
+var lastButton = null;
+
+function adjustGraphs()
+{
+  var tg = document.getElementById("toggleLastGraph");
+  tg.style.display = 'none';
+
+  var pg = document.getElementById("pickGraph");
+  pg.style.display = 'none';
+
+  var graph_td = document.getElementById("graph_td");
+  graph_td.style.display = 'block';
+  graph_td.style.width = window.innerWidth - 40;
+
+  var graph_div = document.getElementById("graph_div");
+  graph_div.style.display = 'block';
+  graph_div.style.width = window.innerWidth - 40;
+
+  var graph_width = window.innerWidth - 100;
+  for (var i=0; i<GRAPHS.length; i++) {
+    var x = document.getElementById(GRAPHS[i]);
+    if ( x != null) x.style.width = graph_width;
+  }
+}
+
+var fastTime = false;
+
+function toggleFast()
+{
+  if (fastTime) {
+    document.getElementById("fastbox").innerHTML = "&#x25ab;";
+    fastTime = false;
+  } else {
+    document.getElementById("fastbox").innerHTML = "&#x25aa;";
+    fastTime = true;
+  }
+}
+
+function randomImgNum()
+{
+  return Math.floor(Math.random() * session.length);
+}
+
+var noChoice = true;
+var noToggle = true;
+
+function toggleMode(newMode) 
+{
+console.log("tg " + mode + ": " + newMode);
+  if (lastButton == null) {
+    lastButton = document.getElementById("graph_it");
+  }
+  var button = null;
+  switch (newMode) {
+    case 1:
+      if (mode === 'graph') {
+        return;
+      }
+      button = document.getElementById("graph_it");
+
+      hidePause();
+
+      var bigv = document.getElementById("big_view");
+      bigv.style.display = 'block';
+
+      // hide picture
+      var img_td = document.getElementById("img_td");
+      img_td.style.width = 0;
+      img_td.style.display = 'none';
+
+      document.getElementById("kwdButton").innerHTML = browserID;
+
+      // adjust sizes
+      adjustGraphs();
+
+      mode = 'graph';
+      imageNum = session.length - 1;
+      graphIt();
+/*
+      for (var i=0; i<graphs.length; i++) {
+        graphs[i].replot( { resetAxes: ['xaxis']} );
+      }
+*/
+
+      break;
+
+    case 2:
+      if (mode === 'replay') {
+        return;
+      }
+      button = document.getElementById("replay_it");
+
+      var tg = document.getElementById("toggleLastGraph");
+      tg.style.display = 'none';
+      var pg = document.getElementById("pickGraph");
+      pg.style.display = 'none';
+      var bigv = document.getElementById("big_view");
+      bigv.style.display = 'block';
+
+      // hide graphs
+      var graph_div = document.getElementById("graph_div");
+      graph_div.style.width = 0;
+      graph_div.style.display = 'none';
+
+      var img_td = document.getElementById("img_td");
+      img_td.style = "width:100%; display: inline; text-align: center;"
+
+      mode = 'replay';
+
+      if (session[0].showing.id == -1) { // keyword sel
+console.log("kwd..");
+        loadImage(0);
+      } else {
+
+console.log("not kwd..");
+        showPause();
+
+        if (imageNum >= session.length-1) {
+          imageNum = 0;
+        } 
+        if (imageNum == 0) {
+          togglePause();
+          showDog();
+        } else {
+          loadImage(imageNum);
+        }
+      }
+      break;
+
+    case 3:
+      if (mode === 'replay_graph') {
+        return;
+      }
+      if (session[0].showing.id == -1) { // keyword sel
+alert("kwd sel");
+        return;
+      }
+      button = document.getElementById("replay_g_it");
+
+      var tg = document.getElementById("toggleLastGraph");
+      tg.style.display = 'none';
+
+      var pg = document.getElementById("pickGraph");
+      pg.style.display = 'none';
+
+      var bigv = document.getElementById("big_view");
+      bigv.style.display = 'block';
+
+      var graph_div = document.getElementById("graph_div");
+      graph_div.style.width = 330;
+      graph_div.style.display = 'block';
+
+      var graph_td = document.getElementById("graph_td");
+      graph_td.style = "width: 330; display: table-cell; text-align: left;";
+
+      var img_td = document.getElementById("img_td");
+      img_td.style = "width: " + (window.innerWidth - 330) + 
+        "; display:table-cell; text-align:left; vertical-align:middle;";
+      document.getElementById("aligndiv").width = window.innerWidth - 330;
+
+      for (var i=0; i<GRAPHS.length; i++) {
+        var x = document.getElementById(GRAPHS[i]);
+        if (x != null) x.style.width = 300;
+      }
+
+      showPause();
+
+      if (imageNum >= session.length) {
+        imageNum = 0;
+      }
+       
+      mode = 'replay_graph';
+      loadImage(imageNum); // calls graphIt()
+
+      break;
+
+    case 4:
+      if (mode === 'choice') {
+        return;
+      }
+      if (noChoice) {
+        alert("No showings have choices saved.");
+        return;
+      }
+
+      button = document.getElementById("choice_it");
+
+      hidePause();
+
+      var bigv = document.getElementById("big_view");
+      bigv.style.display = 'none';
+
+      var tg = document.getElementById("toggleLastGraph");
+      tg.style.display = 'block';
+
+      var pg = document.getElementById("pickGraph");
+      pg.style.display = 'block';
+
+      mode = 'choice';
+      if (imageNum >= session.length) {
+        imageNum = 0;
+      }
+      if (!pause) {
+        togglePause();
+      }
+      plotPick(imageNum);
+      break;
+
+    case 5:
+
+      if (mode === 'replay_rand') {
+          return;
+      }
+      if (session[0].showing.id != -1) { // keyword sel
+        alert("Random only available for keyword replay");
+        return;
+      }
+      button = document.getElementById("replay_r_it");
+
+      var tg = document.getElementById("toggleLastGraph");
+      tg.style.display = 'none';
+      var pg = document.getElementById("pickGraph");
+      pg.style.display = 'none';
+      var bigv = document.getElementById("big_view");
+      bigv.style.display = 'block';
+
+      // hide graphs
+      var graph_div = document.getElementById("graph_div");
+      graph_div.style.width = 0;
+      graph_div.style.display = 'none';
+
+      var img_td = document.getElementById("img_td");
+      img_td.style = "width:100%; display: inline; text-align: center;"
+
+      mode = 'replay_rand';
+
+      showPause();
+
+      if (pause) {
+        togglePause();
+      } else {
+        loadImage(randomImgNum());
+      }
+
+      break;
+
+    case 6:
+      if (mode === 'toggle_last') {
+          return;
+      }
+      if (noToggle) {
+        alert("No showings have toggles.");
+        return;
+      }
+
+      button = document.getElementById("toggle_it");
+
+      hidePause();
+
+      var cg = document.getElementById("choice_it");
+      cg.style.display = 'none';
+      var bigv = document.getElementById("big_view");
+      bigv.style.display = 'none';
+
+      var tg = document.getElementById("toggleLastGraph");
+      tg.style.display = 'block';
+      var pg = document.getElementById("pickGraph");
+      pg.style.display = 'block';
+
+      mode = 'toggle_last';
+      if (imageNum >= session.length) {
+        imageNum = 0;
+      }
+      if (!pause) {
+        togglePause();
+      }
+      plotToggleLast(imageNum);
+
+      break;
+
+    default:
+      alert("Unknown mode code: " + newMode);
+  }
+  if (lastButton != null) {
+    lastButton.className = "blackBut";
+  }
+  if (button != null) {
+    button.className = "greyBut";
+    lastButton = button;
+  }
+}
+
+
+// -->
+</script>
+</head>
+
+<!-- NEUTRAL GREY BACKGROUND -->
+<body bgcolor="#909090">
+
+<div id="wrapper">
+
+<!-- DRAW PAGE -->
+
+<div id="header">
+<table style="width:100%">
+<tr>
+<td width="80" style="text-align:left">
+<style>
+.btn {
+ background-color:transparent;
+ border: none;
+ color:rgba(255,255,255,0.4);
+ font-size: 18pt; font-family:'Courier New',Courier,monospace;
+}
+
+#bbb:hover { background-color:transparent; }
+
+.dropdown-content {
+ display: none;
+ position: absolute;
+ background-color:#909090;
+ color:rgba(255,255,255,0.4);
+ font-size: 18pt; font-family:'Courier New',Courier,monospace;
+}
+.dropdown-menu {
+ display: none;
+ position: absolute;
+ background-color: #909090;
+ color:rgba(255,255,255,0.8);
+ font-size: 18pt; font-family:'Courier New',Courier,monospace;
+}
+
+
+</style>
+<div class="dropdown">
+<button id="bbb" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+  Cmd</button>
+ <ul class="dropdown-menu">
+  <li> <button onClick="getSessionId(0)" class="blackBut">New</button></li>
+  <li> <button id="graph_it" onclick="toggleMode(1)" class="greyBut">Graph</button></li>
+  <li> <button id="replay_it" onclick="toggleMode(2)" class="blackBut">Replay</button></li>
+  <li> <button id="replay_g_it" onclick="toggleMode(3)" class="blackBut">Replay/graph</button></li>
+  <li> <button id="replay_r_it" onclick="toggleMode(5)" class="blackBut">Replay/random</button></li>
+  <li> <button id="toggle_it" onclick="toggleMode(6)" class="blackBut">Toggles</button></li>
+  <li> <button id="choice_it" onclick="toggleMode(4)" class="blackBut">Choices</button></li>
+  <li> <button id="goto" onclick="gotoPic()" class="blackBut">Goto</button></li>
+  <li> <button id="goto" onclick="setKwdInterval()" class="blackBut">Set delay</button></li>
+  <li> <button onclick="toggleFast()" class="blackBut"><span id="fastbox">&#x25ab;</span>&nbsp;1&nbsp;sec&nbsp;replay</button></li> <!-- &#x25aa black -->
+ </ul>
+</div>
+</td>
+<td style="text-align:left;margin-left:0;">
+ <!-- button style="margin:left;display:inline;color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;" onclick="toggleKwdDisplay()" -->
+ <button class="greyBut" onclick="toggleKwdDisplay()" />
+<span id="kwdButton" style="text-align: left;">
+kwd
+</span>
+</button>
+</td>
+<td style="text-align:right;">
+<button id="pause" class="greyBut" style="text-align:right;" onclick="togglePause()">Pause &nbsp;&nbsp;&nbsp;&nbsp;</button>
+</td>
+</tr>
+</table>
+</div>
+<div id="content">
+<center>
+<div id="pickGraph" style="height:500px; width:100%;background:#909090"></div>
+<div id="toggleLastGraph" style="height:500px; width:100%;background:#909090"></div>
+<div id="big_view" style="display:block;">
+<table style="width:100%"><tbody>
+<tr>
+ <td id="graph_td">
+  <div id="graph_div" style="width:0;height:580px;overflow-y:auto;">
+  <table><tbody>
+
+   <!-- hidden text for space so point label txt can show: -->
+   <tr><td><div style="color:#909090;">XXX</div></td></tr> 
+   <tr><td>
+     <div id="lt_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+
+   <tr><td>
+     <div id="vt_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="vtfv1_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+
+   <tr><td>
+     <div id="ratings_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+
+   <tr><td>
+     <div id="ct_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="ctf1_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="md_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mdf1_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mmj_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="pip_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="dc_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="pop_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+
+   <tr><td>
+     <div id="vtfv2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="ctf2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mdf2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="vt2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="vt2fv1_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="vt2fv2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+
+   <tr><td>
+     <div id="mdav_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mr_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="md2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="md2f1_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="md2f2_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mav_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mmv_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mma_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+   <tr><td>
+     <div id="mmina_graph" style="height:100px; width:300px"></div>
+   </td></tr>
+  </tbody></table>
+  </div>
+ </td>
+ <td id="img_td" style="height:600px;width:0;display:none;">
+  <div id="aligndiv" align="center">
+  <img id="image" name='image2' src="noimage" alt="pic?" 
+   onclick="popDesc();">
+  </div>
+ </td>
+</tr>
+</tbody></table>
+</div>
+</center>
+
+</div>
+<div id="footer">
+<center>
+<style>
+button {
+    cursor: pointer;
+    border: 1px transparent;
+    background-color: transparent;
+}
+</style>
+
+<button id="minus" onclick="back();" title="different" style="font-size:50px; color:red;">
+-
+</button>
+
+<button id="bar" title="random" style="font-size:40px; color:blue;">
+|
+</button>
+
+<button id="plus" onclick="forward();" title="similar?" style="font-size:50px; color:green;">
++
+</button>
+<button id="sidebut" style="font-size:50px; color:#a0a0a0;"></button>
+<br>
+<a href="index.html">
+<p style="color:rgba(255,255,255,0.4);font-size: 18pt; font-family:'Courier New',Courier,monospace;" align="right">&copy; 2015-2023 Photoriot.</p>
+</a>
+</center>
+<!-- INITIALIZE -->
+
+<script>
+<!--
+try {
+  getSessionId(0);
+} catch (e) {
+  alert(e);
+}
+// -->
+</script>
+</div>
+</div>
+</body>
+</html>

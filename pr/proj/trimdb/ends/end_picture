@@ -1,0 +1,20 @@
+/*
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+
+DROP INDEX IF EXISTS pr.picture_id_idx;
+CREATE UNIQUE INDEX picture_id_idx ON pr.picture USING btree (id);
+
+DROP INDEX IF EXISTS pr.picture_fname_idx;
+CREATE UNIQUE INDEX picture_fname_idx ON pr.picture USING btree (archive, file_name);
+
+DROP INDEX IF EXISTS pr.picture_seq_idx;
+CREATE INDEX picture_seq_idx ON pr.picture USING btree (archive, sequence);
+
+REVOKE ALL ON TABLE pr.picture FROM PUBLIC;
+REVOKE ALL ON TABLE pr.picture FROM pr;
+GRANT ALL ON TABLE pr.picture TO pr;
+

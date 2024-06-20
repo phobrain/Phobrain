@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+
+# update.vecs is ML->pr.image
+
+set -e
+
+PHOB_LOCAL=`get_phobrain_local.sh`
+
+if [ ! -d "$PHOB_LOCAL" ] ; then
+    echo "== $0 no PHOBRAIN_LOCAL"
+    exit 1
+fi
+
+VECS="$PHOB_LOCAL/picture_vectors"
+
+if [ ! -f "$VECS" ] ; then
+    echo "== $0 no $VECS - skipping"
+    exit 0
+fi
+
+MLDIR="`phobrain_property.sh ml.v.dir`"
+S="s:^:${MLDIR}:g"
+
+LIST=`egrep "^pairvecs" "$VECS" | awk '{print $2}' | sed -e $S -e 's:\n: :g'`
+
+#echo === $LIST
+#exit
+
+java -Xmx4g -jar build/libs/update-all-1.0.jar $* pairvecs $LIST

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+RESULT=pr.pairtop_vec_v_dump.sql
+
+VECDIR=~/ml/keras/pp2v/
+
+set -e
+START=`date`
+
+echo "== $0  vec.top pairtop store is $VECDIR"
+
+time {
+
+    ./run.sh v vec \
+        $VECDIR/v_2022_11/JH2/VGG16/m_v_model_pnlv_91_89_2101_2478__reb_9_1_200__min_59_ki_he_normal_Hmx_ml1984_VGG16_224v_lrv_2_nathan_relu_SGD.vecs \
+        cosine cv2 
+
+exit
+        $VECDIR/v_2022_11/JH3/VGG16/m_v_model_pnlv_93_90_1866_1968__reb_3_2_200__min_26_ki_glorot_normal_Hmx_ml1984_VGG16_224v_lrv_3_nathan_relu_STEEP_SGD.vecs \
+        cosine cv3 poinca pv3 \
+        $VECDIR/v_2022_10/JH4/VGG16//m_v_model_pnlv_95_91_1522_1986__reb_6_1_250__min_39_ki_glorot_normal_Hmx_ml1984_1984_VGG16_224v_lrv_4_nathan_relu_SGD.vecs \
+        cosine cv4 poinca pv4 \
+        $VECDIR/v_2022_10/JH5/VGG16/m_v_model_pnlv_95_91_1739_2097__reb_4_2_150__min_34_ki_glorot_normal_Hmx_ml1984_1984_VGG16_224v_lrv_5_nathan_relu_STEEP_SGD.vecs \
+        cosine cv5 poinca pv5 \
+        $VECDIR/v_2022_11/JH12/VGG16/m_v_model_pnlv_93_92_1416_1952__reb_6_1_250__min_38_ki_glorot_normal_Hmx_ml1984_VGG16_224v_lrv_12_nathan_relu_SGD.vecs \
+        cosine cv12 poinca pv12 
+}

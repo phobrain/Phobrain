@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+# imagenet model vectors ->pr.image
+
+MODEL=DenseNet121
+MODEL_IMAGE_SIZE=prun224
+BASE_VECTOR_SIZE=1024
+COLUMN_ROOT=dense
+
+if [ $# != "1" ] ; then
+    echo "Usage: $0 <size> (factor of $BASE_VECTOR_SIZE)"
+    exit 1
+fi
+
+SIZES="$1"
+
+set -e
+
+IMAGE_DESC="`../../bin/phobrain_property.sh image.desc.dir`"
+VEC_DIR="$IMAGE_DESC/3_jpg/$MODEL_IMAGE_SIZE/vecs_$MODEL"
+
+#FAC=$(( BASE_VECTOR_SIZE / SZ ))
+
+time {
+
+    echo "== $0 loading summed $MODEL ${BASE_VECTOR_SIZE} vecs in .hist_bin fmt"
+    echo "== for [$COLUMN_ROOT]-[$SIZES] from [$VEC_DIR]"
+    echo "=="
+    echo "==    [initial setup: pgvector column add:"
+    echo "==      alter table pr.picture add column $COLUMN_ROOT vector($SZ);"
+    echo "==    ]"
+    #echo "==    ($BASE_VECTOR_SIZE / size) is 'folds'"
+
+    java -Xmx4g -jar build/libs/update-all-1.0.jar imgvecs $BASE_VECTOR_SIZE $SIZES $COLUMN_ROOT $VEC_DIR
+
+}

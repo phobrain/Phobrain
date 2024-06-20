@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+# args printed by prog
+
+time java -Xmx4g -jar build/libs/traind-all-1.0.jar $*

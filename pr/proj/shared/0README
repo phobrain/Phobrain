@@ -1,0 +1,12 @@
+#
+#  SPDX-FileCopyrightText: 2024 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: MIT-0
+#
+Copyright only applies to this file.
+
+See ../build.gradle for build.
+
+Included: IQM files using Flanagan jar
+http://www.ee.ucl.ac.uk/~mflanaga/java/index.html
+m.flanagan@ucl.ac.uk

@@ -1,0 +1,54 @@
+Copyright 2015-2022 Bill Ross
+
+Copyright dates up to 2022 reflect continual ad hoc public website 
+development without releases of software.
+
+Phobrain is free software; you can redistribute it and/or modify it 
+under the terms of the GNU Affero General Public License as published 
+by the Free Software Foundation, either version 3 of the License, or 
+(at your option) any later version.
+
+Phobrain is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License 
+below for more details.
+
+=== OTHER LICENSED SOFTWARE INCLUDED IN PHOBRAIN WEB SERVER
+
+-- Java utility
+
+    pr/proj/shared/src/main/java/com/devdaily/system/SystemCommandExecutor.java
+    pr/proj/shared/src/main/java/com/devdaily/system/ThreadedStreamHandler.java
+
+    Source:
+    http://devdaily.com/java/java-processbuilder-process-system-exec
+
+    Copyright 2010 alvin j. alexander, devdaily.com.
+    http://www.gnu.org/licenses/lgpl.txt
+
+-- Webserver utility
+
+    pr/proj/shared/src/main/java/com/priot/servlet/StaticResource.java
+    pr/proj/shared/src/main/java/com/priot/servlet/StaticResourceServlet.java
+
+    Source:
+    http://stackoverflow.com/questions/132052/servlet-for-serving-static-content
+
+    License:
+    https://creativecommons.org/licenses/by-sa/4.0/
+
+-- Webserver utility for adding whimsical response delays:
+
+    Higuchi fractal dimension calculation from IQM
+
+    pr/proj/shared/src/main/java/com/priot/math/Higuchi.java
+
+    Source: IQM Project
+    https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0116329
+
+    Copyright (C) 2009 - 2016 Helmut Ahammer, Philipp Kainz
+    http://www.gnu.org/licenses/gpl-3.0.html
+
+ ?-- Michael Thomas Flanagan's Java Scientific Library
+
+    https://www.ee.ucl.ac.uk/~mflanaga/java/index.html

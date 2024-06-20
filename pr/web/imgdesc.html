@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html><head>
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+ <meta charset="utf-8">
+ <link rel="canonical" href="http://phobrain.com"/>
+ <link rel="icon" href="favicon.ico"/>
+ <meta name="description" content="Your mind on photos - associative slideshow brain teaser"/>
+ <meta  http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+ <title>Phobrain Image Analysis</title>
+</head>
+<body bgcolor="#ffffff">
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<a href="index.html">
+<p style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+&nbsp;&nbsp;&nbsp;&nbsp;Home</p>
+</a>
+</td>
+<td style="text-align:right">
+<a href="explain.html">
+<p style="color:rgba(255,255,255,0.6);font-size: 28pt; font-family:'Courier New',Courier,monospace;" align="right">About &nbsp;&nbsp;&nbsp;&nbsp;</p>
+</a>
+</td>
+</tr>
+</table>
+</div>
+<div id="content">
+<center>
+<style>
+h1{
+font-size:100px;
+text-shadow:0px 0px 10px #888;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+line-height:.3;
+}
+A:link{font-weight: bold; text-decoration:none;}
+A:visited{font-weight: bold; text-decoration:none;}
+</style>
+<a href="index.html">
+<h1>Phobrain</h1>
+</a>
+<h2>Image Analysis</h2>
+<p>
+Here are some results for various image analysis methods applied
+to Bill's and Elle's photos combined (N~8000).
+Values are scaled for display purposes.<br/>
+</p>
+
+<h2>Distributions of image distance metrics</h2>
+
+<p><a href="https://en.wikipedia.org/wiki/Color_difference">
+Lab CIE94 color distances</a><br/>
+The multiple curves seem like artifacts of computation, possibly evidence of a bug in the code, or an oddity of the algorithm..</p>
+<img src="graph/graph_lab_distrib_sm.png" alt="Lab distance distribution CIE94"/><br/><br/>
+
+<p><a href="https://en.wikipedia.org/wiki/Color_difference">
+Lab CIE2000 color distances</a><br/>
+This algorithm seems more stable. <a href="ColorUtil.txt">Code is twice as complex.</a><br/>
+<img src="graph/graph_lab_2k_distrib_sm.png" alt="Lab distance distribution CIE2000"/><br/><br/>
+<p><a href="https://en.wikipedia.org/wiki/HSL_and_HSV">Hue+Sat 12x12 histogram distance distribution</a></p>
+<img src="graph/graph_hs_12_distrib_sm.png" alt="HS 12x12 histogram distance distribution"><br/><br/>
+
+<p><a href="https://en.wikipedia.org/wiki/HSL_and_HSV">Hue+Sat 24x24 histogram distance distribution</a></p>
+<img src="graph/graph_hs_24_distrib_sm.png" alt="HS 24x24 histogram distance distribution"><br/><br/>
+
+<p><a href="https://en.wikipedia.org/wiki/HSL_and_HSV">Hue+Sat 48x48 histogram distance distribution</a></p>
+<img src="graph/graph_hs_48_distrib_sm.png" alt="HS 48x48 histogram distance distribution"><br/><br/>
+
+<p><a href="http://people.csail.mit.edu/torralba/code/spatialenvelope/">Gist distance distribution</a></p>
+<img src="graph/graph_gist_256_distrib_sm.png" alt="Gist distance distribution"/><br/><br/>
+
+<p><a href="http://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Sift distance distribution (500 words)</a></p>
+<img src="graph/graph_sift_500w_300px_distrib_sm.png" alt="Sift distance distribution"/><br/><br/>
+
+<p><a href="https://en.wikipedia.org/wiki/Histogram_of_oriented_gradients">HOG distance distribution (500 words)</a></p>
+<img src="graph/graph_hog_500w_300px_distrib_sm.png" alt="HOG distance distribution"/><br/><br/>
+
+<p><a href="https://en.wikipedia.org/wiki/Speeded_up_robust_features">SURF Fast distance distribution (500 words)</a></p>
+<img src="graph/graph_surf_500w_300px_distrib_sm.png" alt="SURF Fast distance distribution"/><br/><br/>
+
+<p><a href="https://en.wikipedia.org/wiki/Speeded_up_robust_features">SURF Fast distance distribution (200 words)</a></p>
+<img src="graph/graph_surf_200w_300px_distrib_sm.png" alt="SURF Fast distance distribution"><br/><br/>
+
+<h2>Dimensionality of metrics</h2>
+
+<p style="margin-left:20em;margin-right:20em;">
+<a href= "http://stackoverflow.com/questions/37855596/calculate-the-spatial-dimension-of-a-graph">
+Calculate the 'dimension' of the picture space using different metrics.</a> <br/>
+Where run time is not indicated, the metric calculation was part of calculating 
+on 8k photos. In this case, the feature sets that words are drawn from are richer, and this seems to raise the fractal dimension slightly. <br/>
+FracD is fractal dimension (Higuchi) calculated on both an arbitrary ordering of the pairs, and sorted ordering of the values, for each metric.
+<a href="http://stackoverflow.com/questions/37855596/calculate-the-spatial-dimension-of-a-graph">'Dimension'</a> is calculated by 
+MultiDimensional Scaling using an heuristic; stress(100) is the 
+'stress' that the scikit-learn library reported for fitting the set of 
+distances to 100 dimensions, while stress(1) is the stress for fitting 
+to one dimension. 
+NOTE: the distances for these metrics violate the triangle inequality 
+in ~0.02% of cases, so it would be impossible for these metrics to map 
+to cartesian spaces. Using the square root of the distance overcomes 
+this violation, leaving higher-order violations to be checked.
+In this case, the dimension of Lab distance goes from 3 to 25.<br/>
+Photo dimensions are within 300x300px, except when 600px stated.
+</p>
+
+<table>
+<tr>
+ <th>Method</th>
+ <th>Sample</th>
+ <th>t_calc</th>
+ <th>FracD<br/>arb</th>
+ <th>FracD<br/>sort</th>
+ <th>Nonmetric stress<br/>at dim=N-1</th>
+ <th>Dimension</th>
+ <th>Metric stress<br/>at dim=N-1</th>
+ <th>stress(100)</th>
+ <th>stress(1)</th>
+</tr>
+<tr>
+ <td>Lab CIE94 dist 600px</td>
+ <td>329</td>
+ <td>-</td>
+ <td>1.9785</td>
+ <td>1.1458</td>
+ <td>0.324275</td>
+ <td>3</td>
+ <td>2114108156246633</td>
+ <td>2114107376961504</td>
+ <td>33238672000252052</td>
+</tr>
+<tr>
+ <td>Lab CIE94 dist 600px</td>
+ <td>328</td>
+ <td>-</td>
+ <td>1.9785</td>
+ <td>1.1461</td>
+ <td>0.293298</td>
+ <td>3</td>
+ <td>210243371374</td>
+ <td>210242809607</td>
+ <td>2765715192305</td>
+</tr>
+<tr>
+ <td>Lab CIE2000 dist 600px</td>
+ <td>328</td>
+ <td>-</td>
+ <td>1.9830</td>
+ <td>1.1515</td>
+ <td>0.273917</td>
+ <td>3</td>
+ <td>191237885055</td>
+ <td>191237885050</td>
+ <td>2453706756652</td>
+</tr>
+<tr>
+ <td>Greyscale</td>
+ <td>329</td>
+ <td>10s</td>
+ <td>1.9825</td>
+ <td>1.0490</td>
+ <td>0.325703</td>
+ <td>8</td>
+ <td>42238947558</td>
+ <td>42238951082</td>
+ <td>1454262245593</td>
+</tr>
+<tr>
+ <td>Greyscale 600px</td>
+ <td>329</td>
+ <td>10s</td>
+ <td>1.9834</td>
+ <td>1.0512</td>
+ <td>0.323473</td>
+ <td>9</td>
+ <td>43218312117</td>
+ <td>43218311843</td>
+ <td>1503467825297</td>
+</tr>
+<tr>
+ <td>HueSat 12x12</td>
+ <td>329</td>
+ <td>10s</td>
+ <td>1.9858</td>
+ <td>1.0889</td>
+ <td>0.322799</td>
+ <td>19</td>
+ <td>33661688784</td>
+ <td>33661589105</td>
+ <td>3616806311396</td>
+</tr>
+<tr>
+ <td>HueSat 24x24</td>
+ <td>329</td>
+ <td>10s</td>
+ <td>1.9880</td>
+ <td>1.1298</td>
+ <td>0.322510</td>
+ <td>35</td>
+ <td>16070401684</td>
+ <td>16070009781</td>
+ <td>4349496176228</td>
+</tr>
+<tr>
+ <td>HS 24x24 600px</td>
+ <td>329</td>
+ <td>10s</td>
+ <td>1.9899</td>
+ <td>1.1340</td>
+ <td>0.322085</td>
+ <td>35</td>
+ <td>15928051546</td>
+ <td>15927668148</td>
+ <td>4368059624646</td>
+</tr>
+<tr>
+ <td>HueSat 48x48</td>
+ <td>329</td>
+ <td>12s</td>
+ <td>1.9908</td>
+ <td>1.1854</td>
+ <td>0.322677</td>
+ <td>64</td>
+ <td>7221313089</td>
+ <td>7231079366</td>
+ <td>4836919775090</td>
+</tr>
+<tr>
+ <td>HS 48x48 600px</td>
+ <td>329</td>
+ <td>12s</td>
+ <td>1.9915</td>
+ <td>1.1880</td>
+ <td>0.323621</td>
+ <td>63</td>
+ <td>7336043115</td>
+ <td>7344975790</td>
+ <td>4820454342678</td>
+</tr>
+<tr>
+ <td>GIST</td>
+ <td>329</td>
+ <td>1m</td>
+ <td>1.9865</td>
+ <td>1.2312</td>
+ <td>0.329024</td>
+ <td>9</td>
+ <td>28786833694</td>
+ <td>28786830336</td>
+ <td>997666139720</td>
+</tr>
+<tr>
+ <td>GIST</td>
+ <td>830</td>
+ <td>3m</td>
+ <td>1.9961</td>
+ <td>1.2448</td>
+ <td>-</td>
+ <td>9</td>
+ <td>214365075676</td>
+ <td>214364981166</td>
+ <td>7007650454678</td>
+</tr>
+<tr>
+ <td>HOG 250 words</td>
+ <td>329</td>
+ <td>10m</td>
+ <td>1.9708</td>
+ <td>1.3114</td>
+ <td>0.332430</td>
+ <td>10</td>
+ <td>10120766077</td>
+ <td>10120761644</td>
+ <td>150327274044</td>
+</tr>
+<tr>
+ <td>HOG 250 words</td>
+ <td>830</td>
+ <td>30m</td>
+ <td>1.9812</td>
+ <td>1.3547</td>
+ <td>-</td>
+ <td>10</td>
+ <td>90102389041</td>
+ <td>90102297910</td>
+ <td>1309506765055</td>
+</tr>
+<tr>
+ <td>HOG 500 words</td>
+ <td>329</td>
+ <td>20m</td>
+ <td>1.9667</td>
+ <td>1.3543</td>
+ <td>0.329802</td>
+ <td>13</td>
+ <td>4740817637</td>
+ <td>4740814068</td>
+ <td>70999988871</td>
+</tr>
+<tr>
+ <td>HOG 500 words</td>
+ <td>830</td>
+ <td>53m</td>
+ <td>1.9820</td>
+ <td>1.3913</td>
+ <td>-</td>
+ <td>13</td>
+ <td>47615466238</td>
+ <td>47615344807</td>
+ <td>638873446770</td>
+</tr>
+<tr>
+ <td>HOG 1k words</td>
+ <td>329</td>
+ <td>46m</td>
+ <td>1.9684</td>
+ <td>1.3805</td>
+ <td>0.333557</td>
+ <td>15</td>
+ <td>2364987049</td>
+ <td>2364984044</td>
+ <td>38619752999</td>
+</tr>
+<tr>
+ <td>HOG 1k words</td>
+ <td>329</td>
+ <td>-</td>
+ <td>1.9687</td>
+ <td>1.3961</td>
+ <td>0.326129</td>
+ <td>16</td>
+ <td>1738122757</td>
+ <td>1738119626</td>
+ <td>32056067485</td>
+</tr>
+<tr>
+ <td>HOG 4k words</td>
+ <td>329</td>
+ <td>183m</td>
+ <td>1.9667</td>
+ <td>1.4563</td>
+ <td>0.330588</td>
+ <td>22</td>
+ <td>789797143</td>
+ <td>790448483</td>
+ <td>12788342999</td>
+</tr>
+<tr>
+ <td>SIFT 500 words</td>
+ <td>329</td>
+ <td>-</td>
+ <td>1.9526</td>
+ <td>1.5254</td>
+ <td>0.334410</td>
+ <td>10</td>
+ <td>3299647152</td>
+ <td>3299613921</td>
+ <td>32981778348</td>
+</tr>
+<tr>
+ <td>SIFT 1k words</td>
+ <td>329</td>
+ <td>-</td>
+ <td>1.9520</td>
+ <td>1.5706</td>
+ <td>0.325208</td>
+ <td>11</td>
+ <td>1930309620</td>
+ <td>1930289338</td>
+ <td>18095265606</td>
+</tr>
+<tr>
+ <td>SIFT 4k words</td>
+ <td>329</td>
+ <td>828m</td>
+ <td>1.9645</td>
+ <td>1.5659</td>
+ <td>0.370531</td>
+ <td>12</td>
+ <td>1173320138</td>
+ <td>1173417298</td>
+ <td>8332093153</td>
+</tr>
+
+<tr>
+ <td>SURF FAST 200 words</td>
+ <td>329</td>
+ <td>-</td>
+ <td>1.9728</td>
+ <td>1.3829</td>
+ <td>0.331700</td>
+ <td>8</td>
+ <td>2778256609</td>
+ <td>2778256463</td>
+ <td>40011821579</td>
+</tr>
+<tr>
+ <td>SURF FAST 250 words</td>
+ <td>329</td>
+ <td>8m</td>
+ <td>1.9735</td>
+ <td>1.3754</td>
+ <td>0.333224</td>
+ <td>8</td>
+ <td>2591205654</td>
+ <td>2591204993</td>
+ <td>35829689692</td>
+</tr>
+<tr>
+ <td>SURF FAST 500 words</td>
+ <td>329</td>
+ <td>15m</td>
+ <td>1.9649</td>
+ <td>1.4551</td>
+ <td>0.335407</td>
+ <td>10</td>
+ <td>1620836377</td>
+ <td>1620830296</td>
+ <td>21609765416</td>
+</tr>
+<tr>
+ <td>SURF FAST 1k words</td>
+ <td>329</td>
+ <td>30m</td>
+ <td>1.9637</td>
+ <td>1.5023</td>
+ <td>0.332962</td>
+ <td>14</td>
+ <td>949563200</td>
+ <td>949543059</td>
+ <td>13039001089</td>
+</tr>
+<tr>
+ <td>SURF FAST 4k words</td>
+ <td>329</td>
+ <td>117m</td>
+ <td>1.9731</td>
+ <td>1.5536</td>
+ <td>0.352633</td>
+ <td>19</td>
+ <td>627742238</td>
+ <td>628714256</td>
+ <td>6008901502</td>
+</tr>
+<tr>
+ <td>SURF FAST 4k words</td>
+ <td>329</td>
+ <td>-</td>
+ <td>1.9776</td>
+ <td>1.5690</td>
+ <td>0.355562</td>
+ <td>19</td>
+ <td>581727967</td>
+ <td>582893432</td>
+ <td>5016304129</td>
+</tr>
+
+</table>
+
+<br/><br/>
+
+<h2>Violations of triangle inequality</h2>
+
+<p>Sample of 329 photos with '11' in sequence number ('*'=328); 300x300px unless noted.</p>
+
+<table>
+<tr>
+ <th>Method</th>
+ <th>N_violations</th>
+ <th>N_vio/N_triangles</th>
+ <th>Avg_vio</th>
+ <th>Avg_dist</th>
+ <th>Avg_vio / Avg_dist</th>
+</tr>
+<tr>
+ <td>Lab CIE94</td>
+ <td>186402</td>
+ <td>0.031986</td>
+ <td> 157120.407286</td>
+ <td> 795782.437570</td>
+ <td> 0.197441</td>
+</tr>
+<tr>
+ <td>Lab CIE94*</td>
+ <td>182355</td>
+ <td>0.031581</td>
+ <td> 1590.681204</td>
+ <td> 7932.971405</td>
+ <td> 0.200515</td>
+<tr>
+<tr>
+ <td>Lab CIE2000*</td>
+ <td>488398</td>
+ <td> 0.084582</td>
+ <td> 2832.189859</td>
+ <td> 7549.811582</td>
+ <td> 0.375134</td>
+</tr>
+<tr>
+ <td>Greyscale</td>
+ <td>126902</td>
+ <td>  0.021776</td>
+ <td>   1323.551315</td>
+ <td>   5036.899585</td>
+ <td> 0.262771</td>
+</tr>
+<tr>
+ <td>Grey 600px</td>
+ <td>120566</td>
+ <td>  0.020689</td>
+ <td>   1339.299040</td>
+ <td>   5106.055953</td>
+ <td> 0.262296</td>
+</tr>
+<tr>
+ <td>Gist</td>
+ <td>69269</td>
+ <td>  0.011886</td>
+ <td>   1252.289855</td>
+ <td>   4240.768117</td>
+ <td> 0.295298</td>
+</tr>
+<tr>
+ <td>RGB 12</td>
+ <td>25323</td>
+ <td>  0.004345</td>
+ <td>    791.203886</td>
+ <td>   7305.977862</td>
+ <td> 0.108295</td>
+</tr>
+<tr>
+ <td>RGB 24</td>
+ <td>7398</td>
+ <td>  0.001269</td>
+ <td>    525.981752</td>
+ <td>   8538.276549</td>
+ <td> 0.061603</td>
+</tr>
+<tr>
+ <td>RGB 32</td>
+ <td>5404</td>
+ <td>  0.000927</td>
+ <td>    446.044597</td>
+ <td>   8827.910112</td>
+ <td> 0.050527</td>
+</tr>
+<tr>
+ <td>RGB 48</td>
+ <td>5026</td>
+ <td>  0.000862</td>
+ <td>    640.310784</td>
+ <td>   9095.378790</td>
+ <td> 0.070400</td>
+</tr>
+<tr>
+ <td>RGB 64</td>
+ <td>3994</td>
+ <td>  0.000685</td>
+ <td>    614.752879</td>
+ <td>   9270.282684</td>
+ <td> 0.066314</td>
+</tr>
+<tr>
+ <td>RGB 98</td>
+ <td>3451</td>
+ <td>  0.000592</td>
+ <td>    576.815995</td>
+ <td>   9409.094095</td>
+ <td> 0.061304</td>
+</tr>
+<tr>
+ <td>RGB 128</td>
+ <td>1923</td>
+ <td>  0.000330</td>
+ <td>    531.054082</td>
+ <td>   9549.109033</td>
+ <td> 0.055613</td>
+</tr>
+
+<tr>
+ <td>RGB 12 600px</td>
+ <td>25190</td>
+ <td>  0.004323</td>
+ <td>    790.258158</td>
+ <td>   7313.379003</td>
+ <td> 0.108057</td>
+</tr>
+<tr>
+ <td>RGB 24 600px</td>
+ <td>7531</td>
+ <td>  0.001292</td>
+ <td>    526.027221</td>
+ <td>   8560.853557</td>
+ <td> 0.061446</td>
+</tr>
+<tr>
+ <td>RGB 32 600px</td>
+ <td>5463</td>
+ <td>  0.000937</td>
+ <td>    449.759107</td>
+ <td>   8847.079639</td>
+ <td> 0.050837</td>
+</tr>
+<tr>
+ <td>RGB 48 600px</td>
+ <td>5327</td>
+ <td>  0.000914</td>
+ <td>    645.766473</td>
+ <td>   9106.240103</td>
+ <td> 0.070915</td>
+</tr>
+<tr>
+ <td>RGB 64 600px</td>
+ <td>4382</td>
+ <td>  0.000752</td>
+ <td>    634.000685</td>
+ <td>   9272.151040</td>
+ <td> 0.068377</td>
+</tr>
+<tr>
+ <td>RGB 128 600px</td>
+ <td>2156</td>
+ <td>  0.000370</td>
+ <td>    544.644712</td>
+ <td>   9515.696642</td>
+ <td> 0.057236</td>
+</tr>
+
+<tr>
+ <td>HS 12</td>
+ <td>7882</td>
+ <td>  0.001353</td>
+ <td>    950.321873</td>
+ <td>   7555.464323</td>
+ <td> 0.125779</td>
+</tr>
+<tr>
+ <td>HS 24</td>
+ <td>1740</td>
+ <td>  0.000299</td>
+ <td>    900.577586</td>
+ <td>   8227.559169</td>
+ <td> 0.109459</td>
+</tr>
+<tr>
+ <td>HS 48</td>
+ <td>1137</td>
+ <td>  0.000195</td>
+ <td>    661.389622</td>
+ <td>   8653.085004</td>
+ <td> 0.076434</td>
+</tr>
+<tr>
+ <td>HS 64</td>
+ <td>1134</td>
+ <td>0.000195</td>
+ <td> 697.298942</td>
+ <td> 8776.086144</td>
+ <td> 0.079454</td>
+</tr>
+<tr>
+ <td>HS 12 600px</td>
+ <td>6898</td>
+ <td>  0.001184</td>
+ <td>    943.319078</td>
+ <td>   7564.309456</td>
+ <td> 0.124707</td>
+</tr>
+<tr>
+ <td>HS 24 600px</td>
+ <td>1790</td>
+ <td>  0.000307</td>
+ <td>    908.031844</td>
+ <td>   8237.927256</td>
+ <td> 0.110226</td>
+</tr>
+<tr>
+ <td>HS 48 600px</td>
+ <td>1267</td>
+ <td>  0.000217</td>
+ <td>    693.607735</td>
+ <td>   8647.060308</td>
+ <td> 0.080213</td>
+</tr>
+<tr>
+ <td>HS 64 600px</td>
+ <td>1289</td>
+ <td>  0.000221</td>
+ <td>    682.567106</td>
+ <td>   8761.325172</td>
+ <td> 0.077907</td>
+</tr>
+<tr>
+ <td>Sift 500w</td>
+ <td>26466</td>
+ <td>  0.004542</td>
+ <td>   1267.833182</td>
+ <td>   1073.692611</td>
+ <td> 1.180816</td>
+</tr>
+<tr>
+ <td>Sift 1k</td>
+ <td>16489</td>
+ <td>  0.002829</td>
+ <td>   1598.830736</td>
+ <td>    824.586293</td>
+ <td> 1.938949</td>
+</tr>
+<tr>
+ <td>Sift 4k</td>
+ <td>10528</td>
+ <td>  0.001807</td>
+ <td>   1918.068294</td>
+ <td>    533.492373</td>
+ <td> 3.595306</td>
+</tr>
+<tr>
+ <td>SurfFast 250w</td>
+ <td>38162</td>
+ <td>  0.006549</td>
+ <td>    630.098999</td>
+ <td>   1006.401837</td>
+ <td> 0.626091</td>
+</tr>
+<tr>
+ <td>SurfFast 500w</td>
+ <td>19853</td>
+ <td>  0.003407</td>
+ <td>    901.724525</td>
+ <td>    830.596690</td>
+ <td> 1.085635</td>
+</tr>
+<tr>
+ <td> SurfFast 1k</td>
+ <td>10659</td>
+ <td>  0.001829</td>
+ <td>   1310.348063</td>
+ <td>    648.191424</td>
+ <td> 2.021545</td>
+</tr>
+<tr>
+ <td>SurfFast 4k</td>
+ <td>8988</td>
+ <td>  0.001542</td>
+ <td>   1488.200156</td>
+ <td>    419.794008</td>
+ <td> 3.545072</td>
+</tr>
+<tr>
+ <td>Hog 250w</td>
+ <td>53782</td>
+ <td>  0.009229</td>
+ <td>    675.056004</td>
+ <td>   1968.357004</td>
+ <td> 0.342954</td>
+</tr>
+<tr>
+ <td>Hog 500w</td>
+ <td>18680</td>
+ <td>  0.003205</td>
+ <td>    559.354979</td>
+ <td>   1431.803914</td>
+ <td> 0.390665</td>
+</tr>
+<tr>
+ <td>Hog 1k</td>
+ <td>9330</td>
+ <td>  0.001601</td>
+ <td>    771.307074</td>
+ <td>    970.307130</td>
+ <td> 0.794910</td>
+</tr>
+<tr>
+ <td> Hog 4k</td>
+ <td>5587</td>
+ <td>  0.000959</td>
+ <td>    993.062824</td>
+ <td>    650.037429</td>
+ <td> 1.527701</td>
+</tr>
+</table>
+<br/><br>
+
+<h2>Comparing effect of number of words on triangle violations</h2>
+
+<table>
+<tr>
+ <th>Method</th>
+ <th>250w</th>
+ <th>500w</th>
+ <th>1k</th>
+ <th>4k</th>
+</tr>
+<tr>
+ <td>Sift</td>
+ <td> - </td>
+ <td>26466</td>
+ <td>  16489</td>
+ <td>   10528</td>
+</tr>
+<tr>
+ <td>SurfFast</td>
+ <td>38162</td>
+ <td>19853</td>
+ <td>  10659</td>
+ <td>     8988</td>
+</tr>
+<tr>
+ <td>Hog</td>
+ <td>53782</td>
+ <td>18680</td>
+ <td>    9330</td>
+ <td>     5587</td>
+</tr>
+</table>
+<br/><br/>
+
+<h2>Potential surfaces traveling 500 steps from given pictures</h2>
+<p>
+For each of two pictures, keep picking the best non-repeating match for each
+algorithm, graphing the distance.<br/>
+Then compare the overlap between methods in tables.
+</p>
+
+<h4>Starting photos</h4>
+<img src="graph/img01a.jpg">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="graph/img57a.jpg"><br/><br/>
+
+<h4>Lab CIE94</h4>
+<p>It seems that the value 1000 is a theme, as well as 0.<br/>
+The numbers look suspect, though image matches seem to be plausible.<br/>
+Overall, about 3/8 of the images are involved in 0-distance pairs,<br/>
+which might be due to the limited range used of the wide Lab space.<br/>
+Examples of photos with the most 0 distances are at the end of this page.<br/>
+Total 722 unique photos for the two sequences.</p>
+<img src="graph/graph_lab_500_from_0_sm.png" alt="lab path 1"/> 
+<img src="graph/graph_lab_57_500_from_0_sm.png" alt="lab path 1"/> 
+<br/>
+
+<h4>HS 12x12</h4>
+<p>Very similar patterns.<br/>
+Total 613 unique photos for the two sequences.</p>
+<img src="graph/graph_hs_12_500_from_0_sm.png" alt="hs_12 path 1"/> 
+<img src="graph/graph_hs12_57_500_from_0_sm.png" alt="hs_12 path 1"/> 
+<br/>
+
+<h4>HS 24x24</h4>
+<p>Total 557 unique photos for the two sequences.</p>
+<img src="graph/graph_hs_24_500_from_0_sm.png" alt="hs_24 path 1"/> 
+<img src="graph/graph_hs24_57_500_from_0_sm.png" alt="hs_24 path 1"/> 
+<br/>
+
+<h4>Gist</h4>
+<p>The graphs seem to match well, but<br/>
+there is one point in the first graph, at x=300, y=4000,<br/>
+that doesn't appear on the other graph, plus others.<br/>
+<p>Total 554 unique photos for the two sequences.</p>
+<img src="graph/graph_gist_500_from_0_sm.png" alt="gist path 1"/> 
+<img src="graph/graph_gist_57_500_from_0_sm.png" alt="gist path 1"/> 
+<br/>
+
+<h4>Sift 500 words</h4>
+<p>Total 598 unique photos for the two sequences.</p>
+<img src="graph/graph_sift_500w_300px_500_from_0_sm.png" alt="sift path 1"/> 
+<img src="graph/graph_sift_500w_57_500_from_0_sm.png" alt="sift path 1"/> 
+<br/>
+
+<h4>Hog 500 words</h4>
+<p>Total 644 unique photos for the two sequences.</p>
+<img src="graph/graph_hog_500w_300px_500_from_0_sm.png" alt="hog path 1"/> 
+<img src="graph/graph_hog_500w_57_500_from_0_sm.png" alt="hog path 1"/> 
+<br/>
+
+<h4>Surf 500 words</h4>
+<p>Total 625 unique photos for the two sequences.</p>
+<img src="graph/graph_surf_500w_300px_500_from_0_sm.png" alt="surf path 1"/> 
+<img src="graph/graph_surf_500w_57_500_from_0_sm.png" alt="surf path 1"/> 
+<br/>
+
+<h4>Surf 200 words</h4>
+<p>Total 604 unique photos for the two sequences.</p>
+<img src="graph/graph_surf_200w_300px_500_from_0_sm.png" alt="surf path 1"/> 
+<img src="graph/graph_surf_200w_57_500_from_0_sm.png" alt="surf path 1"/> 
+<br/><br/><br/>
+
+
+<h2>Overlapping pics seen for pairs of methods on one photo, sequences of 500</h2>
+
+<style>
+tr {
+  border:1px solid black;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  padding: 5px;
+}
+td {
+  text-align: right;
+  padding: 2px;
+}
+</style>
+
+<table>
+<tr><th>Method 1</th><th>Method 2</th><th>Photo 1</th><th>Photo 2</th></tr>
+<tr><td>Lab</td><td>HS12</td><td>56</td><td>47</td></tr>
+<tr><td>Lab</td><td>HS24</td><td>58</td><td>42</td></tr>
+<tr><td>HS12</td><td>HS24</td><td>202</td><td>180</tr>
+<tr><td>Lab</td><td>Gist</td><td>3</td><td>44</td></tr>
+<tr><td>Gist</td><td>Sift</td><td>7</td><td>3</tr>
+<tr><td>Sift</td><td>Hog</td><td>237</td><td>246</tr>
+<tr><td>Sift</td><td>Surf</td><td>242</td><td>284</td></tr>
+<tr><td>Hog</td><td>Surf</td><td>187</td><td>205</td></tr>
+<tr><td>Surf 500<br/>words</td><td>Surf 200<br/>words</td><td>248</td><td>262</td></tr>
+<tr><td>HS24</td><td>Hog</td><td>27</td><td>16</td></tr>
+<tr><td>Gist</td><td>Hog</td><td>5</td><td>1</td></tr>
+</table>
+
+<h4>Total pics seen for 500 x [Sift, Hog, Surf] with 500 words on one photo<br/>
+where max = 1500</h4>
+
+<table>
+<tr><th>Photo 1</th><th>Photo 2</th></tr>
+<tr><td>968</td><td>941</td></tr>
+</table>
+<br/><br/><br/>
+
+<h2>Some photos with the max number (12) of Lab CIE94 color distances = 0</h2>
+
+<img src="graph/img149a.jpg" alt="too average?"/><br/>
+<img src="graph/img986a.jpg" alt="too average?"/>
+<img src="graph/img_0816_sm.jpg" alt="too average?"/><br/>
+<img src="graph/img_0648_sm.jpg" alt="too average?"/>
+<img src="graph/img_0428_sm.jpg" alt="too average?"/>
+<br/><br/>
+<br/><br/>
+<h2>Information density</h2>
+<table>
+<tr><th>Source</th><th>Average (bytes/pixel * 100)</th><th>N</th></tr>
+<tr><td>Scanned slides</td> <td>49</td> <td>11737</td> </tr>
+<tr><td>Misc 1</td>           <td>40</td> <td>1512</td> </tr>
+<tr><td>Canon A95</td>      <td>29</td> <td>1510</td> </tr>
+<tr><td>Misc 2</td>           <td>36</td> <td>219</td> </tr>
+<tr><td>Canon 20D</td>      <td>42</td> <td>2523</td> </tr>
+<tr><td>Misc 3</td>           <td>70</td> <td>3379</td> </tr>
+</table>
+<h3>Distributions</h3>
+
+<h4>Scanned slides</h4>
+<img src="graph/graph_bytes_pixel_1.jpg" alt="archive 1 distribution" /><br/>
+<h4>Misc 1</h4>
+<img src="graph/graph_bytes_pixel_2.jpg" alt="archive 2 distribution" /><br/>
+<h4>Canon A95</h4>
+<img src="graph/graph_bytes_pixel_3.jpg" alt="archive 3 distribution" /><br/>
+<h4>Misc 2</h4>
+<img src="graph/graph_bytes_pixel_4.jpg" alt="archive 4 distribution" /><br/>
+<h4>Canon 20D</h4>
+<img src="graph/graph_bytes_pixel_5.jpg" alt="archive 5 distribution" /><br/>
+<h4>Misc 3</h4>
+<img src="graph/graph_bytes_pixel_7.jpg" alt="archive 7 distribution" /><br/>
+
+<br/><br/>
+<br/><br/>
+
+<p>
+<i>Software</i><br/>
+  Lab conversion and distance from formulae on web.<br/>
+  Hue+Sat histograms, Sift, Hog, Surf from BoofCV, Sift/Hog/Surf using a KNN classifier.<br/>
+  Gist distance from OpenIMAJ.<br/>
+  Fractal analysis from IQM.<br/>
+  MultiDimensional Scaling from scikit-learn.
+</p>
+<style>
+button {
+    border: 1px transparent;
+    background-color: transparent;
+    #text-shadow:0px 0px 5px #fff;
+}
+</style>
+
+<button title="na" style="font-size:50px; color:red;" onmouseup="nextImage(1);">
+-
+</button>
+
+<button title="nu" style="font-size:40px; color:blue;" onmouseup="nextImage(2);">
+|
+</button>
+
+<button title="ni" style="font-size:50px; color:green;" onmouseup="nextImage(3);">
++
+</button>
+<br/> <br/>
+<blockquote>
+<a href="https://aeon.co/videos/starlings-in-flight-sketch-entrancing-abstract-patterns-across-an-autumn-sky">
+What use to cry for Capricorn? it sails<br/>
+Across the heart's red atlas: it is found <br/>
+Only within the ribs, where all the tails <br/>
+The tempest has are whisking it around.</a>
+<br/><br/>
+
+&mdash; Mervyn Peake, 
+<a href="http://www.freebookol.net/Titus_Alone/12.html">Titus Alone</a>
+</blockquote>
+</center>
+</div>
+<p style="text-align:right; color:rgba(0,0,0,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;">&copy; 2015-2023 Photoriot.</p>
+</body></html>

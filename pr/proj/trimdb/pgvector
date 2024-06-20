@@ -1,0 +1,49 @@
+#CREATE INDEX lum128 ON pr.picture USING hnsw (((((histo_ml)::real[])[0:128])::public.vector(128)) public.vector_l2_ops);
+CREATE INDEX picture_histo_gss_idx ON pr.picture USING hnsw (histo_gss public.vector_cosine_ops);
+CREATE INDEX picture_histo_gss_idx1 ON pr.picture USING hnsw (histo_gss public.vector_l2_ops);
+
+CREATE INDEX picture_histo_rgb_idx ON pr.picture USING hnsw (histo_rgb public.vector_cosine_ops);
+CREATE INDEX picture_histo_rgb_idx1 ON pr.picture USING hnsw (histo_rgb public.vector_l2_ops);
+
+CREATE INDEX picture_histo_ml_idx ON pr.picture USING hnsw (histo_ml public.vector_cosine_ops);
+CREATE INDEX picture_histo_ml_idx1 ON pr.picture USING hnsw (histo_ml public.vector_l2_ops);
+
+CREATE INDEX picture_vgg16_512_idx ON pr.picture USING hnsw (vgg16_512 public.vector_cosine_ops);
+CREATE INDEX picture_vgg16_512_idx1 ON pr.picture USING hnsw (vgg16_512 public.vector_l2_ops);
+
+CREATE INDEX picture_vgg16_64_idx ON pr.picture USING hnsw (vgg16_64 public.vector_cosine_ops);
+CREATE INDEX picture_vgg16_64_idx1 ON pr.picture USING hnsw (vgg16_64 public.vector_l2_ops);
+
+CREATE INDEX picture_vgg16_16_idx ON pr.picture USING hnsw (vgg16_16 public.vector_cosine_ops);
+CREATE INDEX picture_vgg16_16_idx1 ON pr.picture USING hnsw (vgg16_16 public.vector_l2_ops);
+
+CREATE INDEX picture_vgg16_4_idx ON pr.picture USING hnsw (vgg16_4 public.vector_cosine_ops);
+CREATE INDEX picture_vgg16_4_idx1 ON pr.picture USING hnsw (vgg16_4 public.vector_l2_ops);
+
+CREATE INDEX picture_vgg16_2_idx ON pr.picture USING hnsw (vgg16_2 public.vector_cosine_ops);
+CREATE INDEX picture_vgg16_2_idx1 ON pr.picture USING hnsw (vgg16_2 public.vector_l2_ops);
+
+CREATE INDEX picture_nnl_21_idx ON pr.picture USING hnsw (nnl_21 public.vector_cosine_ops);
+CREATE INDEX picture_nnl_21_idx1 ON pr.picture USING hnsw (nnl_21 public.vector_l2_ops);
+
+CREATE INDEX picture_nnl_7_idx ON pr.picture USING hnsw (nnl_7 public.vector_cosine_ops);
+CREATE INDEX picture_nnl_7_idx1 ON pr.picture USING hnsw (nnl_7 public.vector_l2_ops);
+
+CREATE INDEX picture_nnl_3_idx ON pr.picture USING hnsw (nnl_3 public.vector_cosine_ops);
+CREATE INDEX picture_nnl_3_idx1 ON pr.picture USING hnsw (nnl_3 public.vector_l2_ops);
+
+CREATE INDEX picture_dense_4_idx ON pr.picture USING hnsw (dense_4 public.vector_cosine_ops);
+CREATE INDEX picture_dense_4_idx1 ON pr.picture USING hnsw (dense_4 public.vector_l2_ops);
+
+CREATE INDEX picture_dense_2_idx ON pr.picture USING hnsw (dense_2 public.vector_cosine_ops);
+CREATE INDEX picture_dense_2_idx1 ON pr.picture USING hnsw (dense_2 public.vector_l2_ops);
+
+CREATE INDEX picture_mob_10_idx ON pr.picture USING hnsw (mob_10 public.vector_cosine_ops);
+CREATE INDEX picture_mob_10_idx1 ON pr.picture USING hnsw (mob_10 public.vector_l2_ops);
+
+CREATE INDEX picture_mob_5_idx ON pr.picture USING hnsw (mob_5 public.vector_cosine_ops);
+CREATE INDEX picture_mob_5_idx1 ON pr.picture USING hnsw (mob_5 public.vector_l2_ops);
+
+CREATE INDEX picture_mob_2_idx ON pr.picture USING hnsw (mob_2 public.vector_cosine_ops);
+CREATE INDEX picture_mob_2_idx1 ON pr.picture USING hnsw (mob_2 public.vector_l2_ops);
+

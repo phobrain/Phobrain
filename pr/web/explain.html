@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+ *  SPDX-FileCopyrightText: 2015-2024 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+ <link rel="canonical" href="http://phobrain.com"/>
+ <link rel="icon" href="favicon.ico"/>
+ <meta name="description" content="Your mind on photos - how to find it."/>
+ <meta  http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+
+ <title>Phobrain Explain</title>
+
+ <script src="js/jquery/jquery-1.11.3.min.js"></script>
+</head>
+<body bgcolor="#fffaf0">
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<a href="javascript:history.back()">
+<p style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+&nbsp;&nbsp;&nbsp;&nbsp;Back</p>
+</a>
+</td>
+<td style="text-align:right">
+<a href="comment.html">
+<p style="color:rgba(00,00,00,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+Comment&nbsp;&nbsp;&nbsp;&nbsp;</p>
+</a>
+</td>
+</tr>
+</table>
+</div>
+<div id="content">
+<center>
+<style>
+h1{
+font-size:100px;
+text-shadow:0px 0px 10px #888;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+line-height:.3;
+}
+p{
+font-size:125%;
+}
+A{text-decoration:none}
+</style>
+<a href="index.html">
+<h1>Phobrain</h1>
+</a>
+<p style="color:red;font-size: 15pt;">
+I think the web is a big boring mistake, and here are my baby steps to rectify it and save humanity.
+</p>
+<i>"One wrapper to rule them all."</i><br />
+<a href="20121122_180539crop.jpg">
+<img id="image" src="mmm.jpg" height="400" width="auto" alt="photo?">
+</a>
+<img id="image" src="rodin.jpg" height="400" width="auto" alt="photo?">
+</center>
+<br/><br/>
+<table style="margin-left:40px;margin-right:40px">
+<tbody>
+<tr><td>
+<blockquote style="font-size: 15pt;">
+	"Mr. M. Frydman, an engineer, remarked on the subject of Grace, 
+		'A salt doll diving into the sea will not be protected 
+		by a waterproof coat.'
+	It was a very happy simile and was applauded as such. Maharshi added, 
+	'The body is the waterproof coat.'" 
+	-- Talks With Sri Ramana Maharshi</blockquote>
+<blockquote style="font-size: 15pt;">
+	Identity is the artificial flower on the compost 
+	heap of time. -- Louis Menand, "Listening to Bourbon"</blockquote>
+
+<p>
+Phobrain uses a new type of recorded brain, based on training neural nets on interesting photo pairs, navigating it in response to your mouse movement. Mapping your action to this landscape in a unique way puts Phobrain in the moment with you, an initial step toward it feeling alive. The base algorithm is a weighted-random auction process.
+</p>
+<p>
+<i>
+What are you, at your core? 
+</i>
+Awareness is a key part, one that we share
+with many animals, and can feel when looking into a dog's eyes.
+I am working on creating that feeling with photo pairing, so that you can
+look into the eye of the computer screen and feel
+something responding to you.
+</p>
+
+<p>
+<i>How does it work? 
+</i>
+You look at the photos, and see what the pair has in common, if it
+seems meaningful somehow.
+Then you draw a line of dots on them, and this is used to 
+select the next pair. 
+I find that if I think about my drawing,
+like tracing things or moving to music, I see more in the next pair. 
+Often I can feel like something has answered me, even though I know 
+there is no such understanding. 
+Beyond comparing and contrasting, Phobrain is designed
+to explore how we identify living beings and classify
+them, as a step toward being seen as fully alive.
+</p>
+<p>
+<i>
+How is the line of dots used?
+</i>
+The drawn line is used like cookies for choosing
+online ads &mdash; replacing the personal data gathered for commerce
+with a 'motion vector' inspired by dance and molecular
+simulation. For example, using the 
+distance between the first and last dots 
+divided by the 
+length of the line,
+along with similar simple measurements, all rolled into an arbitrary
+formula that I have tuned and which, since it's causal
+(though statistical), one might learn unconsciously,
+like skipping a stone on a pond. 
+The 'pond' of Phobrain is a
+multidimensional mental landscape I have created by training 
+neural nets on my favorite pair choices. 
+</p>
+<p>
+Clicking in the grey area just above the photos 
+chooses a pair of unseen photos at random.
+</p>
+<img src="ico/Phob_opts.jpg">
+
+<p><span style="color:green;">Screens.</span>
+<!-- img src="ico/portraits3_ico.jpg" --> 
+The screens show either portrait-oriented 
+or landscape-oriented pairs. The landscape pairs can
+be either side-by-side or stacked. Side-by-side landscapes
+are recommended if a wide screen is available.
+</p>
+
+<p><span style="color:green;">Search Modes.</span>
+Several options for choosing the next pair appear
+below the photos, some depending on whether AI or Golden Angle is chosen:</p>
+
+<center>
+<img src="ico/Sigma_opts.jpg"><br />
+<img src="ico/Phob_options.jpg">
+</center>
+
+<p>
+<span title="color match" 
+ style="color:yellow;font-weight:bold;background:#c0c0c0;">+</span>
+gives color similarity (using one of 10 algorithms).
+<span title="neural nets' worst" style="color:red;font-weight:bold;">-</span>
+gives the worst choices according to neural nets.
+<span title="curated" style="color:rgba(255,255,255,0.5);background:#c0c0c0;">c</span>
+chooses curated pairs. 
+The purple options,
+<span title="neural net" style="color:purple;background:#c0c0c0;">
+	&Sigma;<b>1</b> &Sigma;<b>1</b> &Sigma;<b>3</b>
+	&Sigma;<b>4</b> &Sigma;<b>5</b> &Sigma;&Sigma;
+	&Sigma;&xscr; </span>,
+apply various combinations of neural networks.
+The grey numbered options, 
+<span title="golden angle" 
+ style="color:rgba(255,255,255,0.5);background:#c0c0c0;">2 3 8 27 32K</span>,
+apply the
+<a href="https://en.wikipedia.org/wiki/Golden_angle">Golden Angle</a> 
+in color histogram-based spaces of the numbered dimensions.
+<span title="random" 
+ style="color:blue;font-weight:bold;background:#c0c0c0;">|</span>
+chooses a pair completely at random.
+<span title="keyword match" 
+ style="color:green;font-weight:bold;background:#c0c0c0;">+</span>
+chooses a match based on intersected descriptions using keywords,
+ranked by neural networks.
+In Search Mode, clicking on a photo results in a
+match to its neighbor (rather than replacing the pair), 
+depending on whether you click on a corner 
+or the center (center uses the top neural nets, corners other
+nn combos).
+</p>
+<p>
+Clicking in the grey area <i>next to</i> the options, to the left of
+the yellow
+<span title="color match" style="color:yellow;font-weight:bold;background:#c0c0c0;">+</span>
+or to the right of the green
+<span title="keyword match" style="color:green;font-weight:bold;background:#c0c0c0;">+</span>,
+will cause any keywords shared by the photos,
+or color-matching algorithm used to choose them, to appear to the right of
+the options, for as long as the mouse button is held down.
+Clicking in the grey area next to a photo toggles it with the one 
+that was there before.
+Clicking below the photos, in the grey area just above the options, 
+toggles both photos with the non-showing pair. 
+Holding this area down for a second restores the most recent pair.
+</p>
+
+<p>
+Don't worry if you don't see any similarities or meaning at first &mdash;
+it's not perfect &mdash; but if you keep at it, you will start
+to see themes that last over a few pictures, then more
+will start making sense &mdash; it's like
+learning a language you find you already know. 
+To change the subject in Draw mode, you can click 
+above the photos to get random photos,
+or draw back and forth between photos 3 or 4 times to change the subject,
+or 5 or more times to try for people or at least something alive.
+</p>
+
+<p>
+<i>Example analysis</i>
+Looking at the photo on the left above, we might describe it with
+the words "woman hand phone face blue". If I click on 
+<span title="similar" style="color:green;font-weight:bold;">+</span> 
+for it.
+I expect to see another picture with at least one of these features, but
+will blue-ness jump out for me on the next photo?
+As you go from picture to picture, it is a little like a crossword
+puzzle, matching up words instead of letters.</p>
+<p>
+Now consider the photo on the right above: it is outdoors
+not indoors, in public not in private, the background
+has classic geometry, the real person
+in it is a boy and not a woman, and the color that jumps
+out is red instead of blue. On the other hand, there are
+two males in each picture, and there are representations
+of people (picture on phone, and statue). Perhaps the
+most interesting similarity between the two photos is
+that there is an interaction between a person (or people) and
+a representation of a person in each. 
+This site can help build up your analytical
+abilities, although it does not do such a complicated
+analysis itself, and would be unlikely (we hope) to join
+these two pictures when the
+<span title="similar" style="color:green;font-weight:bold;">+</span> 
+option is used.
+</p>
+<p>
+Like when learning a language, you can enjoy the view
+and watch for patterns to emerge.
+</p>
+<p><i>Sessions:</i> Each browser creates its own session, which should 
+keep you from seeing any repeats of pictures within a given View. 
+</p>
+
+<p><i>The dog's eyes:</i> My goal is to make the site smart enough so that
+it seems alive, like the feeling you get when looking into a dog's eyes.
+The fading image when you enter the slideshow is a gesture toward that goal. 
+</p>
+
+<p><i>Can you make it browsable?</i>
+I don't plan to add any kind of browsability like other excellent sites have. 
+<i>Can we upload pictures?</i> 
+I plan to add the ability to upload photos to the site.</p>
+
+<p><i>Will it be available in vape pen factor? Can pets view it
+safely?</i>
+Product plans are extensive but tightly-held via obscure diction
+as phobrain on reddit. This is all-new technology folks, so only
+exposure to guinea pigs and the 1% is advised at this time.
+</p>
+
+<p><i>Theory:</i> (This describes the original, single-photo version.)
+A picture can tell a story that stands on its own and burns itself into 
+your memory. Put two pictures together in sequence, and the 'picture' now 
+exists in your memory as much as in your eye. The story becomes what is 
+common to the pictures, and this competes for your attention with the other 
+details. You may struggle to find a story and give up. My theory is that 
+if you can find a story more often, you will become more engaged. 
+According to a New York Times blog:</p>
+
+<blockquote cite="http://well.blogs.nytimes.com/2015/04/16/the-look-of-love-is-in-the-dogs-eyes/?_r=0">
+Japanese researchers found that dogs who trained a long gaze on their 
+owners had elevated levels of oxytocin, a hormone produced in the 
+brain that is associated with nurturing and attachment, similar to 
+the feel-good feedback that bolsters bonding between parent and child. 
+After receiving those long gazes, the owners' levels of oxytocin 
+increased, too.<br/>
+<a href="http://well.blogs.nytimes.com/2015/04/16/the-look-of-love-is-in-the-dogs-eyes/?_r=0">
+<small>
+http://well.blogs.nytimes.com/2015/04/16/the-look-of-love-is-in-the-dogs-eyes/?_r=0
+</small>
+</a>
+</blockquote>
+</p>
+<p>
+A more <a href="https://en.wikipedia.org/wiki/Oxytocin">
+<span style="text-decoration: underline;">
+nuanced story about oxytocin</span></a> from Wikipedia.
+</p>
+
+
+<h4><i>Mission Statement</i></h4>
+
+<p>
+Phobrain is a fidget-spinner-like mind-virus
+to inoculate against closing one's mind, using 'compare and contrast' 
+to cultivate multidimensional thinking and curiosity. 
+Its current unobviousness to
+people resembles the universal lack of desire to hear about the Internet 
+encountered before the powers that be decided to promote it, so I expect 
+the Phobrain concept could take over as our dominant social paradigm, 
+enabling a more useful frame of reference to collectively solve the problems 
+we face.</p>
+<p>
+I believe humanity will need to switch from our evolved material growth mode 
+to a phase where the leading edge of growth is in internal enrichment, 
+necessary for the survival of civilization perhaps.
+</p>
+
+<h4><i>The Enemy is Us</i></h4>
+
+<p><i>They crouched behind their mirrors, and fought on.</i> Robin Williamson</p>
+
+ <ul>
+   <li> <a href="https://www.theatlantic.com/magazine/archive/2019/06/how-to-predict-the-future/588040/">
+       <b>The Peculiar Blindness of Experts</b></a> 
+           By David Epstein, The Atlantic, June 2019. <br />
+       <i>... they identified a small group of the foxiest forecasters —
+        bright people with extremely wide-ranging interests and unusually 
+        expansive reading habits, but no particular relevant background—and 
+        weighted team forecasts toward their predictions. They destroyed 
+        the competition. ...
+		When those foxes were later grouped into much smaller teams — 12 
+        members each — they became even more accurate. They outperformed — 
+        by a lot — a group of experienced intelligence analysts with 
+        access to classified data.</i></li>
+
+   <li> <a href="https://www.newyorker.com/magazine/2017/02/27/why-facts-dont-change-our-minds">
+       <b> Why Facts Don't Change Our Minds</b></a>
+           By Elizabeth Kolbert, The New Yorker, Feb 19, 2017. <br />
+       <i>Presented with someone else’s argument, we’re quite adept at 
+        spotting the weaknesses. Almost invariably, the positions we’re blind 
+        about are our own. ... Living in small bands of hunter-gatherers, 
+        our ancestors were primarily concerned with their social standing, 
+        and with making sure that they weren’t the ones risking their lives 
+        on the hunt while others loafed around in the cave. There was little 
+        advantage in reasoning clearly, while much was to be gained from 
+        winning arguments."</i></li>
+
+    <!-- li> <a href="https://digest.bps.org.uk/2017/07/21/why-some-smart-people-make-foolish-decisions/">
+        <b>Critical thinking skills are more important than IQ for making
+            good decisions in life</b></a>
+        By Alex Fradera.<br />
+        <i>Critical thinking isn’t about mental resources so much as a 
+    way of looking at the world and a tool-kit to use at the relevant 
+    moments. But unfortunately, as a society, we don’t give enough 
+    attention to how to foster these skills.  Some researchers are very 
+    pessimistic about the benefits of formal education for critical 
+    thinking, and although a recent meta-analysis has since suggested 
+    that attending college produces improvements in critical thinking, 
+    it could not identify where the skills were coming from. It should 
+    be possible to design better ways to impart and hone these skills, 
+    skills critical for the decisions that make up the stuff of our lives.
+        </i></li -->
+
+    <li> <a href="https://m.medicalxpress.com/news/2019-07-brains-people-excellent-knowledge.html">
+        <b>What the brains of people with excellent general knowledge 
+            look like</b></a><br/>
+        <i>People with a very efficient fiber network had more general 
+    knowledge than those with less efficient structural networking.</i></li>
+
+    <li> <a href="https://qz.com/997679/open-minded-people-have-a-different-visual-perception-of-reality/">
+        <b>Open-minded people have a different visual perception of reality</b></a>
+        By Olivia Goldhill.<br />
+        <i>They then tested ... a visual perception phenomenon called 
+    “binocular rivalry.” This phenomenon occurs when each eye is shown 
+    a different image—in this case, a red patch in one eye and a green 
+    patch to another. Most people switch back and forwards between the 
+    two incompatible images, as the brain can only perceive one at a 
+    time. But some people merge the two images into a unified red-green 
+    patch. Participants who scored higher on openness were more likely 
+    to perceive this combined image.</i></li>
+
+    <li> <a href="https://medium.com/neodotlife/computational-psychiatry-c05a32f20705">
+        <b>When Algorithms Are Running the Asylum</b></a><br />
+        <i>Psychiatry’s biggest breakthrough in decades might come from 
+    machines that don’t need to understand the mind at all.</i></li>
+
+    <li> <a href="https://proto-knowledge.blogspot.com/2011/11/building-young-ladys-illustrated-primer.html?m=1">
+        <b>Building "A Young Lady's Illustrated Primer"</b></a> <br />
+    <i>Comment on The Diamond Age, by Neil Stephenson.</i></li>
+
+  </ul>
+
+<h4><i>Related media and software</i></h4>
+
+   <ul>
+     <li> The <a href="https://www.photo.net/discuss/forums/no-words.1801/">
+       Photo.net No Words Forum</a> threads photos on themes like Phobrain,
+       but without a dynamic personality responding
+       in the moment. Very interesting for the variety of viewpoints.</li>
+     <li> <a href="http://www.ostagram.ru">Ostagram.ru</a> uses deep learning
+       to hybridize pairs of pictures, creating novel effects analogous
+       to combining Phobrain pairs in your mind.</li>
+     <li> <a href="https://images.google.com/">Google Images</a> allows you
+       to search with words or pictures, and in principle Phobrain could
+       use it for raw associations for its personality to select from
+       (similarly for photo stock agency collections).</li>
+     <li> New deep learning image retrieval methods like
+       Google's could be retrained with Phobrain principles, rather
+       than simply used to feed Phobrain.</li>
+   </ul>
+
+
+<h4><i>Interesting</i></h4>
+<ul>
+  <li> <a href="https://www.livescience.com/17763-dogs-communication-intent.html">Clever Canines: Dogs Can 'Read' Our Communication Cues</a> Joseph Castro, Live Science.</li>
+  <li> <a href="https://www.psypost.org/2016/06/skill-level-making-art-reduces-stress-hormone-cortisol-43362">
+	Stress-related hormone cortisol lowers significantly after just 45 minutes of art creation</a></li>
+  <li> <a href="https://theconversation.com/can-you-train-yourself-to-develop-super-senses-86172">
+	Can you train yourself to develop ‘super senses’?</a>
+	Harriet Dempsey-Jones, Postdoctoral Researcher in 
+	Clinical Neurosciences, University of Oxford.</li>
+  <li> <a href="http://nautil.us/blog/new-evidence-for-the-geometry-of-thought">
+      New Evidence for the Strange Geometry of Thought</a> 
+      Adithya Rajagopalan</li>
+  <li> <a href="http://www.sciencealert.com/harvard-scientists-think-they-ve-pinpointed-the-neural-source-of-consciousness">
+    Harvard scientists think they've pinpointed the physical source of consciousness.</a></li>
+  <li> <a href="http://www.sadanduseless.com/2017/04/funny-pareidolia/">
+       Funny Examples of Pareidolia (Seeing Faces In Everyday Objects)</a></li>
+  <li> <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3170918/">
+       <i>How Do We See Art: An Eye-Tracker Study</i></a>,
+       Rodrigo Quian Quiroga and Carlos Pedreira,
+       Front Hum Neurosci. 2011; 5: 98.</li>
+  <li> Paired photos by Ralph Gibson: &nbsp; &nbsp; <i>
+        <a href="https://unrealnature.files.wordpress.com/2014/05/gibson_spread01.jpg">1</a> &nbsp; &nbsp;
+        <a href="https://unrealnature.files.wordpress.com/2014/05/gibson_spread02.jpg">2</a> &nbsp; &nbsp;
+        <a href="https://unrealnature.files.wordpress.com/2014/05/gibson_spread03.jpg">3</a> &nbsp; &nbsp;
+        <a href="https://unrealnature.files.wordpress.com/2014/05/gibson_spread04.jpg">4</a> &nbsp; &nbsp;
+        <a href="https://unrealnature.files.wordpress.com/2014/05/gibson_spread05.jpg">5</a> &nbsp; &nbsp;
+        <a href="https://unrealnature.files.wordpress.com/2014/05/gibson_spread06.jpg">6</a> &nbsp; &nbsp;
+      </i>
+      </li>
+  <li> <a href="http://www.businessinsider.com/what-is-blue-and-how-do-we-see-color-2015-2"> 
+      Humans named colors one by one, blue is the most recently 'discovered'.</a> 
+      Maybe a 'phobrain' will someday be a thing?</li>
+  <li> <a href="http://www.wired.com/insights/2014/08/passing-turing-test-redefining-means-think/">
+        A computer passes the Turing Test, masquerading as a wise-cracking, 13-year old boy.
+        </a>
+      </li>
+  <li> <a href="https://techcrunch.com/2016/03/24/microsoft-silences-its-new-a-i-bot-tay-after-twitter-users-teach-it-racism/">Microsoft’s Tay AI Bot Shut Down After Racist Tweets</a> "What was also disturbing about this, beyond just the content itself, is that Tay’s responses were developed by a staff that included improvisational comedians. That means even as she was tweeting out offensive racial slurs, she seemed to do so with abandon and nonchalance."</li>
+  <li> <a href="https://arxiv.org/pdf/1610.05256v1.pdf">Achieving Human Parity in Conversational Speech Recognition.</a> W. Xiong, J. Droppo, X. Huang, F. Seide, M. Seltzer, A. Stolke, D. Yu, and G. Zweig, Microsoft Research.</li>
+  <li> <a href="http://www.sciencefriday.com/videos/creating-the-never-ending-bloom/">Creating The Never-Ending Bloom</a>:
+	SciFri article about spiral geometry using the
+	<a href="https://en.wikipedia.org/wiki/Golden_angle">Golden Angle</a>,
+	featuring <a href="http://www.johnedmark.com/">John Edmark</a>.</li>
+  <li> <a href="http://imgur.com/t/The_More_You_Know/bPslN">"The Talk"</a> 
+	by Scott Aaronson &amp; Zach Weinersmith - Are you old enough to
+	understand the truth about quantum computing? (cartoon).</li>
+ <li> <a href="https://www.youtube.com/watch?v=L9Pl5M1CG18&feature=youtu.be">
+	Kubernetes Commit Impact</a> 
+	an animation of the morphing structure of a shared project,
+	analogous to the brain that Phobrain would form with lots
+	of users and envisioned enhancements.</li>
+ 	<ul>
+ 	  <li> <a href="https://www.youtube.com/watch?v=5iFnzr73XXk">
+		Linux Kernel Development, 1991-2015</a>
+		  Same for Linux, maybe closer analogy.</li>
+	  <li> <a href="https://www.youtube.com/watch?v=ZEAlhVOZ8qQ">
+		Gcc, 1989-2012</a>
+		  Who could forget gcc?</li>
+	</ul>
+ <li> <a href="https://github.com/anvaka/word2vec-graph">
+	word2vec graph,</a>
+	word associations analogous to the Phobrain picture graph.</li>
+ <li> <a href="https://vimeo.com/241011441">
+	NEBULAE - a cosmic meditation</a></li>
+ <li> <a href="https://ideapod.com/25-mind-opening-quotes-alan-watts/">
+	25 Alan Watts Quotes</a></li>
+ <li> <a href="StevenWright.txt">
+	Steven Wright Quotes</a></li>
+ <li> <a href="https://www.youtube.com/watch?v=YWZAL64E0DI">
+	Robert Sapolsky: Are Humans Just Another Primate?</a>
+ <li> <a href="https://www.youtube.com/watch?v=nvXuq9jRWKE">
+	Beautiful 3-D Brain Scans Show Every Synapse</a> National Geographic.
+	</li>
+ <li> Weekend (or deathbed?) reading:
+	<a href="https://www.neuroquantology.com/index.php/journal/article/view/1079">
+	Consciousness in the Universe is Scale Invariant 
+	and Implies an Event Horizon of the Human Brain</a>,
+	Dirk K.F. Meijer, Hans J H Geesink, NeuroQuantology 15:3 (2017).</li>
+ <li> An intermediate goal for Phobrain: 
+	<a href="https://en.wikipedia.org/wiki/Being_There">
+	Chauncey Gardiner in Being There.</a></li>
+	
+</ul>
+
+
+<h4><i>Phobrain-related Articles and threads</i></h4>
+
+<ul>
+<li> <a href="https://www.reddit.com/r/learnmachinelearning/comments/aqu04c/weekly_showoff/">
+	Pour yourself a drink.</a> Reddit</li>
+
+<li> <a href="https://www.photo.net/discuss/threads/diptych-scale-to-fit-tool.5497561/">
+	Do-it-yourself diptych formatter</a> Photo.net</li>
+<li> <a href="http://photo.net/philosophy-of-photography-forum/00eEHX" >
+  	What's it all about, Alfie? (discussion)</a>
+	Photo.net.</li>
+<li> <a href="https://www.photo.net/discuss/threads/diptychs.512417">
+	Diptychs (discussion)</a>
+	Photo.net</li>
+<li> <a href="https://www.photo.net/discuss/threads/pictures-of-nothing.5499728">
+	Pictures of nothing (discussion)</a>
+	Photo.net</li>
+<li> <a href="https://www.linkedin.com/pulse/phobrain-31-golden-angle-multidimensional-image-space-bill-ross">
+	Phobrain 3.1: The Golden Angle in multidimensional image space</a>
+	Linkedin</li>
+<li> <a href="https://www.linkedin.com/pulse/phobrain-30-doubles-down-diptych-technology-bill-ross">
+	Phobrain 3.0 Doubles Down on Diptych Technology</a>
+	Linkedin</li>
+<li> <a href="https://www.linkedin.com/pulse/phobrain-acquires-artificial-heart-dna-simulation-bill-ross">
+	Phobrain acquires artificial heart</a>
+	Linkedin</li>
+<li> <a href="https://www.linkedin.com/pulse/phobrain-20-acquires-second-eye-touch-bill-ross">
+	Phobrain 2.0 acquires second eye and touch</a>
+	Linkedin</li>
+<li> <a href="https://www.linkedin.com/pulse/fractal-analysis-mouse-movement-bill-ross">
+	Fractal analysis of computer mouse movement</a>
+	Linkedin</li>
+<li> <a href="https://www.linkedin.com/pulse/phobraincom-acquires-second-brain-bill-ross">
+	Phobrain.com acquires second 'brain'</a>
+	Linkedin</li>
+</ul>
+
+<h4><i>Gallery</i></h4>
+
+<ul>
+<li> <a href="creation/">
+	Creation,</a> illustrations for Robin Williamson's epic song.</li>
+<li> <a href="four_duets.html">
+	Four Duets,<a/> homage to TS Eliot's Four Quartets.</li>
+<li> <a href="siagal.html">
+	Neural nets applied to choosing pairs.</a></li>
+<li> <a href="gal.html">Early history.</a></li>
+</ul>
+
+<h4><i>Notes</i></h4>
+
+<ul>
+<li> <a href="siamese.html">
+	Neural nets applied to choosing pairs (calcs).</a></li>
+<li> <a href="tf_poet2.html">
+	Photo classification with TensorFlow For Poets.</a></li>
+<li> <a href="poincaredesc.html">
+	Calculating histogram distances in Poincare spherical spaces.</a></li>
+<li> <a href="angledesc.html">
+	Analysis of angles in many-dimensional image spaces.</a></li>
+<li> <a href="SCMETA_Ross.pdf">
+	Proposal:
+	An Immersive Demonstration of Animal Presence Through Display of Photos.
+	</a></li>
+<li> <a href="imgdesc.html">
+	Analysis of distance functions in many-dimensional image spaces.</a></li>
+</ul>
+
+<h4><i>Site History</i></h4>
+
+<ul>
+<li>
+        <li>
+                <i>7/2022</i> As new photos are added at home,
+                        the set on the public site is regenerated
+                        using the neural nets' predictions of
+                        pairability (since 3/2019). 
+                        Due to this (improving) selection tech
+                        from an increasing number of photos,
+                        random pairs are now about as likely
+                        to be interesting as ones generated by nets,
+                        but the latter tend to be 'stronger'
+                        than what one finds with random.
+                        Sizes are now fixed at 20,000 portrait,
+                        30,000 landscape, drawn from ~30K and ~50K
+                        respectively.
+        </li>
+<li> 
+    <i>5/2020</i> First use of classic Imagenet-derived neural nets
+    for adding keywords to new photos (VGG19, I'm lookin' at you). 
+    Results are promising, much work remains to be done to have it 
+    speed things up effectively, but juicy work. Next pipeline 
+    enhancement envisioned is auto-editing of photos' alignment and 
+    color, at which point push-button addition of the more-obviously-ok
+    photos can be considered. A hope for the pipeline is that 
+    someday all cameras will have an option to share with Phobrain.
+    </li>
+<li> 
+    <i>1/2020</i> 
+    Changed web hosts for more space, and all photos are back! 
+    11K portrait, 18K landscape.
+    Continuing with iterations of adding photos, labeling pairs, 
+    retraining nets, and exploring the new territory they extrapolate, 
+    while looking at pure-random pairs to generate the needed balance 
+    of 'bad' pairs for training.
+    ('Good' pairs are 10% or so of a random sample.)
+    <br />
+    Fun fact: with 50K photos of a given orientation, the number of 'good' 
+    pairs will approximate the number of neurons in a dog's brain. At
+    scale, that might reflect the size of the window of photo and
+    other info that people need to have available on a quick-recall basis
+    for feeling the creature is alive, and a distributed system would
+    keep adding/removing to the pool momentarily as the person and 
+    society grew.
+    </li>
+<li> 
+    <i>8/2019</i> 
+    3K+ photos added to training pool, portrait-oriented training pairs
+    increased by about 2%, multiple color edit and crop versions of
+    photos introduced sparingly. Most recent 6K photos increased from
+    800wx600h to 1Kx1K pixel size limits.
+    </li>
+<li> 
+    <i>3/2019</i> 
+	New AI in place! Size issue solved by suppressing less-pairable photos.
+	<br />
+	Drawing line of dots interface introduced.
+	</li>
+<li> <i>6/2018</i> 
+	Phobrain offline pending solving growth issue.
+	</li>
+<li> <i>3/2018</i> 
+	Phobrain's 'story' now branches into two plots, which can
+	run in parallel, cross sides, and rejoin.
+	</li>
+<li> <i>2/2018</i> 
+	Simpler neural net models yield better effective accuracy,
+	as high as 97%, vs. about 60% for the Siamese nets and about
+	20% for the other options.
+	Neural nets are now used in Browse Mode (default) when clicking
+	on the left-hand picture, while only training pairs are shown
+	when clicking on the right-hand photo. About 250 networks are used.
+	</li>
+<li> <i>11/2017</i> 
+	Siamese neural nets: now 40; added keyword vectors to 
+	histogram models. 
+	</li>
+<li> <i>10/2017</i> 
+	Added <a href="siamese.html">10 siamese neural net 
+	models using color histograms in Browse and Search (AI) Modes.</a>
+	Added 700 of Bill's photos.
+	</li>
+<li> <i>8/2017</i> 
+	More complex personalities for Browse left/right options.
+	Added 600 of Bill's photos.
+	</li>
+<li> <i>6/2017</i> 
+	Added 'Let pics repeat' option.
+	Bifurcated Browse Mode into keyword-based choice
+	of next pair, vs. mixed color/keyword-based choices.
+	</li>
+<li> <i>5/2017</i> 
+	Added Golden Angle spiral progression to Search Mode. 
+	<a href="angledesc.html"><i>Dimensional analysis.</i></a>
+	Retired single-photo screen, cutting database size in half.
+	Added 500 more photos by Bill.</li>
+<li> <i>4/2017</i> 
+	Created Browse Mode for the pairs views, chaining curated pairs 
+	by keywords, with the pair-forming options now available 
+	under Search Mode.<br />
+	Added 1700 more photos by Raf &amp; Skot.</li>
+<li> <i>3/2017</i> 
+	Added a free 
+	<a href="mypairs.html"><span style="text-decoration: underline;"><i>
+	Pair Workbench</i></span></a> 
+	page for loading your own photos from disk, and from web sites
+	that allow it (e.g. imgur). 
+	Scales them to match/fit, lets you toggle
+	with previous photos/pairs. Lets you save screenshots.</li>
+<li> <i>2/2017</i> 
+	Converted View to switch between 4 tilings of one or two photos,
+	consolidating earlier work and adding horizontal and stacked
+	landscape tilings.</li>
+<li> <i>1/2017</i> 
+        Added 'c'=curated pair option to pairs page, for 
+        manually-selected top 15% of over 25K pairs examined. <br />
+        Added a new archive by photographers Raf &amp; Skot, 
+	with 1500 photos.</li>
+<li> <i>12/2016</i> Added pairs page, 
+        with color-match and color-opposite functions. 
+<li> <i>10/2016</i> Added exploration when drawing on
+  the photo: the line you draw maps through color space
+  to the next photo, based on averaged colors.<br />
+  Added 1700 more of Bill's photos, now caught up.
+<li> <i>9/2016</i> Added click-to-toggle region alongside picture 
+  to see previous photo. <br />
+  Added 1500 more of Bill's photos. Added 200 of Ellen's photos.</li>
+<li> <i>8/2016</i> Revised keyword algorithm:
+  postponed use of geometrical keywords like 'juxtapose'
+  and 'angular' until 100 photos have been seen.</li>
+<li> <i>7/2016</i> Unified keyword coding schemes and revised keywords.</li>
+<li> <i>6/2016</i> Clicks on different zones of the picture 
+  invoke different <a href="imgdesc.html"><i>image matching algorithms,</i></a>
+  analogous to touching a face.</li>
+<li> <i>5/2016</i> A live DNA molecular dynamics simulation 
+  interacts with picture selection, acting as a beating heart for the site. 
+<li> <i>4/2016</i> Added 1400 of Elle's pictures.  User mouse behavior 
+  now influences picture selection.</li>
+<li><i>1/2016</i> Elle classified the photos according to her own scheme.</li>
+<li><i>10/2015</i> Site (single-photo) launched with 6500 of Bill's photos, 
+  keywords, color analysis, and 
+  <span title="opposite" style="color:red;font-weight:bold;">-</span> 
+  <span title="?" style="color:blue;font-weight:bold;">|</span>
+  <span title="similar" style="color:green;font-weight:bold;">+</span> 
+.</li>
+<li><i>6/2015</i> Laptop bought, 
+	<a href="liftoff.html">
+	mothballed server-script random-selection prototype reimplemented 
+	in Java.</a></li>
+<li> <a href="quote.txt"><span style="text-decoration: underline;">Quotations for everyday use</span></a></li>
+</ul>
+
+<h4><i>[bug|debug]</i></h4>
+
+<ul>
+ <li> <a href="bug_catchers.html"> Credits to attentive users.</a> </li>
+</ul>
+
+<h4><i>Tributes</i></h4>
+
+<ul>
+ <li> Ivan Karp, owner of <a href="http://www.okharris.com/">OK Harris</a> 
+	gallery, once told me, "What you have here is fine art photography."
+	<a href="https://vimeo.com/77009538">
+	Memorial,</a> with great remembrances to put that in context.</li>
+</ul>
+
+<h4><i>Credits</i></h4>
+
+<ul>
+ <li> P. Kainz, M. Mayrhofer-Reinhartshuber, and H. Ahammer. 
+   <a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0116329">IQM: An extensible and portable open source application for image and signal analysis in Java.</a> PLoS ONE, 10(1):e0116329, Jan. 2015. </li>
+ <li> <a href="http://dx.doi.org/10.1063/1.4923030">
+   Is a two-dimensional generalization of the Higuchi algorithm really necessary?</a> Helmut Ahammer, Nikolaus Sabathiel, and Martin A. Reiss, Chaos 25, 073104 (2015): doi: 10.1063/1.4923030</li>
+ <li> <a href="http://boofcv.org/">BoofCV</a>, Peter Abeles, 2012. An open source Java library for real-time computer vision and robotics applications.</li>
+ <li> <a href="http://w3dna.rutgers.edu/">Web 3DNA for DNA model building</a></li>
+ <li> <a href="http://ambermd.org">AMBER: Assisted Model Building with 
+       Energy Refinement</a>, D.A. Case, R.M. Betz, W. Botello-Smith, D.S. Cerutti, T.E. Cheatham, III, T.A. Darden, R.E. Duke, T.J. Giese, H. Gohlke, A.W. Goetz, N. Homeyer, S. Izadi, P. Janowski, J. Kaus, A. Kovalenko, T.S. Lee, S. LeGrand, P. Li, C. Lin, T. Luchko, R. Luo, B. Madej, D. Mermelstein, K.M. Merz, G. Monard, H. Nguyen, H.T. Nguyen, I. Omelyan, A. Onufriev, D.R. Roe, A. Roitberg, C. Sagui, C.L. Simmerling, J. Swails, R.C. Walker, J. Wang, R.M. Wolf, X. Wu, L. Xiao, and P.A. Kollman (2016), AMBER 2016, University of California, San Francisco.</li>
+ <li> <a href="http://mmb.irbbarcelona.org/ParmBSC1/">ParmBSC1 DNA Force Field</a>
+Pérez, Alberto, Marchán Ivan, Svozil Daniel, Sponer Jiri, Cheatham Thomas E., Laughton Charles A., and Orozco Modesto.  Refinement of the AMBER force field for nucleic acids: improving the description of alpha/gamma conformers.
+      <a href="http://www.cell.com/biophysj/abstract/S0006-3495(07)71182-7"> 
+      Biophys J. (2007) 92 (11), 3817-29.</a></li>
+ <li> <a href="https://github.com/arose/ngl">NGL</a>, a WebGL protein viewer.</a>
+      <a href="http://nar.oxfordjournals.org/content/43/W1/W576">
+      NGL Viewer: a web application for molecular visualization,</a> 
+      Oxford Journals, 2015.</li>
+ <li>Modeling the shape of the scene: a holistic representation of the spatial envelope,      Aude Oliva, Antonio Torralba, International Journal of Computer Vision, 
+      Vol. 42(3): 145-175, 2001.
+      <a href="http://people.csail.mit.edu/torralba/code/spatialenvelope/">link</a></li>
+ <li> Jonathon S. Hare, Sina Samangooei, and David P. Dupplaw. 2011. 
+      OpenIMAJ and ImageTerrier: Java libraries and tools for scalable multimedia 
+      analysis and indexing of images. In Proceedings of the 19th ACM 
+      international conference on Multimedia (MM '11). ACM, New York, NY, USA, 
+      691-694. DOI=10.1145/2072298.2072421 http://doi.acm.org/10.1145/2072298.2072421
+      <a href="http://www.openimaj.org/">(www.openimaj.org)</a></li>
+ <li> PictureWindow is the source of my interesting cloud colors.
+        It runs on Windows. 
+        <a href="https://www.dl-c.com/Downloads.html">Free download.</a></li>
+</ul>
+</td></tr></tbody></table>
+
+<center>
+&nbsp;&nbsp; <br/> &nbsp;
+<style>
+button {
+    border: 1px transparent;
+    background-color: transparent;
+    text-shadow:0px 0px 5px #fff;
+}
+</style>
+
+<button onclick="alert('Enter below');" title="na" style="font-size:50px; color:red;">
+-
+</button>
+
+<button onclick="alert('Enter below');" title="nu" style="font-size:40px; color:blue;">
+|
+</button>
+
+<button onclick="alert('Enter below');" title="ni" style="font-size:50px; color:green;">
++
+</button>
+
+<style>
+h3{
+font-size:36px;
+text-shadow:0px 0px 10px #fff;
+color:#006600;
+font-family: "Courier New", Courier, monospace;
+}
+h4{
+font-size:24px;
+}
+</style>
+<a href="view.html"><h3>*Enter*</h3></a>
+<span style="font-size:15px;font-family:'Courier New',Courier,monospace;">
+&lt;&mdash;&mdash;&mdash; oOo &mdash;&mdash;&mdash;&gt;
+</span>
+<br/>
+Listen, a woman with a bulldozer built this house of now<br/>
+Carving away the mountain, whose name is your childhood home<br/>
+We were trying to buy it, buy it, buy it, someone was found killed<br/>
+There all bones, bones, dry bones<br/>
+<br/>
+Earth water fire and air<br/>
+Met together in a garden fair<br/>
+Put in a basket bound with skin<br/>
+If you answer this riddle<br/>
+If you answer this riddle, you'll never begin<br/><br/>
+<a href="http://www.metrolyrics.com/koeeoaddi-there-lyrics-incredible-string-band.html">&mdash; Robin Williamson, Koeeoaddi There</a><br/><br/>
+In tribute to Lucy Reynolds, teacher of Graham technique and breeder of dogs.
+
+<br/><br/>
+<img title="This is your brain on science." src="neurons.jpg"/><br />
+<a href="https://en.wikipedia.org/wiki/Ramana_Maharshi">
+<img title="Ramana Maharshi" src="ramana_maharshi_old.gif"/>
+</a><br />
+</center>
+</div>
+<p style="text-align:right; color:rgba(0,0,0,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;">&copy; 2015-2024 Photoriot.</p>
+</body></html>

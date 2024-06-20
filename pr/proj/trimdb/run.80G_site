@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+# with only v having pair ml,
+#  56G dumps
+# Size  Used Avail Use% Mounted on
+#
+
+./run 30000 40000
+
+cat 0server_instructions

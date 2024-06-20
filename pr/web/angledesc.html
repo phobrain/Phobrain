@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html><head>
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+ <meta charset="utf-8">
+ <link rel="canonical" href="http://phobrain.com"/>
+ <link rel="icon" href="favicon.ico"/>
+ <meta name="description" content="Your mind on photos - associative slideshow brain teaser"/>
+ <meta  http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+ <title>Phobrain Image Analysis</title>
+</head>
+<body bgcolor="#ffffff">
+<div id="header">
+<table style="width:100%">
+<tr>
+<td style="text-align:left">
+<a href="index.html">
+<p style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+&nbsp;&nbsp;&nbsp;&nbsp;Home</p>
+</a>
+</td>
+<td style="text-align:right">
+<a href="explain.html">
+<p style="color:rgba(255,255,255,0.6);font-size: 28pt; font-family:'Courier New',Courier,monospace;" align="right">About &nbsp;&nbsp;&nbsp;&nbsp;</p>
+</a>
+</td>
+</tr>
+</table>
+</div>
+<div id="content">
+<center>
+<style>
+h1{
+font-size:100px;
+text-shadow:0px 0px 10px #888;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+line-height:.3;
+}
+A:link{font-weight: bold; text-decoration:none;}
+A:visited{font-weight: bold; text-decoration:none;}
+</style>
+<a href="index.html">
+<h1>Phobrain</h1>
+</a>
+<h2>Image Analysis 2 - Angles in Picture Space</h2>
+<p>
+Results for various image analysis methods applied
+to photos by Bill, Elle, Ellen, and Raf&amp;Skot (N~15000).<br />
+<a href="imgdesc.html">Image distance analysis.</a>
+</p>
+
+<h2>Distributions of picture-picture angles</h2>
+
+<p>Angles are for difference with respect to the average over all the photos,
+unless otherwise specified.</p>
+
+<h4>2D: 'ab' coordinates of average Lab color (difference vector)</h4>
+<img src="gallery/graph_ab_angle_distr.jpg">
+
+<h4>2D: 'ab' coordinates of average Lab color (difference/origin)</h4>
+<img src="gallery/graph_ab_diff_angle_distr.jpg">
+
+<h4>2D: 'ab' coordinates of average Lab color</h4>
+<img src="gallery/graph_angle_ab_ctr_dist.jpg">
+
+<h4>3D: coordinates of average RGB color (difference/origin)</h4>
+<img src="gallery/graph_rgb_angle_distr.jpg">
+
+<h4>3D: coordinates of average RGB color</h4>
+<img src="gallery/graph_rgb_angle_avg_ctr_distr.jpg">
+
+<h4>4D: Lab 'ab' 2x2 histogram</h4>
+<img src="gallery/graph_ab2x2_angle_dist.jpg">
+
+<h4>4D: Hue*Saturation 2x2 histogram</h4>
+<p>(A 2-bin histogram for hue angle is meaningless for practical purposes,
+but interesting to compare.)</p>
+<img src="gallery/graph_hs2_angle_distr.jpg">
+
+<h4>8D: RGB 2x2x2 histogram</h4>
+<img src="gallery/graph_rgb2_angle_distr.jpg">
+
+<h4>27D: RGB 3x3x3 histogram</h4>
+<img src="gallery/graph_rgb3_angle_distr.jpg">
+
+<h4>64D: RGB 4x4x4 histogram</h4>
+<img src="gallery/graph_rgb4_angle_distr.jpg">
+
+<h4>1,728D: RGB 12x12x12 histogram</h4>
+<img src="gallery/graph_rgb12_angle_distr.jpg">
+
+<h4>13,824D: RGB 24x24x24 histogram</h4>
+<img src="gallery/graph_rgb24_angle_distr.jpg">
+
+<h4>32,768D: RGB 32x32x32 histogram</h4>
+<img src="gallery/graph_rgb32_angle_distr.jpg">
+
+<h4>256D: greyscale histogram</h4>
+<img src="gallery/graph_grey_angle_distr.jpg">
+
+<h4>8D: Hue 8 histogram</h4>
+<img src="gallery/graph_ang_h8_dist.jpg">
+
+<h4>16D: Hue 16 histogram</h4>
+<img src="gallery/graph_ang_h16_dist.jpg">
+
+<h4>64D: Hue 64 histogram</h4>
+<img src="gallery/graph_ang_h64_dist.jpg">
+
+<h4>64D: Hue*Saturation 8x8 histogram</h4>
+<img src="gallery/graph_ang_hs8x8.jpg">
+
+<h4>578D: Hue*Saturation 24x24 histogram</h4>
+<img src="gallery/graph_hs24_angle_distr.jpg">
+
+<br/><br/>
+<br/><br/>
+
+<p>
+<i>Software</i><br/>
+  Lab conversion and distance from formulae on web.<br/>
+  Hue+Sat histograms, Sift, Hog, Surf from BoofCV, Sift/Hog/Surf using a KNN classifier.<br/>
+  Gist distance from OpenIMAJ.<br/>
+  Fractal analysis from IQM.<br/>
+  MultiDimensional Scaling from scikit-learn.
+</p>
+<style>
+button {
+    border: 1px transparent;
+    background-color: transparent;
+    #text-shadow:0px 0px 5px #fff;
+}
+</style>
+
+<button title="na" style="font-size:50px; color:red;" onmouseup="nextImage(1);">
+-
+</button>
+
+<button title="nu" style="font-size:40px; color:blue;" onmouseup="nextImage(2);">
+|
+</button>
+
+<button title="ni" style="font-size:50px; color:green;" onmouseup="nextImage(3);">
++
+</button>
+<br/> <br/>
+<blockquote>
+<a href="https://aeon.co/videos/starlings-in-flight-sketch-entrancing-abstract-patterns-across-an-autumn-sky">
+What use to cry for Capricorn? it sails<br/>
+Across the heart's red atlas: it is found <br/>
+Only within the ribs, where all the tails <br/>
+The tempest has are whisking it around.</a>
+<br/><br/>
+
+&mdash; Mervyn Peake, 
+<a href="http://www.freebookol.net/Titus_Alone/12.html">Titus Alone</a>
+</blockquote>
+</center>
+</div>
+<p style="text-align:right; color:rgba(0,0,0,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;">&copy; 2015-2023 Photoriot.</p>
+</body></html>

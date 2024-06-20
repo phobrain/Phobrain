@@ -1,0 +1,32 @@
+
+//
+//  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+//
+//  SPDX-License-Identifier: CC-BY-SA-4.0
+//
+
+
+dependencies {
+  implementation project(':shared')
+  implementation group: 'org.boofcv', name: 'boofcv-all', version: '0.40'
+}
+
+//? exclude group: 'org.boofcv',module: 'boofcv-recognition'
+//? exclude group: 'org.boofcv',module: 'boofcv-geo'
+// implementation('org.apache.kafka:kafka-streams:2.3.0') {
+//        exclude group: 'org.apache.kafka', module: 'kafka-streams' }
+
+task fatJar(type: Jar) {
+
+    duplicatesStrategy = DuplicatesStrategy.WARN
+
+    manifest {
+        attributes 'Implementation-Title': 'MLColorHistogramTool fatJar',  
+                'Implementation-Version': '1.0',
+       	        'Main-Class': 'org.phobrain.mlhistogram.MLColorHistogramTool'
+    }
+    archiveBaseName = project.name + '-all'
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+    with jar
+}

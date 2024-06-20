@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2021 Bill Ross <phobrain@sonic.net>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# begin
+
+**/nohup.out
+
+# in misc
+
+**/real_img_orient
+
+# per-orientation output dirs in traind
+
+**/v
+**/h
+
+# in boofcv
+**/new.list
+
+# in pairtop
+**/tmp_*
+
+# in trimdb
+**/00excludes
+
+# vi temp - debateable?
+**/.*.swp
+
+# misc
+**/.DS_Store
+**/build
+**/*.class
+**/*.jar
+**/*.war
+**/*.zip
+**/*.tz
+**/*.tgz
+**/*.gz

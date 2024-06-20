@@ -1,0 +1,15 @@
+/*
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+DROP INDEX IF EXISTS pr.approved_pair_id0;
+DROP INDEX IF EXISTS pr.approved_pair_id1;
+\echo 'rm dump, then'
+\echo 'CREATE INDEX approved_pair_id0 ON pr.approved_pair USING btree (id0);'
+\echo 'CREATE INDEX approved_pair_id1 ON pr.approved_pair USING btree (id1);'
+
+REVOKE ALL ON TABLE pr.approved_pair FROM PUBLIC;
+REVOKE ALL ON TABLE pr.approved_pair FROM pr;
+GRANT ALL ON TABLE pr.approved_pair TO pr;

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html><head>
+<!--
+ *  SPDX-FileCopyrightText: 2015-2023 Bill Ross Photoriot <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+ <meta charset="utf-8">
+ <link rel="canonical" href="http://phobrain.com"/>
+ <link rel="icon" href="favicon.ico"/>
+ <meta name="description" content="Your mind on photos - associative slideshow brain teaser"/>
+ <meta  http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
+ <title>Phobrain Image Analysis 4 - Siamese Neural Networks</title>
+</head>
+<body bgcolor="#ffffff">
+<div id="header">
+<a href="explain.html">
+<h4 style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
+&nbsp;&nbsp;&nbsp;&nbsp;About</h4>
+</a>
+</div>
+<div id="content">
+<style>
+h1{
+font-size:100px;
+text-shadow:0px 0px 10px #888;
+color:#006600;
+font-family:"Courier New", Courier, monospace;
+line-height:.3;
+}
+A:link{font-weight: bold; text-decoration:none;}
+A:visited{font-weight: bold; text-decoration:none;}
+P { margin-left: 25%; margin-right: 25%; font-size: 14pt; }
+</style>
+<center>
+<a href="index.html">
+<h1>Phobrain</h1>
+</a>
+<h2>Image Analysis 4 - Siamese network comparison of histograms</h2>
+<h4><a href="poincaredesc.html">Image Analysis 3 - Poincare spherical distance</a></h4>
+</center>
+<p>
+ Starting point (now gone, maybe will be replaced?): <a href="https://github.com/fchollet/keras/blob/master/examples/mnist_siamese_graph.py">Train a Siamese MLP on pairs of digits from the MNIST dataset.</a>
+</p>
+<p>
+Goal: match my taste in image pair selection,
+using various image histogram methods applied
+to ~30,000 selected pairs of images
+to train Siamese neural nets, initially 5x Dense Relu with dropout, 
+then convolutional nets,
+using Keras with Tensorflow,
+from 16K photos, including photos from Bill, Ellen and Raf &amp; Skot.
+</p>
+<center>
+<h4><a href="view.html">Example Training Pairs</a>
+    (click on Phob->Search Mode: AI, then 'C' button 
+    to see another training pair.)</h4>
+<h4><a href="siagal.html">Example NN Matches</a></h4>
+</center>
+<p>
+Comparison of pairs matching 'tower'
+ordered by by a single model's predictions,
+Linear [Hue * Saturation 48x48 + keyword vector]:</p>
+<center>
+<h4>
+	<a href="siamsort_top.html">Top matches</a> 
+	&nbsp;&nbsp; | &nbsp;&nbsp;
+	<a href="siamsort_bottom.html">Bottom matches</a>
+</h4>
+</center>
+<p>
+Pair space is roughly 79M pairs, and 0.125% of it has been explored,
+selecting pairs from proposals generated from color distances
+using a variety of histogram types, and a keyword distance function
+(yielding 20% useful pairs).
+</p>
+<p>
+<i>Training Data</i>
+Curated pairs used for the training data can be seen by going to the 
+<a href="view.html">View</a> page, where by default
+another training pair will
+be shown each time you click on a photo.</p>
+<p>
+<i>Live Demo</i>
+On the 
+<a href="view.html">View</a> page, 
+choosing the
+<span style="white-space:nowrap;"><b>Phob-&gt;Search Mode: AI</b></span>
+option will bring up 
+<span style="color:purple;">&Sigma;<b>0</b></span>/
+<span style="color:purple;">&Sigma;&#120717;</span>/
+<span style="color:purple;">&Sigma;<b>0</b>&#120717;</span>/
+<span style="color:purple;">&Sigma;<b>k</b></span>/
+<span style="color:purple;">&Sigma;&Sigma;</span>/
+<span style="color:purple;">&Sigma;<b>x</b></span>
+icons, along with some other options for matching 
+(whose functions are revealed by mouseover), 
+notably the pure random one, 
+<span style="color:blue;"><b>|</b></span>.
+The <span style="color:purple;">&Sigma;</span>
+options choose pairs either by merging results from 5 or more
+neural nets, or by a higher-level merge of suggestions of multiple
+groups. Initially, the arithmetic inverse of the nets' distance 
+predictions were used as weights for random selection of a match 
+to a given photo, but to merge nets using different scales, sums 
+of normalized values from different nets are used to derive merged weights,
+which are similarly used for random selection (the same random auction
+process used for choosing the ads that appear on web pages, where the
+cookies and ad budgets determine the weights).
+This paperlet describes what went into the first three of these
+options, labeled below as <span style="color:purple;">&#120717;<b>0-5</b></span>.
+</p>
+<center>
+<table style="width: 40%">
+<tr> <th>Option</th><th>Model</th></tr>
+<tr> <td> <span style="color:purple;">&Sigma;<b>0</b></span></td>
+	<td>5 
+	<span style="color:purple;">&#120717;<b>0</b></span> models: 
+	Linear 48x48=2304 Hue*Saturation.</td></tr>
+<tr><td><span style="color:purple;">&Sigma;&#120717;</span></td>
+	<td>6 models: <br />
+    Linear and Convolutional 48x48 Hue*Saturation 
+	(<span style="color:purple;">&#120717;<b>0,1</b></span>); <br />
+    Linear RGB 32x32x32=32K 
+	(<span style="color:purple;">&#120717;<b>2</b></span>);<br />
+    Convolutional 32x32x32 RGB
+	(<span style="color:purple;">&#120717;<b>3</b></span>),
+	made without any refinement
+	of the model other than 3D'ing the 2D model and then
+	chopping dimensions until it fit in memory,
+	to see if human effort on the model to improve test accuracy
+	really makes a difference in the visual experience;<br />
+    Convolutional 12x12x12 RGB
+	(<span style="color:purple;">&#120717;<b>4</b></span>),
+	with effort put into optimization;<br />
+    Convolutional 24x24x24 RGB
+	(<span style="color:purple;">&#120717;<b>5</b></span>),
+	The same net applied to 24x24x24 without further optimization.
+  </td></tr>
+<tr><td><span style="color:purple;">&Sigma;<b>0</b>&#120717;</span></td>
+	<td>10 models: Combination of the two above; 1 model overlaps. </td></tr>
+<tr><td><span style="color:purple;">&Sigma;<b>k</b></span></td>
+	<td>30 models: HS48x48 + keywords. <br />
+	Adding a keyword vector to the
+	histogram yields ~5% boost in accuracy, numbers not shown.  </td></tr>
+<tr><td><span style="color:purple;">&Sigma;&Sigma;</span></td>
+	<td>40 models: All models.  </td></tr>
+<tr><td><span style="color:purple;">&Sigma;<b>x</b></span></td>
+	<td>Random set of models from
+	{<span style="color:purple;">&Sigma;<b>0</b>&#120717;, 
+	&Sigma;<b>k</b>, &Sigma;&Sigma;</span>}. </td></tr>
+
+</table>
+</center>
+<p>Pairs are split into vertical, horizontal groups, with 27M vertical pairs
+and 51M horizontal.
+Training all pairs and each group separately, 
+on 50:50 positive:negative cases. 
+Testing on 20:80 ratio seen in practice. 
+Cutoff for linear models is adjusted from the original 0.5 to 0.1:<br /><br />
+&nbsp; &nbsp; &nbsp; &nbsp; x = labels[predictions.ravel() &lt; 0.1].<br /><br />
+0.5 was resumed for the convolutional models.</p>
+<p>
+It seems that the predictions are
+measures of closeness (0==identical) rather than matches to the 0/1
+labels used for indicating not_interesting/interesting, as I originally assumed.</p>
+<center>
+<p>
+Vertical: train.pos: 14400 train.neg: 14400 test.pos: 1599 test.neg: 7995<br />
+Horizontal: train.pos: 13888 train.neg: 13888 test.pos: 1542 test.neg: 7710<br />
+Both: train.pos: 28288 train.neg: 28288 test.pos: 3141 test.neg: 15705<br />
+Timing: 7 threads used to load files.</p>
+<p>Optimizer: RMSprop.</p>
+
+
+<p><b>Models</b> <br />
+<i>(they can't help it if they are beautiful)</i><br /><br />
+<a href="dense.txt">Dense*5</a><br />
+<a href="dense_pinch1.txt">Dense*5 pinch</a><br />
+<a href="dense_pinch2.txt">Dense*5 pinch2</a><br />
+<a href="dense_pinch4.txt">Dense*5 pinch4</a><br />
+</p>
+<p>
+<a href="dense_pinch3.txt">Dense*5 pinch3</a>,
+   HS48: <span style="color:purple;">&#120717;<b>0</b></span><br />
+<a href="conv2d_1.txt">Conv2d_1</a>,
+   HS48: <span style="color:purple;">&#120717;<b>1</b></span><br />
+<a href="dense_pinch3.txt">Dense*5 pinch3</a>,
+   RGB32: <span style="color:purple;">&#120717;<b>2</b></span><br />
+<a href="conv3d_1.txt">Conv3d_1</a>, 
+   RGB32: <span style="color:purple;">&#120717;<b>3</b></span><br />
+<a href="conv3d_2.txt">Conv3d_2</a>,
+   RGB12: <span style="color:purple;">&#120717;<b>4</b></span>
+   RGB24: <span style="color:purple;">&#120717;<b>5</b></span></a><br />
+</p>
+
+<style>
+table { border-collapse: collapse; }
+table, th, td { border: 1px solid black; }
+td { text-align: center; }
+th, td { padding: 8px; }
+</style>
+
+<h3>System characteristics</h3>
+
+<table>
+<tr><th>Notes</th>
+  <th>Greyscale</th><th>Hue*Sat 24</th><th>RGB 12</th>
+  <th>Hue*Sat 48</th><th>RGB 24</th><th>RGB 32</th></tr>
+<tr><td>Data set size</td>
+  <td>70M</td><td>177M</td><td>231M</td>
+  <td>522M</td><td>1.3G</td><td>2.9G</td></tr>
+<tr><td>Input width</td>
+  <td>150</td><td>576</td><td>1728</td>
+  <td>2304</td><td>13824</td><td>32768</td></tr>
+<tr><td>Dense width</td>
+  <td>128</td><td>256</td><td>728</td>
+  <td>812</td><td>2048</td><td>4096</td></tr>
+<tr><td>Time to load data + train on 2015 laptop</td>
+  <td>2m</td><td>3m</td><td>15m</td>
+  <td>22m</td><td>-</td><td>-</td></tr>
+<tr><td>Time to load data + train on 1080 ti</td>
+  <td>1m</td><td>1m</td><td>1m</td>
+  <td>2m</td><td>9m</td><td>25-50m</td></tr>
+<tr><td>Time to process 79M pairs with gpu (7-thread data read)</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>40m (41s)</td><td>-</td><td>7h (14m)</td></tr>
+</table>
+<br /><br />
+
+<h4>Convolutional models</h4>
+
+<table>
+<tr><th>Notes</th>
+  <th>RGB 12</th><th>Hue*Sat 48</th><th>RGB 24</th><th>RGB 32</th></tr>
+<tr><td>Input dimensions</td>
+  <td>12x12x12</td><td>48x48</td><td>24x24x24</td><td>32x32x42</td</tr>
+<tr><td>Batch size</td>
+  <td>256</td><td>1024</td><td>256</td><td>128</td</tr>
+<tr><td>Time to load data + train 20 epochs on 1080 ti (one orientation)</td>
+  <td>1m</td><td>43m</td><td>12m</td><td>36m</td></tr>
+<tr><td>Time to process 79M pairs with gpu (7-thread data read)</td>
+  <td>45m</td><td>140m</td><td>478m</td><td>30h</td></tr>
+</table>
+<br /><br />
+
+<h2>Test set accuracy, linear models<br />
+   (% vert, horiz, both) for various params</h2>
+
+<p>Training accuracy 78-100%, usually 98+.</p>
+
+<table>
+<tr><th>Model</th><th>Notes</th>
+  <th>Greyscale</th><th>Hue*Sat 24</th><th>RGB 12</th>
+  <th>Hue*Sat 48</th><th>RGB 24</th><th>RGB 32</th></tr>
+<tr><td><a href="dense.txt">Dense*5</a></td>
+    <td>batch 128, epochs 50 (vert, horiz)</td>
+  <td>42, 30</td><td>52, 40</td><td>48, 48</td>
+  <td>46, 46</td><td>43, 56</td><td>49, 43</td></tr>
+<tr><td><a href="dense.txt">Dense*5</a></td>
+    <td>batch 1024, epochs 100</td>
+  <td>38, 31</td><td>52, 38</td><td>45, 57</td>
+  <td>65, 56</td><td>50, 55</td><td>68, 47</td></tr>
+<tr><td><a href="dense_pinch1.txt">Dense*5/pinch</a></td>
+    <td>batch 128, epochs 50</td>
+  <td>33, 32, 40</td><td>-</td><td>-</td>
+  <td>40, 48, 52</td><td>-</td><td>49, 42, 64</td></tr>
+<tr><td><a href="dense_pinch1.txt">Dense*5/pinch</a></td>
+    <td>batch 1024, epochs 100</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>75, 55, 64</td><td>-</td><td>48, 58, 60</td></tr>
+<tr><td><a href="dense_pinch2.txt">Dense*5/pinch2</a></td>
+    <td>batch 1024, epochs 100</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>63, 55, 64</td><td>-</td><td>61, 51, 51</td></tr>
+<tr><td><a href="dense_pinch3.txt">Dense*5/pinch3</a>; 
+        <span style="color:purple;">&#120717;<b>2</b></span></td>
+     <td>batch 1024, epochs 100</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>52-82, 61, 70</td><td>-</td><td>76, 61, 60</td></tr>
+<tr><td><a href="dense_pinch3.txt">Dense*5/pinch3</a></td>
+    <td>1024, 100; train both, test v/h (overlap)</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>86-91, 83</td><td>-</td><td>-</td></tr>
+<tr><td><a href="dense_pinch3.txt">Dense*5/pinch3</a></td>
+    <td>1024, 100; train both, test v/h (no overlap)</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>44-55, 40</td><td>-</td><td>-</td></tr>
+<tr><td><a href="dense_pinch4.txt"> Dense*5/pinch4</a></td>
+    <td>batch 1024, epochs 100</td>
+  <td>-</td><td>-</td><td>-</td>
+  <td>47-70, 55, 61-68</td><td>-</td><td>-</td></tr>
+
+</table>
+<br />
+<br />
+<h2>Test set accuracy, convolutional models<br />
+   (% vert, horiz)</h2>
+
+<table>
+<tr><th>Model</th><th>Notes</th>
+  <th>RGB 12</th><th>Hue*Sat 48</th><th>RGB 24</th><th>RGB 32</th></tr>
+<tr><td><a href="conv2d_1.txt">Conv2d_1</a></td>
+    <td>Verticals; batch 1024, epochs 20</td>
+  <td>-</td><td>87</td><td>-</td><td>-</td></tr>
+<tr><td><a href="conv2d_1.txt">Conv2d_1</a></td>
+    <td>Horizontals; batch 1024, epochs 100</td>
+  <td>-</td><td>65</td><td>-</td><td>-</td></tr>
+<tr><td><a href="conv3d_1.txt">Conv3d_1</td>
+    <td>Verticals; batch 128, epochs 100; Training accuracy 69%</td>
+  <td>-</td><td>-</td><td>-</td><td>20</td></tr>
+<tr><td><a href="conv3d_1.txt">Conv3d_1</td>
+    <td>Horizontals; batch 1024, epochs 100; Training accuracy 92%</td>
+  <td>-</td><td>-</td><td>-</td><td>26</td></tr>
+
+<tr><td><a href="conv3d_2.txt">Conv3d_2</td>
+    <td>Verticals; batch 256, epochs 100; Training accuracy 95%, 97%</td>
+  <td>30</td><td>-</td><td>32</td><td>-</td></tr>
+<tr><td><a href="conv3d_2.txt">Conv3d_2</td>
+    <td>Horizontals; batch 256, epochs 100; Training accuracy 99%, 94%</td>
+  <td>30</td><td>-</td><td>27</td><td>-</td></tr>
+
+</table>
+<br /><br />
+</center>
+<p>
+It seems 30% accuracy is about the best that can be achieved, although
+augmenting the data remains to be tried. How similar are the predictions?
+Considering the 10 closest matches to the first photo ('1:1') for 5 
+separate optimizations of the 
+<a href="dense_pinch3.txt">Dense*5 pinch3</a> on HS48,
+the components to a
+<span style="color:purple;">&Sigma;<b>0</b></span> match.
+They are all unique. 
+Here the ordering of values for two of the models is shown,
+then the values of one ordered by the values of the other,
+then finally, ordered by the values from 
+<a href="conv3d_2.txt">Conv3d_2</a> on RGB24.
+</p>
+<center>
+
+<h3>Ordered values for &#120717;0 match on photo 1:1</h3>
+<img src="graph/graph_hs48_pic_1_1_dist_c0.jpg"><br /><br />
+
+<h3>Ordered values for another Dense*5 pinch3 HS48  match on photo 1:1</h3>
+<img src="graph/graph_hs48_pic_1_1_dist_c6.jpg"><br /><br />
+
+<h3>Values for latter Dense*5 pinch3 HS48 sorted by &#120717;0</h3>
+<img src="graph/graph_hs48_pic_1_1_dist_c6_sortby_c0.jpg"><br /><br />
+
+<h3>Values for latter Dense*5 pinch3 HS48 sorted by &#120717;5</h3>
+<img src="graph/graph_hs48_pic_1_1_dist_c6_sortby_c5.jpg"><br /><br />
+
+<h3>Ordered values for &#120717;5 match on photo 1:1</h3>
+<img src="graph/graph_hs48_pic_1_1_dist_c5.jpg"><br /><br />
+
+<!-- (Select id2, c<i>i</i> from pairs where id1='1:1' 
+	order by c<i>i</i> asc limit 10.) -->
+<!-- table>
+<tr><th>id2</th><th>c0</th><th>id2</th><th>c6</th><th>id2</th><th>c7</th>
+    <th>id2</th><th>c8</th><th>id2</th><th>c9</th></tr>
+<tr><td>7:2526</td><td>525</td><td>7:1553</td><td>622</td>
+    <td>7:268</td><td>754</td><td>7:436</td><td>446</td>
+    <td>1:4879</td><td>665</td></tr>
+<tr><td>7:1716</td><td>628</td> <td>1:6965</td><td>697</td>
+    <td>1:5774</td><td>971</td> <td>7:190</td><td>926</td>
+    <td>8:1787</td><td>838</td> </tr>
+<tr> <td>7:1860</td><td>789</td> <td>7:2231</td><td>799</td>
+     <td>1:5449</td><td>1008</td> <td>1:7886</td><td>1045</td>
+     <td>7:510</td><td>982</td></tr>
+<tr> <td>7:1512</td><td>815</td> <td>7:2118</td><td>831</td>
+    <td>7:1900</td><td>1024</td> <td>7:1739</td><td>1069</td>
+    <td>7:2654</td><td>998</td></tr>
+<tr> <td>1:4986</td><td>899</td> <td>7:3337</td><td>841</td>
+    <td>7:974</td><td>1037</td> <td>7:3279</td><td>1107</td>
+    <td>7:2659</td><td>1106</td></tr>
+<tr> <td>7:424</td><td>932</td> <td>1:6894</td><td>861</td>
+    <td>7:96</td><td>1115</td> <td>7:667</td><td>1182</td>
+    <td>7:2509</td><td>1142</td></tr>
+<tr> <td>7:2000</td><td>971</td> <td>7:1218</td><td>878</td>
+    <td>7:431</td><td>1128</td> <td>7:1157</td><td>1201</td>
+    <td>5:7856</td><td>1185</td></tr>
+<tr> <td>7:3364</td><td>1017</td> <td>7:1951</td><td>897</td>
+    <td>7:1530</td><td>1146</td> <td>1:5410</td><td>1212</td>
+    <td>2:1279</td><td>1212</td></tr>
+<tr> <td>7:1133</td><td>1036</td> <td>7:2601</td><td>901</td>
+    <td>1:4365</td><td>1167</td> <td>7:2483</td><td>1243</td>
+    <td>7:553</td><td>1245</td></tr>
+<tr> <td>5:8359</td><td>1039</td> <td>2:1348</td><td>915</td>
+    <td>2:425</td><td>1180</td> <td>7:218</td><td>1261</td>
+    <td>7:367</td><td>1248</td></tr>
+</table -->
+<br /><br />
+
+<h2>Distributions of the raw predictions, scaled to integers.</h2>
+
+<h3>Linear HS48 vertical pairs (<span style="color:purple;">&#120717;<b>0</b></span>)</h3>
+
+<img src="graph/graph_phi_hs48_v_weight_dist.jpg"><br /><br />
+
+<h3>Linear HS48 horizontal pairs (<span style="color:purple;">&#120717;<b>0</b></span>)</h3>
+
+<img src="graph/graph_phi_hs48_h_weight_dist.jpg"><br /><br />
+
+<h3>Convolutional HS48 vertical pairs (<span style="color:purple;">&#120717;<b>1</b></span>)</h3>
+
+<img src="graph/graph_phi_hs48conv_v_dists_dist.jpg"><br /><br />
+
+<h3>Convolutional HS48 horizontal pairs (<span style="color:purple;">&#120717;<b>1</b></span>)</h3>
+
+<img src="graph/graph_phi_hs48conv_h_dists_dist.jpg"><br /><br />
+
+<h3>Linear RGB32 vertical pairs (<span style="color:purple;">&#120717;<b>2</b></span>)</h3>
+
+<img src="graph/graph_phi_rgb32_v_weight_dist.jpg"><br /><br />
+
+<h3>Linear RGB32 horizontal pairs (<span style="color:purple;">&#120717;<b>2</b></span>)</h3>
+
+<img src="graph/graph_phi_rgb32_h_weight_dist.jpg"><br /><br />
+
+<h3>Convolutional RGB32 vertical pairs (<span style="color:purple;">&#120717;<b>3</b></span>)</h3>
+
+<img src="graph/graph_phi_rgb32conv_v_dists_dist.jpg"><br /><br />
+
+<h3>Convolutional RGB32 horizontal pairs (<span style="color:purple;">&#120717;<b>3</b></span>)</h3>
+
+<img src="graph/graph_phi_rgb32conv_h_dists_dist.jpg"><br /><br />
+
+<br />
+<br />
+<br />
+<i>Software</i><br/>
+  Histograms from BoofCV.<br/>
+  Neural network: Keras with Tensorflow.
+</p>
+<style>
+button {
+    border: 1px transparent;
+    background-color: transparent;
+    #text-shadow:0px 0px 5px #fff;
+}
+</style>
+
+<button title="na" style="font-size:50px; color:red;" onmouseup="nextImage(1);">
+-
+</button>
+
+<button title="nu" style="font-size:40px; color:blue;" onmouseup="nextImage(2);">
+|
+</button>
+
+<button title="ni" style="font-size:50px; color:green;" onmouseup="nextImage(3);">
++
+</button>
+<br/> <br/>
+<blockquote>
+<a href="https://aeon.co/videos/starlings-in-flight-sketch-entrancing-abstract-patterns-across-an-autumn-sky">
+What use to cry for Capricorn? it sails<br/>
+Across the heart's red atlas: it is found <br/>
+Only within the ribs, where all the tails <br/>
+The tempest has are whisking it around.</a>
+<br/><br/>
+
+&mdash; Mervyn Peake, 
+<a href="http://www.freebookol.net/Titus_Alone/12.html">Titus Alone</a>
+</blockquote>
+</center>
+</div>
+<p style="text-align:right; color:rgba(0,0,0,0.4);font-size: 15pt; font-family:'Courier New',Courier,monospace;">&copy; 2015-2023 Photoriot.</p>
+</body></html>

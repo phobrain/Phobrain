@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+#  SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+#
+#  SPDX-License-Identifier: AGPL-3.0-or-later
+#
+
+# 2024_02, pair ml only on v:
+# Size  Used Avail Use% Mounted on
+# 199G  122G   69G  64% /mnt/volume_sfo2_01
+
+./run 20000 30000
+
+cat 0server_instructions

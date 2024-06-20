@@ -1,0 +1,63 @@
+
+/*
+
+SPDX-FileCopyrightText: 2023 Bill Ross <phobrain@sonic.net>
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+
+*/
+
+subprojects {
+
+    apply plugin: 'java'
+
+/*
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+*/
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://mvnrepository.com/artifact/"
+        }
+    }
+
+    version = '1.0'
+}
+
+/*
+tasks.withType<Jar> {
+   duplicatesStrategy = DuplicatesStrategy.WARN
+}
+*/
+
+
+project(':import') {
+    dependencies {
+        implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
+        implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+    }
+}
+
+project(':db') {
+    dependencies {
+        implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
+        implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+    }
+}
+
+project(':shared') {
+    dependencies {
+        implementation files('../lib/flanagan-1.0.jar')
+        implementation group: 'org.ddogleg', name: 'ddogleg', version: '0.22'
+        implementation "javax.servlet:javax.servlet-api:3.1.0"
+        implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
+        //implementation "jakarta.servlet:jakarta.servlet-api:6.0.0"
+    }
+}
+
+

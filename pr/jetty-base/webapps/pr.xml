@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_3.dtd">
+
+<!--
+ *  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+ *
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+
+  <Set name="contextPath">/pr</Set>
+  <Set name="war"><Property name="jetty.webapps" default="."/>/pr.war</Set>
+
+
+</Configure>
