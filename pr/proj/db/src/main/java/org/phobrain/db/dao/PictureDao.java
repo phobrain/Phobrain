@@ -1043,12 +1043,19 @@ PGvector.addVectorType(conn);
     private static float[] getParr(Connection conn, String id, String column)
             throws SQLException {
 
+        try {
+            Integer.parseInt(column);
+            throw new SQLException("getParr: column is a number: " + column);
+        } catch (NumberFormatException desired) {}
+
         String query = chooseDB("SELECT " + column + " FROM pr.picture WHERE id = ?");
 
         PreparedStatement ps = null;
         ResultSet rs = null;
         PGvector vec = null;
+
         try {
+
             ps = conn.prepareStatement(query);
             ps.setString(1, id);
             rs = ps.executeQuery();
@@ -1068,10 +1075,30 @@ PGvector.addVectorType(conn);
 
             return vec.toArray();
 
+        } catch (SQLException sqe) {
+
+            log.error("Query: " + query + "  id=" + id);
+            throw sqe;
+
         } finally {
             closeSQL(rs);
             closeSQL(ps);
         }
+    }
+
+    public static String histo_dim_to_column(int dim) {
+
+        String column = null;
+
+        if (dim == 1984) {
+            column = "histo_ml";
+        } else if (dim == 256) {
+            column = "histo_gss";
+        } else if (dim == 1728) {
+            column = "histo_rgb";
+        }
+
+        return column;
     }
 
     // CCC column
@@ -1117,7 +1144,7 @@ PGvector.addVectorType(conn);
         } else if ("cartes".equals(func)  ||  "poi".equals(func)) {
             pgvfunc = "<->";
         } else {
-            throw new SQLException("matchVector: unknown func: " + func);
+            throw new SQLException("orderByVectors: unknown func: " + func);
         }
 
         String column = null;
@@ -1176,13 +1203,8 @@ PGvector.addVectorType(conn);
 
         } else if ("histogram".equals(type)) {
 
-            if (dim == 1984) {
-                column = "histo_ml";
-            } else if (dim == 256) {
-                column = "histo_gss";
-            } else if (dim == 1728) {
-                column = "histo_rgb";
-            }
+            column = histo_dim_to_column(dim);
+
         }
 
         if (column == null) {
@@ -1232,7 +1254,7 @@ PGvector.addVectorType(conn);
                 lh.id2_l.add(id2);
 
                 double d = rs.getDouble(2);
-/*
+/* verified
                 PGvector v = (PGvector) rs.getObject(2);
 log.info("arr2 " +v);
                 float[] arr2 = v.toArray();
@@ -1423,72 +1445,6 @@ log.info("arr2 " +v);
 
         return dim;
     }
-/*
-    private static int modelDimension(String type, String model) {
-
-        int dim = -1;
-
-        if ("1".equals(type)) {
-
-            try {
-                dim = Integer.parseInt(model);
-                if (dim != 256  &&  dim != 1728  &&  dim != 1984) {
-                    log.error("Unexpected dimension: " + dim);
-                    dim = 1984; // gss + rgb12
-                }
-            } catch (NumberFormatException nfe) {
-                log.error("Expected integer dimension for type 1 (histogram): " + model, nfe);
-                dim = 1984; // gss + rgb12
-            }
-
-        } else if ("2".equals(type)) {
-
-            if ("vgg16".equals(model)) {
-                dim = 512;
-            } else if (model.startsWith("vgg16_")) {
-
-                try {
-                    dim = Integer.parseInt(model.substring("vgg16_".length()));
-                } catch (NumberFormatException nfe) {
-                    log.error("Parsing vgg16_nnn: " + model, nfe);
-                    dim = 4;
-                }
-            } else if (model.startsWith("nnl_")) {
-
-                try {
-                    dim = Integer.parseInt(model.substring("nnl_".length()));
-                } catch (NumberFormatException nfe) {
-                    log.error("Parsing nnl_nnn: " + model, nfe);
-                    dim = 7;
-                }
-
-
-            } else if ("densenet121".equals(model)) {
-                dim = 1024;
-            } else if ("mobilenetv2".equals(model)) {
-                dim = 1280;
-            }
-
-        } else {
-
-            // now it's personal
-            type = "pairnet";
-
-            try {
-                dim = Integer.parseInt(model);
-                if (dim != 2  &&  dim != 3  &&  dim != 5  && dim != 12) {
-                    log.error("Unexpected dimension: " + dim);
-                    dim = 3; // middling
-                }
-            } catch (NumberFormatException nfe) {
-                log.error("Expected integer dimension for type 3 (pair vector): " + model, nfe);
-                dim = 3; // middling
-            }
-        }
-
-        return dim;
-    }
-*/
 
     public static ListHolder matchVector(Connection conn,
                                                 String orient,
@@ -1532,7 +1488,9 @@ log.info("arr2 " +v);
         }
 
         String column = null;
-        if ("3".equals(type)) {
+        if ("1".equals(type)) {
+            column = histo_dim_to_column(dim);
+        } else if ("3".equals(type)) {
 
             if (dim < 13) {
 log.info("VEX dim<13: " + dim);
@@ -1551,36 +1509,7 @@ log.info("VEX dim<13: " + dim);
         } else {
             column = model;
         }
-/*
-if (dim == 16) {
-            column = "vgg16_16";
-        } else if (dim == 32) {
-            column = "vgg16_32";
-        } else if (dim == 64) {
-            column = "vgg16_64";
-        } else if (dim == 128) {
-            column = "vgg16_128";
-        // 256 for gss below
-        } else if (dim == 512) {
-            // imagenet summed blocks
-            column = "vgg_512";
-        } else if (dim == 1024) {
-            // imagenet summed blocks
-            column = "densenet_1024";
-        } else if (dim == 1280) {
-            // imagenet summed blocks
-            column = "mobilenet_1280";
 
-        } else if (dim == 1984) {
-            column = "histo_ml";
-        } else if (dim == 256) {
-            column = "histo_gss";
-        } else if (dim == 1728) {
-            column = "histo_rgb";
-        } else {
-            throw new SQLException("Invalid dimension: " + dim);
-        }
-*/
         String tag = func + "." + column;
 
         String query = SQL_PICTURES_BY_IMG_VECTOR.replaceAll("VVV",
@@ -1633,7 +1562,7 @@ if (dim == 16) {
                 lh.id2_l.add(id2);
 
                 double d = rs.getDouble(2);
-/*
+/* checked
                 PGvector v = (PGvector) rs.getObject(2);
 log.info("arr2 " +v);
                 float[] arr2 = v.toArray();
@@ -1944,7 +1873,7 @@ log.info("QV " + query);
                     lhs[i].id2_l.add(id2);
 
                     double d = rs.getDouble(2);
-/*
+/* checked
                     PGvector v = (PGvector) rs.getObject(2);
 log.info("arr2 " +v);
                     float[] arr2 = v.toArray();
@@ -2163,7 +2092,7 @@ log.info("arr2 " +v);
                     lhs[i].id2_l.add(id2);
 
                     double d = rs.getDouble(2);
-/*
+/* checked
                     PGvector v = (PGvector) rs.getObject(2);
 log.info("arr2 " +v);
                     float[] arr2 = v.toArray();
@@ -2276,34 +2205,44 @@ log.info("arr2 " +v);
         return lhs;
     }
 
-    // old {} vectors
     public static double vec_dist(Picture p1, Picture p2)
             throws SQLException {
 
-        // TODO - use histo vecs if no ml ones
-
-        if (p1.vec_l == null  ||  p2.vec_r == null) {
-            throw new SQLException("PictureDao.vec_dist: null vector in " +
-                            p1.id + ".l and/or " + p2.id + ".r");
-        }
         try {
-            return MathUtil.cartesianDist(p1.vec_l, p2.vec_r);
+
+            // from old {} vectors
+            if (p1.vec_l != null  &&  p2.vec_r != null) {
+                return MathUtil.cartesianDist(p1.vec_l, p2.vec_r);
+            }
+
+            // general case: vague imagenet
+
+            if (p1.vgg16_4 != null  &&  p2.vgg16_4 != null) {
+                return MathUtil.cos_sim(p1.vgg16_4, p2.vgg16_4);
+            }
+
+            //  fallback: distance between color centers
+
+            double dr = p1.r - p2.r;
+            double dg = p1.g - p2.g;
+            double db = p1.b - p2.b;
+
+            return Math.sqrt( dr * dr + dg * dg + db * db);
+
+        } catch (SQLException sqe) {
+            throw sqe;
         } catch (Exception e) {
             throw new SQLException(e);
         }
     }
 
-    private static Random rand = new Random();
-
     public static double vec_dist(Connection conn, String id1, String id2)
             throws SQLException {
-// TODO: fix side-vecs or replace/fall back on color
-return rand.nextDouble();
-/*
+
         Picture p1 = getPictureById(conn, id1);
         Picture p2 = getPictureById(conn, id2);
+
         return vec_dist(p1, p2);
-*/
     }
 
     // pgvector

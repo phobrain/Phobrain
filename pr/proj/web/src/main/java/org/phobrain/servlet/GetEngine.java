@@ -9904,20 +9904,6 @@ x++;
 
         log.info("HIGuchi t_calc " + (System.currentTimeMillis() - tt1));
         return ret;
-/*
-        //Vector<Double> L = hig.calcLengths(clickTimes, k);
-        //double[] result = hig.calcDimension(L, 1, L.size());
-        //log.info("HIGUCHI click " + (-1.0 * result[0]));
-        L = hig.calcLengths(userTimes2, k);
-        result = hig.calcDimension(L, 1, L.size());
-        log.info("HIGUCHI time2 " + (-1.0 * result[0]));
-        L = hig.calcLengths(mouseDists, k);
-        result = hig.calcDimension(L, 1, L.size());
-        log.info("HIGUCHI dist " + (-1.0 * result[0]));
-        L = hig.calcLengths(mouseDists2, k);
-        result = hig.calcDimension(L, 1, L.size());
-        log.info("HIGUCHI dist2 " + (-1.0 * result[0]));
-*/
     }
 
     // named after Higuchi, which is used for history analysis
