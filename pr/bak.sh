@@ -75,7 +75,7 @@ echo == latest in bak_dir
 ls -ltr $BAK_DIR | tail -3
 
 echo == latest log
-ls -l $PR/0log
+ls -l ~/0log
 
 echo ==== bak device ====
 $DFCMD
@@ -126,7 +126,7 @@ find . -printf "%k %p\n" |
     sort -nr | head
 
 echo
-echo " - write 0log if you will: tar it? [y|n]"
+echo " - write 0log if you will: tar it all? [y|n]"
 read VAL
 if [ "$VAL" == "n" ] ; then
   echo "== $0  exiting - resume with cmd: ./tar.sh"

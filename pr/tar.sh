@@ -22,7 +22,18 @@ if [ ! -d "$BAK_DIR" ] ; then
 else
     echo === bak_dir is $BAK_DIR ===
 fi
+
+if [ -e ~/0log ] ; then
+    echo "copying ~/0log to $PR_HOME/pr"
+    cp -p ~/0log $PR_HOME/pr
+fi
+
 (cd $PR_HOME ; tar -c --exclude build --exclude bak --exclude .gradle --exclude tmp --exclude "*pairs_uniq_[vh]" --exclude single_proc_pairs_uniq_v --exclude "pr_dif*" -z -f $BAK_TAR .git pr)
+
+if [ -e $PR_HOME/pr/0log ] ; then
+    echo "removing $PR_HOME/pr/0log"
+    rm "$PR_HOME/pr/0log"
+fi
 
 echo "== $0  Backed up to `du -sh $BAK_TAR` from `du -sh $PR`"
 
