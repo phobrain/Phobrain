@@ -3,11 +3,11 @@ Phobrain is a toy or tool for examining how one's mind works, starting by doing 
 The setup should become more user-friendly, starting from this programmer-level description:
 
     Copy photos to an images folder. 
-    Color information and Imagenet vectors are extracted. 
-    Create postgres database, with pgvector. 
+    Run scripts/programs to extract Color information and Imagenet vectors. 
+    Create postgres database, with pgvector library. 
     Import photo info into database. 
     Compile/start web server. 
-    View/label photo pairs via browser. 
+    View/label photo pairs in browser. 
     Train models, predict pairs, view.
 
 See https://github.com/phobrain/Phobrain/blob/main/pr/INSTALL
