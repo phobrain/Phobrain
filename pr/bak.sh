@@ -104,18 +104,6 @@ else
     echo "(No local $ML_H_HOME)"
 fi
 
-echo copying to misc
-
-for i in /var/phobrain/phogit.properties 
-{
-  echo $i " "
-  if [ ! -e $i ] ; then
-    echo NONE: $i
-  else
-    echo === $i
-    cp -p $i $PR/misc/
-  fi
-}
 
 echo
 

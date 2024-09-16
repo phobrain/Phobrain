@@ -11,7 +11,7 @@
 #   adding pics to the archive, sized for the pretrained standard
 #   imagenet model.
 
-GPU = '1'   # make dynamic ... should use tensorRT?
+GPU = '0'   # make dynamic ... should use tensorRT?
 
 import socket
 import os
@@ -28,24 +28,13 @@ import numpy as np
 
 import pickle
 
-import tensorflow.keras
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing import image
-from tensorflow.python.client import device_lib
-
 
 print('== GPU: ' + GPU)
 os.environ['CUDA_VISIBLE_DEVICES'] = GPU
 
-import tensorflow as tf
-gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.5,allow_growth=True)
-tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(gpu_options=gpu_options))
 
 MODELS = [ 'VGG16', 'VGG19', 'DenseNet121', 'MobileNetV2', 'Xception', \
             'NASNetLarge', 'ResNet152V2', 'InceptionV3', 'EfficientNetB7' ]
-
-images_dir = None
-vec_dir    = None
 
 def usage(msg):
 
@@ -59,6 +48,66 @@ def usage(msg):
     print('   <model> one of:\n' + str(MODELS))
 
     exit(1)
+
+###### check args before tf import muddies output
+
+images_dir = None
+vec_dir    = None
+
+if len(sys.argv) < 3:
+    usage('need at least three args')
+
+IMAGENET_MODEL = sys.argv[1]
+
+if IMAGENET_MODEL not in MODELS:
+    usage('unknown model: ' + IMAGENET_MODEL)
+
+if len(sys.argv) < 4  or  len(sys.argv) > 5:
+    usage('arg count')
+
+phobrain_archives = False
+select_archive = None
+
+if sys.argv[2] == '-r':
+
+    # recursive transform
+
+    if len(sys.argv) != 5:
+        usage('-r: expected <jpg_dir> <vec_dir>')
+
+    images_dir = sys.argv[3]
+    vec_dir = sys.argv[4]
+
+elif sys.argv[2] == '-a':
+
+    phobrain_archives = True
+
+    if len(sys.argv) == 4:
+
+        select_archive = str(int(sys.argv[3]))
+
+    # this is in pr/bin/ which should be in your path
+
+    #PHOBRAIN_LOCAL = run_cmd(['get_phobrain_local.sh']).strip()
+    #print('-- PHOBRAIN_LOCAL: ' + PHOBRAIN_LOCAL)
+
+    IMAGE_DESC_DIR = run_cmd(['phobrain_property.sh',   \
+                                'image.desc.dir']).strip()
+
+    print('== IMAGE_DESC_DIR: [' + IMAGE_DESC_DIR + ']')
+
+else:
+
+    usage('Expected -a or -r, got: ' + sys.argv[2])
+
+import tensorflow.keras
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing import image
+from tensorflow.python.client import device_lib
+
+import tensorflow as tf
+gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=0.5,allow_growth=True)
+tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(gpu_options=gpu_options))
 
 def run_cmd(cmd):
 
@@ -133,7 +182,13 @@ def jpg_to_vec(jpg, ascii_vec, bin_vec):
     if done == 0:
 
         dim_str = str(vec.shape)
-        print(' output dimension: ' + dim_str)
+        print('\n\n  output dimension: ' + dim_str)
+
+        if vec.shape[1] != vec.shape[2]:
+
+            print('*** Expected output dimension of 1, N, N, L')
+            print('    (image file: ' + jpg + ')')
+            exit(1)
 
     if bin_vec is not None:
 
@@ -203,6 +258,7 @@ def handle_recursive():
     #       in matching tree.
 
     new_dirs = 0
+    new_vecs = 0
 
     for cur, _dirs, _files in os.walk(images_dir):
 
@@ -212,13 +268,13 @@ def handle_recursive():
         if not os.path.isdir(new):
             os.makedirs(new)
             new_dirs += 1
-
+    '''
     if new_dirs == 0:
         print('destination tree structure checked, no new dirs')
     else:
         print('destination tree structure checked / created ' + \
                                         str(new_dirs) + ' dirs')
-
+    '''
     for cur, _dirs, files in os.walk(images_dir):
 
         newdir = vec_dir + cur.removeprefix(images_dir)
@@ -235,54 +291,8 @@ def handle_recursive():
 
             jpg_to_vec(jpg, asc_vec, bin_vec)
 
+    print('-- recursively  did ' + str(done) + ' skipped ' + str(skipped))
 
-###### args
-
-if len(sys.argv) < 3:
-    usage('need at least three args')
-
-IMAGENET_MODEL = sys.argv[1]
-
-if IMAGENET_MODEL not in MODELS:
-    usage('unknown model: ' + IMAGENET_MODEL)
-
-if len(sys.argv) < 4  or  len(sys.argv) > 5:
-    usage('arg count')
-
-phobrain_archives = False
-select_archive = None
-
-if sys.argv[2] == '-r':
-
-    # recursive transform
-
-    if len(sys.argv) != 5:
-        usage('-r: expected <jpg_dir> <vec_dir>')
-
-    images_dir = sys.argv[3]
-    vec_dir = sys.argv[4]
-
-elif sys.argv[2] == '-a':
-
-    phobrain_archives = True
-
-    if len(sys.argv) == 4:
-
-        select_archive = str(int(sys.argv[3]))
-
-    # this is in pr/bin/ which should be in your path
-
-    #PHOBRAIN_LOCAL = run_cmd(['get_phobrain_local.sh']).strip()
-    #print('-- PHOBRAIN_LOCAL: ' + PHOBRAIN_LOCAL)
-
-    IMAGE_DESC_DIR = run_cmd(['phobrain_property.sh',   \
-                                'image.desc.dir']).strip()
-
-    print('== IMAGE_DESC_DIR: [' + IMAGE_DESC_DIR + ']')
-
-else:
-
-    usage('Expected -a or -r, got: ' + sys.argv[2])
 
 ### take stock
 
@@ -380,7 +390,7 @@ top = image_model.output
 
 model = Model(image_model.input, [top])
 
-print('-- loaded ' + IMAGENET_MODEL + '  starting on ' + images_dir)
+print('-- loaded ' + IMAGENET_MODEL + ',  starting on ' + images_dir)
 
 created_dir = False
 
