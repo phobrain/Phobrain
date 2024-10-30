@@ -47,6 +47,7 @@ import org.phobrain.util.ListHolder;
 import org.phobrain.util.MapUtil;
 import org.phobrain.util.MathUtil;
 import org.phobrain.util.MiscUtil;
+import org.phobrain.util.MiscUtil.SeenIds;
 import org.phobrain.util.ID;
 import org.phobrain.util.FileRec;
 import org.phobrain.util.PairsBin;
@@ -1119,6 +1120,10 @@ PGvector.addVectorType(conn);
                                                 ListHolder sortLh)
             throws SQLException {
 
+        if (sortLh == null  ||  sortLh.size() == 0) {
+            throw new SQLException("orderByVectors: list is null or empty");
+        }
+
         long t0 = System.currentTimeMillis();
 
         String[] ss = func.split("\\.");
@@ -1446,12 +1451,17 @@ log.info("arr2 " +v);
         return dim;
     }
 
+    /*
+    **  matchVector - return null for no unseen in list.
+    */
     public static ListHolder matchVector(Connection conn,
                                                 String orient,
                                                 int screen, String id,
                                                 String func, // cos.1.256..
                                                 int[] archives,
-                                                int limit, Set<String> picSet)
+                                                int limit, 
+                                                Set<String> picSet,
+                                                SeenIds seen)
             throws SQLException {
 
 //new Exception("matchVector trace").printStackTrace();
@@ -1555,6 +1565,9 @@ log.info("VEX dim<13: " + dim);
                     skipped.add(id2);
                     continue;
                 }
+                if (seen.contains(id2)) {
+                    continue;
+                }
                 if (used.contains(id2)) {
                     continue;
                 }
@@ -1591,6 +1604,10 @@ log.info("arr2 " +v);
                         (System.currentTimeMillis()-t0) + "  " +
                         lh.size() + " " +
                         skipped.size());
+
+        if (lh.size() == 0) {
+            return null;
+        }
 
         if (CHECK) {
             log.info("matchVector distances " + tag + "\n" +
@@ -1677,7 +1694,8 @@ log.info("arr2 " +v);
         " ORDER BY distance;";
 
     /*
-    **  matchVector - use function and vector type/dim
+    **  matchVector - use function and vector type/dim,
+    **                  return null if no unseen in list.
     */
     public static ListHolder matchVector(Connection conn,
                                                 String orient,
@@ -1686,7 +1704,8 @@ log.info("arr2 " +v);
                                                 String func,
                                                 String column,
                                                 int limit, 
-                                                Set<String> picSet)
+                                                Set<String> picSet,
+                                                SeenIds seen)
             throws SQLException {
 
         long t0 = System.currentTimeMillis();
@@ -1741,6 +1760,10 @@ log.info("QV " + query);
                     skipped.add(id2);
                     continue;
                 }
+                if (seen.contains(id2)) {
+                    continue;
+                }
+
                 if (used.contains(id2)) {
                     continue;
                 }
@@ -1765,6 +1788,10 @@ log.info("QV " + query);
 
         log.info("matchVector skipped " + skipped.size());
 
+        if (lh.size() == 0) {
+            return null;
+        }
+
         // flip
 
         long max = lh.value_l.get(lh.value_l.size()-1);
@@ -1777,13 +1804,15 @@ log.info("QV " + query);
 
 
     /*
-    **  matchVectors - use per-pic function and vector type/dim
+    **  matchVectors - use per-pic function and vector type/dim.
+    **                  return null if no unseen pics in listss.
     */
     public static ListHolder[] matchVectors(Connection conn,
                                                 String orient, 
                                                 List<String> ids, String[] funcDims,
                                                 int[] archives,
-                                                int limit, Set<String> picSet)
+                                                int limit, 
+                                                Set<String> picSet, SeenIds seen)
             throws SQLException {
 
         long t0 = System.currentTimeMillis();
@@ -1866,6 +1895,9 @@ log.info("QV " + query);
                         skipped.add(id2);
                         continue;
                     }
+                    if (seen.contains(id2)) {
+                        continue;
+                    }
                     if (used.contains(id2)) {
                         continue;
                     }
@@ -1916,6 +1948,12 @@ log.info("arr2 " +v);
         }
 
         for (int i=0; i<lhs.length; i++) {
+            if (lhs[i].size() == 0) {
+                return null;
+            }
+        }
+
+        for (int i=0; i<lhs.length; i++) {
             lhs[i].value_l = Lists.invertDistribution(lhs[i].value_l);
         }
 
@@ -1926,7 +1964,7 @@ log.info("arr2 " +v);
                                                 String orient, List<String> ids,
                                                 String func, String type, int dim,
                                                 int[] archives,
-                                                int limit, Set<String> picSet)
+                                                int limit, Set<String> picSet, SeenIds seen)
             throws SQLException {
 
         long t0 = System.currentTimeMillis();
@@ -2083,6 +2121,9 @@ log.info("arr2 " +v);
 
                     if (picSet != null  &&  !picSet.contains(id2)) {
                         skipped.add(id2);
+                        continue;
+                    }
+                    if (seen.contains(id2)) {
                         continue;
                     }
                     if (used.contains(id2)) {

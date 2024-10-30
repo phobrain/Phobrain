@@ -79,6 +79,8 @@ public class Picture implements Comparable {
     public float[]  mob_5;
     public float[]  nnl_7;
 
+    public float[] tmp_vec = null; // choosing imagenet vecs
+
     // color hists for ml: gss + rgb_12, used only for insert
     public float[]     ml_hists; 
 

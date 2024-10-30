@@ -19,6 +19,7 @@ import org.phobrain.util.MiscUtil.SeenIds;
 import org.phobrain.util.ListHolder;
 import org.phobrain.util.HashCount;
 import org.phobrain.util.AtomSpec;
+import org.phobrain.util.SortDoubleStrings;
 
 import org.phobrain.math.Higuchi;
 
@@ -1399,7 +1400,6 @@ public class GetEngine {
 
         SeenIds seenIds = getSeen(conn, session);
 
-        //for (int i=0;i<lh.size();i++)
         while (lh.size() > 0) {
 
             ct++;
@@ -1883,7 +1883,7 @@ assume list is sorted.. couldn't go too wrong
                     ": picSet size " + picSet.size() + " but not in it: " + nope +
                     " already-seen " + seen +
                     " lh " + lh.toString());
-new Exception("BAAA").printStackTrace();
+
         return null;
     }
 
@@ -2763,6 +2763,7 @@ new Exception("BAAA").printStackTrace();
         if (picSet == null) {
             picSet = data.getPicSet(viewNum, orient);
         }
+        SeenIds seenIds = getSeen(conn, session);
 
         Set<String> seenPairs1 = null;
         //Set<String> seenPairs2 = null;
@@ -2798,7 +2799,7 @@ new Exception("BAAA").printStackTrace();
                                     2, id1,
                                     func,
                                     data.getViewArchives(viewNum),
-                                    limit, picSet);
+                                    limit, picSet, seenIds);
         }
 
         if (lh2.size() == 0) {
@@ -3953,11 +3954,15 @@ new Exception("BAAA").printStackTrace();
             method += ">" + func + dim;
 
             log.info("getD0Match: falling back " + method + " vectors for " + matchId);
+            SeenIds seenIds = getSeen(conn, session);
             lh = PictureDao.matchVector(conn, orient,
                                     screenId, matchId,
                                     func,
                                     data.getViewArchives(viewNum),
-                                    limit, picSet);
+                                    limit, picSet, seenIds);
+            if (lh == null) {
+                return null;
+            }
         }
 
         PictureResponse pr = new PictureResponse();
@@ -4269,21 +4274,23 @@ new Exception("BAAA").printStackTrace();
                                     screen, clickedId,
                                     func,
                                     data.getViewArchives(viewNum),
-                                    50, picSet);
+                                    50, picSet, seenIds);
+        if (lh != null) {
 
-        for (int i=0;i<5;i++) {
+            for (int i=0;i<5;i++) {
 
-            pr = tryLhP(conn, session, orient, current, lh);
-            if (pr == null) {
-                log.warn("ISNULL " + i + orient);
-                break;
+                pr = tryLhP(conn, session, orient, current, lh);
+                if (pr == null) {
+                    log.warn("ISNULL " + i + orient);
+                    break;
+                }
+
+                if (!pr.p.id.equals(matchId)) {
+                    pr.method = (screen == 1 ? "l.l" : "r.r");
+                    return pr;
+                }
+                log.info("skipping match == nbr " + matchId);
             }
-
-            if (!pr.p.id.equals(matchId)) {
-                pr.method = (screen == 1 ? "l.l" : "r.r");
-                return pr;
-            }
-            log.info("skipping match == nbr " + matchId);
         }
 
         log.warn("replacePicOnClick: falling back on random");
@@ -5202,6 +5209,348 @@ new Exception("BAAA").printStackTrace();
         return ".1.histo_gss"; // greyscale/sat, 256
     }
 
+
+    private List<Screen> checkPair(Connection conn, Session session,
+                                        PictureResponse[] prs)
+            throws SQLException {
+
+        if (prs == null  ||  prs[0] == null  ||  prs[1] == null) {
+            log.error("checkPair: null PictureResponse");
+            return null;
+        }
+
+        if (prs[0].p.id.equals(prs[1].p.id)) {
+            log.info("Same pic on both sides, retry " + prs[0].p.id);
+            return null;
+        }
+
+        if (session.curator != null  &&
+                ApprovalDao.settled(conn, prs[0].p.id, prs[1].p.id)) {
+            return null;
+        }
+        if (ShowingPairDao.checkSeen(conn, session.browserID, prs[0].p.id, prs[1].p.id)) {
+            return null;
+        }
+
+        // return the pair
+
+        List<Screen> scl = new ArrayList<>();
+
+        scl.add(new Screen(session.browserID, 1, "v", prs[0].p.id,
+                                                        prs[0]));
+        scl.add(new Screen(session.browserID, 2, "v", prs[1].p.id,
+                                                        prs[1]));
+        return scl;
+    }
+
+    private ListHolder purgeSeen(SeenIds seen, ListHolder lh) {
+
+        ListHolder lh2 = new ListHolder();
+
+        for (int i=0; i<lh.size(); i++) {
+
+            String id = lh.id2_l.get(i);
+
+            if (seen.contains(id)) {
+                continue;
+            }
+
+            lh2.id2_l.add(id);
+            lh2.value_l.add(lh.value_l.get(i));
+        }
+
+        if (lh2.size() == 0) {
+            log.info("purgeSeen: " + lh.size() +  "->0");
+        }
+
+        return lh2;
+    }
+
+    /*
+    **  minVectorMatch - pick best from AxB
+    */
+    private List<Screen> minVectorMatch(Connection conn,
+                                int viewNum, String orient,
+                                Session session,
+                                ListHolder[] lhs, // closest matches for id1, id2
+                                String[] funcDims, // selects for each side
+                                String vec)  // vgg16_4,... for AxB distances
+            throws Exception {
+
+        if (lhs[0].id2_l.size() == 0  ||  lhs[1].id2_l.size() == 0) {
+            log.error("minVectorMatch: a list is 0-len");
+            return null;
+        }
+
+        log.info("minVectorMatch, vec " + vec);
+
+        // get pics for vecs
+
+        Map<String, Picture> pics = new HashMap<>();
+        for (String id : lhs[0].id2_l) {
+            pics.put(id, PictureDao.getPictureById(conn, id));
+        }
+        for (String id : lhs[1].id2_l) {
+            if (pics.get(id) == null) {
+                pics.put(id, PictureDao.getPictureById(conn, id));
+            }
+        }
+
+        // set vec to use, among the in-memory
+
+        if ("vgg16_4".equals(vec)) {
+            for (Picture p : pics.values()) {
+                p.tmp_vec = p.vgg16_4;
+            }
+        } else if ("dense_4".equals(vec)) {
+            for (Picture p : pics.values()) {
+                p.tmp_vec = p.dense_4;
+            }
+        } else if ("mob_5".equals(vec)) {
+            for (Picture p : pics.values()) {
+                p.tmp_vec = p.mob_5;
+            }
+        } else if ("nnl_7".equals(vec)) {
+            for (Picture p : pics.values()) {
+                p.tmp_vec = p.nnl_7;
+            }
+        } else {
+            log.error("UNEXPECTED, using vgg16_4: " + vec);
+            for (Picture p : pics.values()) {
+                p.tmp_vec = p.vgg16_4;
+            }
+        }
+
+
+        SortDoubleStrings arr[] = new SortDoubleStrings[lhs[0].size()];
+        for (int i=0; i<arr.length; i++) {
+            // cosine: Double.MIN_VALUE
+            arr[i] = new SortDoubleStrings(Double.MIN_VALUE);
+        }
+
+        //  find closest right-pic for each left-pic match
+        //      using the vec type, just cosin for now
+
+        int ct = 0;
+
+        int left_ix = 0;
+        for (String id1 : lhs[0].id2_l) {
+
+            float[] p1vec = pics.get(id1).tmp_vec;
+
+            String bestid2 = null;
+
+            for (String id2 : lhs[1].id2_l) {
+
+                if (id2.equals(id1)) {
+                    continue;
+                }
+
+                ct++;
+
+                float[] p2vec = pics.get(id2).tmp_vec;
+
+                // cosine: 1 == similar, 0 not
+                double d = MathUtil.cos_sim(p1vec, p2vec);
+                if (d < arr[left_ix].value) {
+                    continue;
+                }
+
+                arr[left_ix].value = d;
+                bestid2 = id2;
+            }
+            if (bestid2 == null) {
+                log.error("NO CHOICE");
+            } else {
+                arr[left_ix].strings = new String[]{ id1, bestid2 };
+            }
+
+            left_ix++;
+        }
+
+        // HACK to get descending-order sort
+        for (int i=0; i<arr.length; i++) {
+            if (arr[i].value == Double.MIN_VALUE) {
+                log.warn("No value!!!");
+            }
+            arr[i].value = 1.0 - arr[i].value;
+        }
+        Arrays.sort(arr);
+        for (int i=0; i<arr.length; i++) {
+            arr[i].value = 1.0 - arr[i].value;
+        }
+
+        log.info("GGGGGG sorted range: " +
+                arr[0].value + " .. " +
+                arr[arr.length-1].value);
+        // 0.97 .. 0.92
+
+        // cosine: Double.MIN_VALUE
+        int last = arr.length - 1;
+        while (last > -1  &&  arr[last].value == Double.MIN_VALUE) last--;
+
+        if (last == -1) {
+
+            log.error("Nothing");
+            return null;
+        }
+
+/*
+        log.info("GGGGGG sorted range flipped/mult: " +
+                arr.length + ": " +
+                arr[0].value + " .. " +
+                arr[last].value);
+                // + "\n" + Arrays.toString(arr));
+*/
+
+        // use id2 of ListHolder to hold pairs
+        //      for weighted-random
+
+        ListHolder pairs = new ListHolder();
+        pairs.dbl_l = new ArrayList<>();
+
+        for (int i=0; i<arr.length; i++) {
+
+            String id1 = arr[i].strings[0];
+            String id2 = arr[i].strings[1];
+
+            pairs.id2_l.add( id1 + "|" + id2 );
+
+            pairs.dbl_l.add(arr[i].value);
+            pairs.value_l.add((long) arr[i].value);
+        }
+
+        PictureResponse prs[] = new PictureResponse[2];
+        prs[0] = new PictureResponse();
+        prs[1] = new PictureResponse();
+
+        int tries = 0;
+
+        while (pairs.size() > 0) {
+
+            int choice = selectRandomDistributedValue(pairs.dbl_l, 25); // use 1st 25
+            String both = pairs.id2_l.get(choice);
+
+            String[] ids = both.split("\\|");
+            if (ids.length != 2) {
+                log.error("Expected id1|id2: " + both + " got " + ids.length);
+                return null;
+            }
+            prs[0].p = pics.get(ids[0]);
+            prs[1].p = pics.get(ids[1]);
+
+            List<Screen> scl = checkPair(conn, session, prs);
+
+            if (scl != null) {
+
+                //  TODO - why 2 places for method?
+
+                String method =
+                            "X" + ct + "." +
+                            choice + "/" + pairs.size() +
+                            "@" + vec;  // orig=.tries, but 0
+
+                scl.get(0).selMethod = method;
+                scl.get(1).selMethod = method;
+
+                prs[0].method = method;
+                prs[1].method = method;
+
+                return scl;
+            }
+
+            pairs.id2_l.remove(choice);
+            pairs.dbl_l.remove(choice);
+            pairs.value_l.remove(choice);
+            //long value = pairs.value_l.get(choice);
+
+            tries++;
+        }
+
+        log.warn("minVectorMatch: Best failed w/ " + ct + " calcs wasted, redo");
+        return null;
+    }
+
+    /*
+    **  twoStageVectorMatch - match one pic to a prev pic,
+    **      then use the vector of the choice to pick the
+    **      2nd pic from a list of neighbors of the other prev.
+    */
+    private List<Screen> twoStageVectorMatch(Connection conn,
+                                int viewNum, String orient,
+                                Session session,
+                                ShowingPair last,
+                                ListHolder[] lhs, // closest matches for id1, id2
+                                String[] funcDims, // selects for each side
+                                String func)  // second select side1->side2
+            throws Exception {
+
+        // cache lhs[1] pr.picture for .vectors (right-hand pics)
+
+        Picture[] pics = picsFromIds(conn, lhs[1].id2_l);
+
+        PictureResponse prs[] = new PictureResponse[2];
+
+        for (int ct=0; ct<10; ct++) {
+
+            if (lhs[1].size() == 0) {
+                log.info("returning null on empty r list ct=" + ct);
+                return null;
+            }
+
+            // get 1st pic by simple closeness (weighted-random)
+
+            prs[0] = tryLhP(conn, session, orient, last, lhs[0]);
+
+            if (prs[0] == null) {
+                log.warn("giving up at ct=" + ct);
+                return null;
+            }
+
+            // l->r using pgvector on r list
+
+            int screen = 2;
+            String id1 = prs[0].p.id;
+
+            ListHolder lh2 = PictureDao.orderByVectors(conn,
+                                            screen, id1,
+                                            func,
+                                            lhs[1]);
+/*
+personal-pair ml
+            if (prs[0].p.vec_l == null) {
+                // recalc may be in progress
+                //      TODO calc vectors when importing
+                log.warn("twoStageVectorMatch: vec_l[eft] NULL for Picture " + prs[0].p.id);
+                return null;
+            }
+
+            ListHolder lh2 = vectorDistance(screen, func, prs[0].p.vec_l, pics);
+*/
+
+            if (lh2 == null) {
+                return null;
+            }
+
+            prs[1] = tryLhP(conn, session, orient, last, lh2);
+            if (prs[1] == null) {
+                log.warn("giving up on prs[1] at ct=" + ct);
+                return null;
+            }
+
+            prs[0].method = funcHow(funcDims[0]) + "(ll)";
+            prs[1].method = funcHow(funcDims[1]) + "(r)." + funcHow(func) + "(l)";
+
+            List<Screen> scl = checkPair(conn, session, prs);
+
+            if (scl != null) {
+                return scl;
+            }
+        }
+        log.warn("twoStageVectorMatch giving up on ct=10");
+        return null;
+    }
+
     /*
     **  handleVectorsInParallel2 - w/ dots
     */
@@ -5315,20 +5664,39 @@ new Exception("BAAA").printStackTrace();
 
         List<String> picList = data.getPicList(viewNum, orient);
         int effectiveSize = picList.size();
+
         Set<String> picSet = data.getPicSet(viewNum, orient);
+        SeenIds seenIds = getSeen(conn, session);
 
         ListHolder lhs[] =
             PictureDao.matchVectors(conn, orient, ids, funcDims,
                                     data.getViewArchives(viewNum),
-                                    50, picSet);
+                                    50, picSet, seenIds);
+
+        if (lhs == null) {
+            return null;
+        }
 
         //log.info("lhs: " + lhs[0].size() + " " + lhs[1].size());
 
-        // check
-        for (int i=0; i<lhs.length; i++) {
-            if (lhs[i].size() == 0) {
-                log.warn("no list on " + i + " - returning null");
-                return null;
+        if (up.speedUp  ||  up.restlessMouse) {
+
+            // try a best cosine (AxB) match on imagenet
+            String vec = null;
+            if (up.skew < 0.25) {
+                vec = "vgg16_4";
+            } else if (up.skew < 0.5) {
+                vec = "dense_4";
+            } else if (up.skew < 0.75) {
+                vec = "mob_5";
+            } else {
+                vec = "nnl_7";
+            }
+            List<Screen> scl = minVectorMatch(conn,
+                                viewNum, orient, session,
+                                lhs, funcDims, vec);
+            if (scl != null) {
+                return scl;
             }
         }
 
@@ -5378,6 +5746,9 @@ new Exception("BAAA").printStackTrace();
         return null;
     }
 
+    /*
+    **  handleVectorsInParallel - return null or valid pair.
+    */
     private List<Screen> handleVectorsInParallel(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
@@ -5440,22 +5811,46 @@ new Exception("BAAA").printStackTrace();
 
         log.info("VEX " + firstFunc + " -> " + func + "." + type + "." + dim);
 
+        SeenIds seenIds = getSeen(conn, session);
+
         lhs = PictureDao.matchVectors(conn, orient, ids, func, type, dim,
                                     data.getViewArchives(viewNum),
-                                    50, picSet);
+                                    50, picSet, seenIds);
 
-        //log.info("lhs: " + lhs[0].size() + " " + lhs[1].size());
+        if (lhs == null) {
 
-        if (lhs[0].size() == 0  ||  lhs[1].size() == 0) {
-
-            log.warn("no list on one or both - returning null");
-
+            log.info("handleVectorsInParallel: empty list, so null");
             return null;
         }
 
-        //SeenIds seenIds = getSeen(conn, session);
+        log.info("matchVectors: " + lhs[0].size() + "  " + lhs[1].size());
 
         String[] funcDims = new String[] { firstFunc, firstFunc };
+
+        if (up.skew < 0.5) {
+
+            // try a best cosine (AxB) match on an imagenet vec
+
+            String vec = null;
+            if (up.skew < 0.15) {
+                vec = "vgg16_4";
+            } else if (up.skew < 0.3) {
+                vec = "dense_4";
+            } else if (up.skew < 0.43) {
+                vec = "mob_5";
+            } else {
+                vec = "nnl_7";
+            }
+
+            List<Screen> scl = minVectorMatch(conn,
+                                viewNum, orient, session,
+                                lhs, funcDims, vec);
+            if (scl != null) {
+                return scl;
+            }
+        }
+
+        //SeenIds seenIds = getSeen(conn, session);
 
         List<Screen> scl = null;
         if (twoStageFunc == null) {
@@ -6413,38 +6808,6 @@ new Exception("BAAA").printStackTrace();
         return linearScreenSearch(conn, viewNum, orient, session, n);
     }
 
-    private List<Screen> checkPair(Connection conn, Session session,
-                                        PictureResponse[] prs)
-            throws SQLException {
-
-        if (prs == null  ||  prs[0] == null  ||  prs[1] == null) {
-            log.error("checkPair: null PictureResponse");
-            return null;
-        }
-
-        if (prs[0].p.id.equals(prs[1].p.id)) {
-            log.info("Same pic on both sides, retry " + prs[0].p.id);
-            return null;
-        }
-
-        if (session.curator != null  &&
-                ApprovalDao.settled(conn, prs[0].p.id, prs[1].p.id)) {
-            return null;
-        }
-        if (ShowingPairDao.checkSeen(conn, session.browserID, prs[0].p.id, prs[1].p.id)) {
-            return null;
-        }
-
-        // return the pair
-
-        List<Screen> scl = new ArrayList<>();
-
-        scl.add(new Screen(session.browserID, 1, "v", prs[0].p.id,
-                                                        prs[0]));
-        scl.add(new Screen(session.browserID, 2, "v", prs[1].p.id,
-                                                        prs[1]));
-        return scl;
-    }
 
     /*
     **  oneStageVectorMatch - match each pic independently
@@ -6539,80 +6902,6 @@ new Exception("BAAA").printStackTrace();
             how += f + model + dim;
         }
         return how;
-    }
-
-    /*
-    **  twoStageVectorMatch - match one pic to a prev pic,
-    **      then use the vector of the choice to pick the
-    **      2nd pic from a list of neighbors of the other prev.
-    */
-    private List<Screen> twoStageVectorMatch(Connection conn,
-                                int viewNum, String orient,
-                                Session session,
-                                ShowingPair last,
-                                ListHolder[] lhs, // closest matches for id1, id2
-                                String[] funcDims, // selects for each side
-                                String func)  // second select side1->side2
-            throws Exception {
-
-        // cache lhs[1] pr.picture for .vectors (right-hand pics)
-
-        Picture[] pics = picsFromIds(conn, lhs[1].id2_l);
-
-        PictureResponse prs[] = new PictureResponse[2];
-
-        for (int ct=0; ct<10; ct++) {
-
-            // get 1st pic by simple closeness (weighted-random)
-
-            prs[0] = tryLhP(conn, session, orient, last, lhs[0]);
-
-            if (prs[0] == null) {
-                log.warn("giving up at ct=" + ct);
-                return null;
-            }
-
-            // l->r using pgvector on r list
-
-            int screen = 2;
-            String id1 = prs[0].p.id;
-
-            ListHolder lh2 = PictureDao.orderByVectors(conn,
-                                            screen, id1,
-                                            func,
-                                            lhs[1]);
-/*
-personal-pair ml
-            if (prs[0].p.vec_l == null) {
-                // recalc may be in progress
-                //      TODO calc vectors when importing
-                log.warn("twoStageVectorMatch: vec_l[eft] NULL for Picture " + prs[0].p.id);
-                return null;
-            }
-
-            ListHolder lh2 = vectorDistance(screen, func, prs[0].p.vec_l, pics);
-*/
-            if (lh2 == null) {
-                return null;
-            }
-
-            prs[1] = tryLhP(conn, session, orient, last, lh2);
-            if (prs[1] == null) {
-                log.warn("giving up on prs[1] at ct=" + ct);
-                return null;
-            }
-
-            prs[0].method = funcHow(funcDims[0]) + "(ll)";
-            prs[1].method = funcHow(funcDims[1]) + "(r)." + funcHow(func) + "(l)";
-
-            List<Screen> scl = checkPair(conn, session, prs);
-
-            if (scl != null) {
-                return scl;
-            }
-        }
-        log.warn("twoStageVectorMatch giving up on ct=10");
-        return null;
     }
 
 
@@ -7189,6 +7478,7 @@ personal-pair ml
             // l->r, down [closer]
             fac1 = 2.0f - 0.01f * (last.dotVecAng - 10);
             fac2 = fac1;
+
         } else if (last.dotVecAng > 90  &&  last.dotVecAng < 170) {
 
             method = "rl/down";
@@ -7259,13 +7549,16 @@ personal-pair ml
                         last.dotStartScreen + "/" + last.dotEndScreen);
             return null;
         }
+
         if ("in".equals(method)) {
+
             left2right = null;
             start = p1;
             end = p2;
         }
 
         Set<String> picSet = data.getPicSet(viewNum, orient);
+        SeenIds seenIds = getSeen(conn, session);
 
         // indexed vgg16_N:   512,64,16,4,2
         // columns loaded: vgg16_4, dense_4, mob_5, nnl_7
@@ -7333,8 +7626,8 @@ personal-pair ml
 
             ListHolder lh = PictureDao.matchVector(conn, orient, l,
                                                     null, // archives TODO per-view
-                                                    func, column, 51, picSet);
-            if (lh == null  ||  lh.size() == 0) {
+                                                    func, column, 51, picSet, seenIds);
+            if (lh == null) {
                 return null;
             }
             pr = tryLhP(conn, session, orient, histo1, lh);
@@ -7344,7 +7637,7 @@ personal-pair ml
             }
             lh2 = PictureDao.matchVector(conn, orient, r,
                                                     null, // archives TODO per-view
-                                                    func, column, 51, picSet);
+                                                    func, column, 51, picSet, seenIds);
 
         } else {
 
@@ -7371,11 +7664,11 @@ personal-pair ml
 
             ListHolder lh = PictureDao.matchVector(conn, orient, vec1,
                                                     null, // archives TODO per-view
-                                                    func, column, 51, picSet);
+                                                    func, column, 51, picSet, seenIds);
 
             log.info("matchVector - 1st lh got " + (lh == null ? "zilch" : lh.size()));
 
-            if (lh == null  ||  lh.size() == 0) {
+            if (lh == null) {
                 return null;
             }
 
@@ -7415,13 +7708,13 @@ personal-pair ml
 
             lh2 = PictureDao.matchVector(conn, orient, vec2,
                                                     null, // archives TODO per-view
-                                                    func, column, 51, picSet);
+                                                    func, column, 51, picSet, seenIds);
 
             log.info("matchVector - got.2nd " + (lh2 == null ? "zilch" : lh2.size()));
 
         }
 
-        if (lh2 == null  ||  lh2.size() == 0) {
+        if (lh2 == null) {
             log.info("matchVector: 2nd lh bunk");
             return null;
         }
@@ -7560,7 +7853,7 @@ personal-pair ml
                                     screen, idDrawnOn,
                                     func,
                                     data.getViewArchives(viewNum),
-                                    limit, picSet);
+                                    limit, picSet, seenIds);
 
         if (lh == null  ||  lh.size() < 2) {
 

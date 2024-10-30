@@ -448,6 +448,11 @@ public class Metadata extends HttpServlet {
 
         // expected [12][cp][vdnm]<dim>
 
+        if (selMethod == null  ||  selMethod.length() == 0) {
+            log.error("parseIt: selMethod");
+            return "missing info for uitype [" + uitype + "]";
+        }
+
         Character cpic = selMethod.charAt(0);            // 0
         if (cpic < '0'  ||  cpic > '2') {
             return uitype + Q + " pic";
@@ -502,6 +507,8 @@ public class Metadata extends HttpServlet {
 
         selMethod = selMethod.replace("\\.dots\\.", "");
         selMethod = selMethod.replace("\\.dots", "");
+
+        log.info("translateSelM [" + selMethod + "]");
 
         if (selMethod.startsWith("stk")) {
 
@@ -833,59 +840,57 @@ public class Metadata extends HttpServlet {
 
             if (s1.selMethod != null  &&  s2.selMethod != null) {
 
+                String s1m = translateSelectionMethod(s1.selMethod);
+                String s2m = translateSelectionMethod(s2.selMethod);
+
                 // extract overlap, if any
-//log.info("1111111111111111");
+
                 StringBuilder same = new StringBuilder();
                 for (int i=0;
-                         i<s1.selMethod.length()  &&
-                         i<s2.selMethod.length();
+                         i<s1m.length()  &&
+                         i<s2m.length();
                          i++) {
 
-                    if (s1.selMethod.charAt(i) != s2.selMethod.charAt(i)) {
+                    if (s1m.charAt(i) != s2m.charAt(i)) {
                         break;
                     }
-                    same.append(s1.selMethod.charAt(i));
+                    same.append(s1m.charAt(i));
                 }
 
-                String overlap = same.toString();
+                if (same.length() == s1m.length()) {
 
-//log.info("2111111111111111 " + overlap);
+                    sb.append(same);
 
-                if (overlap.length() != 0) {
+                } else if (same.length() > 0) {
 
-                    String common = null;
-//log.info("2211111111111111 " + overlap);
-try {
-                    common = translateSelectionMethod(overlap);
-} catch (Throwable t) {
-log.error("xxx ", t);
-return;
-}
+                    // cleaner punctuation
 
-                    int len = same.toString().length();
+                    int len = same.length();
 
-                    String s1m = s1.selMethod.substring(len);
-                    String s2m = s2.selMethod.substring(len);
+                    s1m = s1m.substring(len).replace(")", "");
+                    s2m = s2m.substring(len).replace(")", "");
+
+                    String common = same.toString()
+                                        .replace(")", "");
 
                     sb.append(common).append(": ")
-                      .append(s1m).append('|')
+                      .append(s1m).append(" || ")
                       .append(s2m);
 
-log.info("XXXXXXXXX \n"+
+log.info("\nXXXXXXXXX \n"+
 "s1 " + s1.selMethod + "\n" +
 "s2 " + s2.selMethod + "\n" +
-"-- " + same.toString() + "\n" +
-"sb " + sb.toString());
+"--> same: " + same.toString() + "\n" +
+"==>   sb: " + sb.toString());
 
                 } else {
 
-                    String m1 = translateSelectionMethod(s1.selMethod);
-                    String m2 = translateSelectionMethod(s2.selMethod);
+                    // no common prefix
 
-log.info("MMMMMMMMMMM " +m1 + " " + m2 +"] MMMMMMMMMM");
+log.info("MMMMMMMMMMM " +s1m + " " + s2m +"] MMMMMMMMMM");
 
-                    sb.append(m1).append("|")
-                      .append(m2);
+                    sb.append(s1m).append(" || ")
+                      .append(s2m);
                 }
 
             } else if (s2.selMethod != null) {
