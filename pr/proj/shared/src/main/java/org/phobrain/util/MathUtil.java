@@ -176,6 +176,44 @@ public class MathUtil extends Stdio {
         return arcosh;
     }
 
+    public static double poincareDist(float[] h1, float[] h2) {
+
+        // Poincare ball model of hyperbolic space
+        // https://arxiv.org/pdf/1705.08039.pdf
+
+        double diff[] = new double[h1.length];
+        for (int i=0; i<h1.length; i++) {
+            diff[i] = h1[i] - h2[i];
+        }
+
+        double diff2 = 0.0;
+        for (int i=0; i<h1.length; i++) {
+            diff2 += diff[i] * diff[i];
+        }
+
+        double dubdif2 = diff2 * 2.0;
+
+        double h1_2 = 0.0;
+        double h2_2 = 0.0;
+        for (int i=0; i<h1.length; i++) {
+            h1_2 += h1[i] * h1[i];
+            h2_2 += h2[i] * h2[i];
+        }
+
+        double alpha = 1.0 - h1_2;
+        if (alpha <=0.0) alpha = EPS;
+        double beta = 1.0 - h2_2;
+        if (beta <= 0.0) beta = EPS;
+
+        double div = dubdif2 / (alpha * beta);
+        double x = div + 1.0;
+        if (x < 1.0) x = 1.0;
+
+        // http://forgetcode.com/Java/1747-acosh-Return-the-hyperbolic-Cosine-of-value-as-a-Argument
+        double arcosh = Math.log(x + Math.sqrt(x*x - 1.0));
+        return arcosh;
+    }
+
     public static final String[] compFuncs = {
             "cosine", "poinca", "hellin", "cartes"
         };

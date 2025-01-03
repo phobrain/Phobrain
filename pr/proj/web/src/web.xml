@@ -39,16 +39,16 @@ xmlns="http://java.sun.com/xml/ns/javaee"
         <url-pattern>/getsession</url-pattern>
     </servlet-mapping>
 
-    <!-- servlet>
-        <servlet-name>getnext</servlet-name>
-        <servlet-class>org.phobrain.servlet.GetNext</servlet-class>
+    <servlet>
+        <servlet-name>getfext</servlet-name>
+        <servlet-class>org.phobrain.servlet.GetFext</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>getnext</servlet-name>
-        <url-pattern>/getnext</url-pattern>
-    </servlet-mapping -->
+        <servlet-name>getfext</servlet-name>
+        <url-pattern>/getfext</url-pattern>
+    </servlet-mapping>
 
     <servlet>
         <servlet-name>getmext</servlet-name>

@@ -7,10 +7,10 @@ package org.phobrain.db.dao;
  **/
 
 /**
- **  ShowingPairDao  - pr.showing_pair - record what shown and response
+ **  FeelingPairDao  - pr.feeling_pair - record what shown and response
  **/
 
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.FeelingPair;
 import org.phobrain.db.record.Picture;
 
 import org.phobrain.util.AtomSpec;
@@ -33,19 +33,19 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ShowingPairDao extends DaoBase {
+public class FeelingPairDao extends DaoBase {
 
     private static final Logger log = LoggerFactory.getLogger(
-                                                   ShowingPairDao.class);
+                                                   FeelingPairDao.class);
 
     private final static String RECORD_FIELDS =
         " id, create_time, ";
 
-    private final static String SHOWING_PAIR_FIELDS =
+    private final static String FEELING_PAIR_FIELDS =
         " browser_id, call_count, order_in_session," +
         " id1, archive1, file_name1, sel_method1," +
         " id2, archive2, file_name2, sel_method2," +
-        " rating, rating_scheme," +
+        " pair_rating, flow_rating, rating_scheme," +
         " rate_time, user_time, user_time2, watch_dots_time, mouse_down_time," +
         " mouse_dist, mouse_dist2," +
         " mouse_dx, mouse_dy, mouse_vecx, mouse_vecy," +
@@ -58,42 +58,44 @@ public class ShowingPairDao extends DaoBase {
         " dot_max_vel,dot_max_acc,dot_max_jerk," +
         " dot_start_scrn, dot_end_scrn ";
 
-    private final static String SQL_INSERT_SHOWING_PAIR =
-        "INSERT INTO pr.showing_pair " +
+    private final static String SQL_INSERT_FEELING_PAIR =
+        "INSERT INTO pr.feeling_pair " +
         " (browser_id, vertical, call_count, order_in_session," +
         "  id1, archive1, file_name1, sel_method1," +
         "  id2, archive2, file_name2, sel_method2," +
         "  atom_impact, impact_factor, big_stime)" +
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    public static void insertShowingPair(Connection conn, ShowingPair s) 
+    public static void insertFeelingPair(Connection conn, FeelingPair fp) 
                                                   throws SQLException {
+
+        log.info("insertFeelingPair: " + fp);
 
         PreparedStatement ps = null;
         ResultSet rs = null;
         ResultSet generatedKeys = null;
 
         try {
-            ps = conn.prepareStatement(SQL_INSERT_SHOWING_PAIR,
+            ps = conn.prepareStatement(SQL_INSERT_FEELING_PAIR,
                                        Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1,    s.browserID);
-            ps.setBoolean(2, s.vertical);
-            ps.setInt(3,     s.callCount);
-            ps.setInt(4,     s.orderInSession);
-            ps.setString(5,  s.id1);
-            ps.setInt(6,     s.archive1);
-            ps.setString(7,  s.fileName1);
-            ps.setString(8,  s.selMethod1);
-            ps.setString(9,  s.id2);
-            ps.setInt(10,    s.archive2);
-            ps.setString(11, s.fileName2);
-            ps.setString(12, s.selMethod2);
-            ps.setInt(13,    s.atomImpact.intValue());
-            ps.setFloat(14,  s.impactFactor);
-            if (s.bigStime > 32767) {
+            ps.setLong(1,    fp.browserID);
+            ps.setBoolean(2, fp.vertical);
+            ps.setInt(3,     fp.callCount);
+            ps.setInt(4,     fp.orderInSession);
+            ps.setString(5,  fp.id1);
+            ps.setInt(6,     fp.archive1);
+            ps.setString(7,  fp.fileName1);
+            ps.setString(8,  fp.selMethod1);
+            ps.setString(9,  fp.id2);
+            ps.setInt(10,    fp.archive2);
+            ps.setString(11, fp.fileName2);
+            ps.setString(12, fp.selMethod2);
+            ps.setInt(13,    fp.atomImpact.intValue());
+            ps.setFloat(14,  fp.impactFactor);
+            if (fp.bigStime > 32767) {
                 ps.setInt(15, 32767);
             } else {
-                ps.setInt(15,    s.bigStime);
+                ps.setInt(15, fp.bigStime);
             }
 
             int rows = ps.executeUpdate();
@@ -102,10 +104,11 @@ public class ShowingPairDao extends DaoBase {
             }
             generatedKeys = ps.getGeneratedKeys();
             if (generatedKeys.next()) {
-                s.id = generatedKeys.getLong(1);
+                fp.id = generatedKeys.getLong(1);
+                log.info("insertFeelingPair: INSERTED " + fp);
                 return;
             } 
-            throw new SQLException( "Creating showing failed, no ID obtained.");
+            throw new SQLException( "Creating feeling_pair failed, no ID obtained.");
 
         } finally {
             closeSQL(generatedKeys);
@@ -114,8 +117,8 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    private static final String SQL_COUNT_SHOWING_PAIRS =
-        "SELECT count(*) FROM pr.showing_pair" +
+    private static final String SQL_COUNT_FEELING_PAIRS =
+        "SELECT count(*) FROM pr.feeling_pair" +
         " WHERE create_time > now() - interval '5 seconds'";
 
     public static int getCount(Connection conn) 
@@ -123,7 +126,7 @@ public class ShowingPairDao extends DaoBase {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(SQL_COUNT_SHOWING_PAIRS,
+            ps = conn.prepareStatement(SQL_COUNT_FEELING_PAIRS,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             rs = ps.executeQuery();
@@ -139,7 +142,7 @@ public class ShowingPairDao extends DaoBase {
 
 
     private static final String SQL_IDS_SEEN =
-        "SELECT id1, id2 FROM pr.showing_pair WHERE browser_id = ?";
+        "SELECT id1, id2 FROM pr.feeling_pair WHERE browser_id = ?";
 
     public static Set<String> getSeen(Connection conn, long browserID)
             throws SQLException {
@@ -168,7 +171,7 @@ public class ShowingPairDao extends DaoBase {
     }
 
     private static final String SQL_METHOD =
-        "SELECT id1, id2 FROM pr.showing_pair WHERE sel_method1 @@ " +
+        "SELECT id1, id2 FROM pr.feeling_pair WHERE sel_method1 @@ " +
                                             " OR sel_method2 @@";
 
     /**
@@ -207,38 +210,38 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    public static ShowingPair getLastShowingToBrowser(Connection conn, 
+    public static FeelingPair getLastFeelingToBrowser(Connection conn, 
                                                   long browserID)
               throws SQLException {
-        long showingID = getLastShowingID(conn, browserID);
-        if (showingID == -1) {
+        long feelingID = getLastFeelingID(conn, browserID);
+        if (feelingID == -1) {
             return null;
         }
-        return getShowingPairByID(conn, showingID);
+        return getFeelingPairByID(conn, feelingID);
     }
 
-    private final static String SQL_GET_LAST_SHOWING_ID =
-        "SELECT MAX(id) FROM pr.showing_pair WHERE browser_id = ?";
+    private final static String SQL_GET_LAST_FEELING_ID =
+        "SELECT MAX(id) FROM pr.feeling_pair WHERE browser_id = ?";
 
-    public static long getLastShowingID(Connection conn, long browserID)
+    public static long getLastFeelingID(Connection conn, long browserID)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_LAST_SHOWING_ID, 
+            ps = conn.prepareStatement(SQL_GET_LAST_FEELING_ID, 
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
             rs = ps.executeQuery();
             if (!rs.next()) {   // impossible?
-                throw new SQLException("getLastShowing: no result");
+                throw new SQLException("getLastFeeling: no result");
             }
-            long showingID = rs.getLong(1);
-            if (showingID == 0) {
+            long feelingID = rs.getLong(1);
+            if (feelingID == 0) {
                 return -1; // seems better
             }
-            return showingID;
+            return feelingID;
 
         } finally {
             closeSQL(rs);
@@ -246,127 +249,128 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    private static ShowingPair showingPairFromResultSet(ResultSet rs) 
+    private static FeelingPair feelingPairFromResultSet(ResultSet rs) 
             throws SQLException {
 
-        ShowingPair sp = new ShowingPair();
+        FeelingPair fp = new FeelingPair();
 
-        sp.id = rs.getLong(1);
-        sp.createTime = rs.getTimestamp(2);
+        fp.id = rs.getLong(1);
+        fp.createTime = rs.getTimestamp(2);
 
-        sp.browserID = rs.getLong(3);
-        sp.callCount = rs.getInt(4);
-        sp.orderInSession = rs.getInt(5);
+        fp.browserID = rs.getLong(3);
+        fp.callCount = rs.getInt(4);
+        fp.orderInSession = rs.getInt(5);
  
-        sp.id1 = rs.getString(6);
-        sp.archive1 = rs.getInt(7);
-        sp.fileName1 = rs.getString(8);
-        sp.selMethod1 = rs.getString(9);
+        fp.id1 = rs.getString(6);
+        fp.archive1 = rs.getInt(7);
+        fp.fileName1 = rs.getString(8);
+        fp.selMethod1 = rs.getString(9);
 
-        sp.id2 = rs.getString(10);
-        sp.archive2 = rs.getInt(11);
-        sp.fileName2 = rs.getString(12);
-        sp.selMethod2 = rs.getString(13);
+        fp.id2 = rs.getString(10);
+        fp.archive2 = rs.getInt(11);
+        fp.fileName2 = rs.getString(12);
+        fp.selMethod2 = rs.getString(13);
 
-        sp.pairRating = rs.getInt(14);
-        sp.ratingScheme = rs.getInt(15);
+        fp.pairRating = rs.getInt(14);
+        fp.flowRating = rs.getInt(15);
+        fp.ratingScheme = rs.getInt(16);  // vestigial
 
-        sp.rateTime = getTimestamp(rs, 16);
-        sp.userTime = rs.getInt(17);
-        sp.userTime2 = rs.getInt(18);
-        sp.watchDotsTime = rs.getInt(19);
-        sp.mouseDownTime = rs.getInt(20);
+        fp.rateTime = getTimestamp(rs, 17);
+        fp.userTime = rs.getInt(18);
+        fp.userTime2 = rs.getInt(19);
+        fp.watchDotsTime = rs.getInt(20);
+        fp.mouseDownTime = rs.getInt(21);
 
-        sp.mouseDist = rs.getInt(21);
-        sp.mouseDist2 = rs.getInt(22);
+        fp.mouseDist = rs.getInt(22);
+        fp.mouseDist2 = rs.getInt(23);
 
-        sp.mouseDx = rs.getInt(23);
-        sp.mouseDy = rs.getInt(24);
-        sp.mouseVecx = rs.getInt(25);
-        sp.mouseVecy = rs.getInt(26);
+        fp.mouseDx = rs.getInt(24);
+        fp.mouseDy = rs.getInt(25);
+        fp.mouseVecx = rs.getInt(26);
+        fp.mouseVecy = rs.getInt(27);
 
-        sp.mouseMaxv = rs.getInt(27);
-        sp.mouseMaxa = rs.getInt(28);
-        sp.mouseMina = rs.getInt(29);
-        sp.mouseMaxj = rs.getInt(30);
+        fp.mouseMaxv = rs.getInt(28);
+        fp.mouseMaxa = rs.getInt(29);
+        fp.mouseMina = rs.getInt(30);
+        fp.mouseMaxj = rs.getInt(31);
 
-        sp.clickTime = rs.getInt(31);
-        sp.loadTime = rs.getInt(32);
-        sp.pixInPic = rs.getInt(33);
-        sp.dotCount = rs.getInt(34);
-        sp.pixOutPic = rs.getInt(35);
+        fp.clickTime = rs.getInt(32);
+        fp.loadTime = rs.getInt(33);
+        fp.pixInPic = rs.getInt(34);
+        fp.dotCount = rs.getInt(35);
+        fp.pixOutPic = rs.getInt(36);
 
-        sp.atomImpact = AtomSpec.fromInt(rs.getInt(36));
-        sp.impactFactor = rs.getFloat(37);
-        sp.picClik = rs.getString(38);
+        fp.atomImpact = AtomSpec.fromInt(rs.getInt(37));
+        fp.impactFactor = rs.getFloat(38);
+        fp.picClik = rs.getString(39);
 
-        sp.nTogs = rs.getInt(39);
-        sp.togSides = rs.getString(40);
-        String togts = rs.getString(41);
+        fp.nTogs = rs.getInt(40);
+        fp.togSides = rs.getString(41);
+        String togts = rs.getString(42);
         if (togts != null) {
-            sp.togTimes = MiscUtil.base64ToIntArray(togts);
+            fp.togTimes = MiscUtil.base64ToIntArray(togts);
         }
 
-        sp.vertical = rs.getBoolean(42);
-        sp.bigTime = rs.getInt(43);
-        sp.bigStime = rs.getInt(44);
+        fp.vertical = rs.getBoolean(43);
+        fp.bigTime = rs.getInt(44);
+        fp.bigStime = rs.getInt(45);
 
-        sp.dotDist = rs.getInt(45);
-        sp.dotVecLen = rs.getInt(46);
-        sp.dotVecAng = rs.getInt(47);
+        fp.dotDist = rs.getInt(46);
+        fp.dotVecLen = rs.getInt(47);
+        fp.dotVecAng = rs.getInt(48);
 
-        sp.dotMaxVel = rs.getInt(48);
-        sp.dotMaxAccel = rs.getInt(49);
-        sp.dotMaxJerk = rs.getInt(50);
+        fp.dotMaxVel = rs.getInt(49);
+        fp.dotMaxAccel = rs.getInt(50);
+        fp.dotMaxJerk = rs.getInt(51);
 
-        sp.dotStartScreen = rs.getInt(51);
-        sp.dotEndScreen = rs.getInt(52);
+        fp.dotStartScreen = rs.getInt(52);
+        fp.dotEndScreen = rs.getInt(53);
 
-        return sp;
+        return fp;
     }
 
-    private static ShowingPair showingPairIDBothFromResultSet(ResultSet rs) 
+    private static FeelingPair feelingPairIDBothFromResultSet(ResultSet rs) 
             throws SQLException {
 
-        ShowingPair sp = new ShowingPair();
+        FeelingPair fp = new FeelingPair();
 
-        sp.createTime = rs.getTimestamp(1);
+        fp.createTime = rs.getTimestamp(1);
 
-        sp.id1 = rs.getString(2);
-        sp.archive1 = rs.getInt(3);
-        sp.fileName1 = rs.getString(4);
+        fp.id1 = rs.getString(2);
+        fp.archive1 = rs.getInt(3);
+        fp.fileName1 = rs.getString(4);
 
-        sp.id2 = rs.getString(5);
-        sp.archive2 = rs.getInt(6);
-        sp.fileName2 = rs.getString(7);
+        fp.id2 = rs.getString(5);
+        fp.archive2 = rs.getInt(6);
+        fp.fileName2 = rs.getString(7);
 
-        sp.vertical = rs.getBoolean(8);
+        fp.vertical = rs.getBoolean(8);
 
-        return sp;
+        return fp;
     }
-    private final static String SQL_GET_SHOWING_PAIR_BY_ID =
+    private final static String SQL_GET_FEELING_PAIR_BY_ID =
         "SELECT " +
           RECORD_FIELDS +
-          SHOWING_PAIR_FIELDS +
-        " FROM pr.showing_pair WHERE id = ?";
+          FEELING_PAIR_FIELDS +
+        " FROM pr.feeling_pair WHERE id = ?";
 
-    public static ShowingPair getShowingPairByID(Connection conn, 
-                                                 long showingID) 
+    public static FeelingPair getFeelingPairByID(Connection conn, 
+                                                 long feelingID) 
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_SHOWING_PAIR_BY_ID, 
+            ps = conn.prepareStatement(SQL_GET_FEELING_PAIR_BY_ID, 
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
-            ps.setLong(1, showingID);
+            ps.setLong(1, feelingID);
             rs = ps.executeQuery();
             if (!rs.next()) {   // impossible?
-                throw new SQLException("getLastShowingPairByID: no result");
+                throw new SQLException("getLastFeelingPairByID: no result");
             }
 
-            return showingPairFromResultSet(rs);
+            return feelingPairFromResultSet(rs);
 
         } finally {
             closeSQL(rs);
@@ -375,12 +379,12 @@ public class ShowingPairDao extends DaoBase {
     }
 
  
-    private final static String SQL_GET_SHOWING_PAIRS_BY_IDS =
+    private final static String SQL_GET_FEELING_PAIRS_BY_IDS =
         "SELECT create_time, id1, archive1, file_name1, " +
         " id2, archive2, file_name2, vertical " +
-        " FROM pr.showing_pair_ids_both WHERE id1 = ? AND id2 = ?";
+        " FROM pr.feeling_pair_ids_both WHERE id1 = ? AND id2 = ?";
 
-    public static ShowingPair getShowingPairByIDsAndTime(Connection conn, 
+    public static FeelingPair getFeelingPairByIDsAndTime(Connection conn, 
                                                  String id1, String id2, 
                                                  long t) 
               throws SQLException {
@@ -388,30 +392,30 @@ public class ShowingPairDao extends DaoBase {
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_SHOWING_PAIRS_BY_IDS, 
+            ps = conn.prepareStatement(SQL_GET_FEELING_PAIRS_BY_IDS, 
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id1);
             ps.setString(2, id2);
             rs = ps.executeQuery();
 
-            ShowingPair sp = null;
+            FeelingPair fp = null;
             int skipped = 0;
 
             while (rs.next()) {
-                ShowingPair tsp = showingPairIDBothFromResultSet(rs);
-                if (Math.abs(t - tsp.createTime.getTime()) > 2000) {
+                FeelingPair tfp = feelingPairIDBothFromResultSet(rs);
+                if (Math.abs(t - tfp.createTime.getTime()) > 2000) {
                     skipped++;
                     continue;
                 }
-                if (sp != null) {
-                    log.warn(">1 sp's at time");
+                if (fp != null) {
+                    log.warn(">1 fp's at time");
                     return null;
                 }
-                sp = tsp;
+                fp = tfp;
             }
 
-            return sp;
+            return fp;
 
         } finally {
             closeSQL(rs);
@@ -419,24 +423,24 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    public static List<ShowingPair> getShowingPairsByIDs(Connection conn, 
+    public static List<FeelingPair> getFeelingPairsByIDs(Connection conn, 
                                                  String id1, String id2) 
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_SHOWING_PAIRS_BY_IDS, 
+            ps = conn.prepareStatement(SQL_GET_FEELING_PAIRS_BY_IDS, 
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id1);
             ps.setString(2, id2);
             rs = ps.executeQuery();
 
-            List<ShowingPair> ret = new ArrayList<>();
+            List<FeelingPair> ret = new ArrayList<>();
 
             while (rs.next()) {
-                ret.add(showingPairIDBothFromResultSet(rs));
+                ret.add(feelingPairIDBothFromResultSet(rs));
             }
 
             return ret;
@@ -447,30 +451,30 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    private final static String SQL_GET_LAST_SHOWINGS =
+    private final static String SQL_GET_LAST_FEELINGS =
         "SELECT " +
           RECORD_FIELDS +
-          SHOWING_PAIR_FIELDS +
-        " FROM pr.showing_pair WHERE browser_id = ? ORDER BY id DESC LIMIT ?";
+          FEELING_PAIR_FIELDS +
+        " FROM pr.feeling_pair WHERE browser_id = ? ORDER BY id DESC LIMIT ?";
 
-    public static List<ShowingPair> getLastShowings(Connection conn, 
+    public static List<FeelingPair> getLastFeelings(Connection conn, 
                                                 long browserID, int n) 
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_LAST_SHOWINGS, 
+            ps = conn.prepareStatement(SQL_GET_LAST_FEELINGS, 
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
             ps.setInt(2, n);
             rs = ps.executeQuery();
 
-            List<ShowingPair> l = new ArrayList<>();
+            List<FeelingPair> l = new ArrayList<>();
 
             while (rs.next()) {
-                l.add(showingPairFromResultSet(rs));
+                l.add(feelingPairFromResultSet(rs));
             }
             return l;
 
@@ -480,22 +484,22 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    private final static String SQL_COUNT_BROWSER_SHOWINGS =
-        "SELECT COUNT(*)  FROM pr.showing_pair WHERE browser_id = ?";
+    private final static String SQL_COUNT_BROWSER_FEELINGS =
+        "SELECT COUNT(*)  FROM pr.feeling_pair WHERE browser_id = ?";
 
-    public static int countShowings(Connection conn, long browserID) 
+    public static int countFeelings(Connection conn, long browserID) 
               throws SQLException {
-        return countShowings(conn, browserID, null);
+        return countFeelings(conn, browserID, null);
     }
 
-    public static int countShowings(Connection conn, long browserID, 
+    public static int countFeelings(Connection conn, long browserID, 
                                                      String orient) 
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            String query = SQL_COUNT_BROWSER_SHOWINGS;
+            String query = SQL_COUNT_BROWSER_FEELINGS;
             if (orient != null) {
                 if ("v".equals(orient)) {
                     query += " AND vertical IS TRUE";
@@ -520,29 +524,29 @@ public class ShowingPairDao extends DaoBase {
     }
 
 
-    private final static String SQL_GET_ALL_SHOWINGS =
+    private final static String SQL_GET_ALL_FEELINGS =
         "SELECT " +
           RECORD_FIELDS +
-          SHOWING_PAIR_FIELDS +
-        " FROM pr.showing_pair WHERE browser_id = ? ORDER BY id ASC";
+          FEELING_PAIR_FIELDS +
+        " FROM pr.feeling_pair WHERE browser_id = ? ORDER BY id ASC";
 
-    public static List<ShowingPair> getAllShowings(Connection conn, 
+    public static List<FeelingPair> getAllFeelings(Connection conn, 
                                                    long browserID) 
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_ALL_SHOWINGS, 
+            ps = conn.prepareStatement(SQL_GET_ALL_FEELINGS, 
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
             rs = ps.executeQuery();
 
-            List<ShowingPair> l = new ArrayList<>();
+            List<FeelingPair> l = new ArrayList<>();
 
             while (rs.next()) {
-                l.add(showingPairFromResultSet(rs));
+                l.add(feelingPairFromResultSet(rs));
             }
             return l;
 
@@ -553,7 +557,7 @@ public class ShowingPairDao extends DaoBase {
     }
 
     private final static String SQL_CHECK_SEEN =
-        "SELECT COUNT(*) FROM pr.showing_pair " +
+        "SELECT COUNT(*) FROM pr.feeling_pair " +
         " WHERE browser_id = ? AND id1 = ? AND id2 = ?";
 
     public static boolean checkSeen(Connection conn, long browserID,
@@ -580,8 +584,8 @@ public class ShowingPairDao extends DaoBase {
    }
 
     private final static String SQL_ADD_RATING =
-        "UPDATE pr.showing_pair SET rate_time = ?," +
-                        " rating = ?, rating_scheme = ?," +
+        "UPDATE pr.feeling_pair SET rate_time = ?," +
+                        " pair_rating = ?, flow_rating = ?, rating_scheme = ?," +
                         " user_time = ?, user_time2 = ?," +
                         " mouse_time = ?, watch_dots_time = ?," +
                         " mouse_down_time = ?, load_time = ?," +
@@ -600,101 +604,115 @@ public class ShowingPairDao extends DaoBase {
                         " dot_max_acc = ?, dot_max_jerk = ?" +
                         " WHERE id = ?";
 
-    public static void updateShowingPair(Connection conn, ShowingPair sp)
+    /*
+    **  updateFeelingPair - add user response: 
+    **                      rating [u u n a a]
+    **                      drawing that was done after rating it
+    **                              that triggered next FeelingPair.
+    */
+
+    public static void updateFeelingPair(Connection conn, FeelingPair fp)
               throws SQLException {
 
-        if ("na".equals(sp.togSides)) {
-            sp.togSides = null;
+        log.info("updateFeelingPair " + fp);
+
+        // clean up
+
+        if ("na".equals(fp.togSides)) {
+            fp.togSides = null;
         }
-        if (MiscUtil.NULL_BASE64.equals(sp.toggleTStr)) {
-            sp.toggleTStr = null;
+        if (MiscUtil.NULL_BASE64.equals(fp.toggleTStr)) {
+            fp.toggleTStr = null;
         }
 
-        if (sp.toggleTStr != null  &&  sp.toggleTStr.length() > 1024) {
-            log.warn("TRUNCATING togTimestr: " + sp.toggleTStr);
+        if (fp.toggleTStr != null  &&  fp.toggleTStr.length() > 1024) {
+            log.warn("TRUNCATING togTimestr: " + fp.toggleTStr);
             int i = 1024;
-            while (sp.toggleTStr.charAt(i) != '_' && i > 0) i--;
+            while (fp.toggleTStr.charAt(i) != '_' && i > 0) i--;
             if (i == 0) {
                 log.error("BAD togTimes setting -> null");
-                sp.toggleTStr = null;
+                fp.toggleTStr = null;
             } else {
-                sp.toggleTStr = sp.toggleTStr.substring(0, i);
-                log.warn("TRUNCATED togTimes: " + sp.toggleTStr);
+                fp.toggleTStr = fp.toggleTStr.substring(0, i);
+                log.warn("TRUNCATED togTimes: " + fp.toggleTStr);
             }
         }
 
-        if (sp.clickTime > 32767) {
+        if (fp.clickTime > 32767) {
             // TODO - seems to happen when clicking on pic then going away
-            log.warn("TRUNCating clickTime " + sp.clickTime + " to 32767");
-            sp.clickTime = 32767;
+            log.warn("TRUNCating clickTime " + fp.clickTime + " to 32767");
+            fp.clickTime = 32767;
         }
-        if (sp.bigTime > 32767) {
+        if (fp.bigTime > 32767) {
             // TODO - seems to happen when building pairs indexes
-            log.warn("TRUNCating bigTime " + sp.bigTime + " to 32767");
-            sp.bigTime = 32767;
+            log.warn("TRUNCating bigTime " + fp.bigTime + " to 32767");
+            fp.bigTime = 32767;
         }
+
+        // update
 
         PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement(SQL_ADD_RATING);
 
-            ps.setTimestamp(1,  sp.rateTime);
+            ps.setTimestamp(1,  fp.rateTime);
 
-            ps.setInt(2,  sp.pairRating);
-            ps.setInt(3,  sp.ratingScheme);
+            ps.setInt(2,  fp.pairRating);
+            ps.setInt(3,  fp.flowRating);
+            ps.setInt(4,  fp.ratingScheme);
 
-            ps.setInt(4,  sp.userTime);
-            ps.setInt(5,  sp.userTime2);
-            ps.setInt(6,  sp.clickTime); // mouse_time==draw time
-            ps.setInt(7,  sp.watchDotsTime);
-            ps.setInt(8,  sp.mouseDownTime);
-            ps.setInt(9,  sp.loadTime);
+            ps.setInt(5,  fp.userTime);
+            ps.setInt(6,  fp.userTime2);
+            ps.setInt(7,  fp.clickTime); // mouse_time==draw time
+            ps.setInt(8,  fp.watchDotsTime);
+            ps.setInt(9,  fp.mouseDownTime);
+            ps.setInt(10,  fp.loadTime);
 
-            ps.setInt(10,  sp.mouseDist);
-            ps.setInt(11,  sp.mouseDist2);
+            ps.setInt(11,  fp.mouseDist);
+            ps.setInt(12,  fp.mouseDist2);
 
-            ps.setInt(12,  sp.mouseDx);
-            ps.setInt(13,  sp.mouseDy);
+            ps.setInt(13,  fp.mouseDx);
+            ps.setInt(14,  fp.mouseDy);
 
-            ps.setInt(14,  sp.mouseVecx);
-            ps.setInt(15,  sp.mouseVecy);
+            ps.setInt(15,  fp.mouseVecx);
+            ps.setInt(16,  fp.mouseVecy);
 
-            ps.setInt(16,  sp.mouseMaxv);
-            ps.setInt(17,  sp.mouseMaxa);
+            ps.setInt(17,  fp.mouseMaxv);
+            ps.setInt(18,  fp.mouseMaxa);
 
-            ps.setInt(18,  sp.mouseMina);
-            ps.setInt(19,  sp.mouseMaxj);
+            ps.setInt(19,  fp.mouseMina);
+            ps.setInt(20,  fp.mouseMaxj);
 
-            ps.setInt(20,  sp.pixInPic);
-            ps.setInt(21,  sp.dotCount);
+            ps.setInt(21,  fp.pixInPic);
+            ps.setInt(22,  fp.dotCount);
 
-            ps.setInt(22,  sp.pixOutPic);
-            ps.setString(23, sp.picClik);
+            ps.setInt(23,  fp.pixOutPic);
+            ps.setString(24, fp.picClik);
 
-            ps.setInt(24,  sp.nTogs);
-            ps.setString(25, sp.togSides);
+            ps.setInt(25,  fp.nTogs);
+            ps.setString(26, fp.togSides);
 
-            ps.setString(26, sp.toggleTStr);
-            ps.setInt(27, sp.bigTime);
+            ps.setString(27, fp.toggleTStr);
+            ps.setInt(28, fp.bigTime);
 
-            ps.setInt(28, sp.dotStartScreen);
-            ps.setInt(29, sp.dotEndScreen);
+            ps.setInt(29, fp.dotStartScreen);
+            ps.setInt(30, fp.dotEndScreen);
 
-            ps.setInt(30, sp.dotDist);
-            ps.setInt(31, sp.dotVecLen);
+            ps.setInt(31, fp.dotDist);
+            ps.setInt(32, fp.dotVecLen);
 
-            ps.setInt(32, sp.dotVecAng);
-            ps.setInt(33, sp.dotMaxVel);
+            ps.setInt(33, fp.dotVecAng);
+            ps.setInt(34, fp.dotMaxVel);
 
-            ps.setInt(34, sp.dotMaxAccel);
-            ps.setInt(35, sp.dotMaxJerk);
+            ps.setInt(35, fp.dotMaxAccel);
+            ps.setInt(36, fp.dotMaxJerk);
 
             // where
-            ps.setLong(36, sp.id);
+            ps.setLong(37, fp.id);
 
             int rows = ps.executeUpdate();
             if (rows != 1) {
-                throw new SQLException("updateShowingPair update rows != 1: " + 
+                throw new SQLException("updateFeelingPair update rows != 1: " + 
                                        rows);
             }
         } catch (SQLException sqe) {
@@ -702,6 +720,7 @@ public class ShowingPairDao extends DaoBase {
         } finally {
             closeSQL(ps);
         }
+        log.info("updateFeelingPair UPDATED " + fp.id);
     }
 }
 

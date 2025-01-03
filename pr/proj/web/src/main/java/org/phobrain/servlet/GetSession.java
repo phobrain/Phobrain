@@ -8,7 +8,7 @@ package org.phobrain.servlet;
 
 /**
  **  GetSession - establish Session for continuity/nonrepetition of pics.
- **     With constant identity (e.g. across devices) would become a 
+ **     With constant identity (e.g. across devices) would become a
  **     login service.
  **
  */
@@ -90,7 +90,8 @@ public class GetSession extends HttpServlet {
     }
 */
 
-    private static final GetEngine engine = GetEngine.getEngine();
+    private static final GetEngine pairEngine = GetEngine.getEngine();
+    private static final FeelEngine feelEngine = FeelEngine.getEngine();
 
     @Override
     public void init (ServletConfig config) throws ServletException {
@@ -143,7 +144,7 @@ public class GetSession extends HttpServlet {
         }
         if (userName == null) {
             // bad hackery on the other end
-            log.error("Login denied: username null: [" + 
+            log.error("Login denied: username null: [" +
                                     userName + "] " + remoteAddr);
             res.sendError(400, "Unrecognized protocol");
             return;
@@ -159,12 +160,12 @@ public class GetSession extends HttpServlet {
             }
         }
 
-        if (!userName.equals("fooser")  &&  
-            !userName.equals("eooser")  && 
-            !userName.startsWith("cu_")  && 
-            !userName.equals("mooser")  && 
-            !userName.equals("ripplay") && 
-            !userName.equals("moober") && 
+        if (!userName.equals("fooser")  &&
+            !userName.equals("eooser")  &&
+            !userName.startsWith("cu_")  &&
+            !userName.equals("mooser")  &&
+            !userName.equals("ripplay") &&
+            !userName.equals("skooser") &&
             !userName.equals("kwooser")) {
             log.error("Login denied: (need cu_ ?) [" + userName + "] " + remoteAddr);
             res.sendError(400, "Unrecognized protocol");
@@ -173,15 +174,15 @@ public class GetSession extends HttpServlet {
 
         if (sessionTag == null) {
             // bad hackery on the other end
-            log.error("Login denied: [" + userName + "] session null " + 
+            log.error("Login denied: [" + userName + "] session null " +
                        remoteAddr);
             res.sendError(400, "Unrecognized protocol");
             return;
         }
-        
-        if ("ripplay".equals(userName)  &&  
+
+        if ("ripplay".equals(userName)  &&
             !"ripplay".equals(sessionTag)) {
-             log.error("Login denied: [" + userName + "] session [" + 
+             log.error("Login denied: [" + userName + "] session [" +
                        sessionTag + "] " + remoteAddr);
              res.sendError(400, "Unrecognized protocol");
              return;
@@ -199,15 +200,15 @@ public class GetSession extends HttpServlet {
         String kwdCoder = req.getParameter("k");
         if (kwdCoder == null  ||  "undefined".equals(kwdCoder)) {
             kwdCoder = "m"; // merged kwds
-            log.info("OLD_PAGE defaulting 'm': [" + userName + "] session [" + 
+            log.info("OLD_PAGE defaulting 'm': [" + userName + "] session [" +
                        sessionTag + "] " + remoteAddr);
         }
         if ("l".equals(kwdCoder)  ||  "b".equals(kwdCoder)) {
             kwdCoder = "m";
         }
         if (!"m".equals(kwdCoder)  &&  !"0".equals(kwdCoder)) {
-            log.error("Login denied: [" + userName + "] session [" + 
-                       sessionTag + "] " + remoteAddr + 
+            log.error("Login denied: [" + userName + "] session [" +
+                       sessionTag + "] " + remoteAddr +
                        " - wrong k=[" + kwdCoder + "]");
             res.sendError(500, "Please go to main page and return.");
             return;
@@ -221,24 +222,24 @@ public class GetSession extends HttpServlet {
         try {
             viewNum = Integer.parseInt(view);
             if (viewNum < 0  ||  viewNum > ConfigUtil.MAX_VIEW) {
-                log.error("Login denied: [" + userName + "] session [" + 
-                           sessionTag + "] " + remoteAddr + 
+                log.error("Login denied: [" + userName + "] session [" +
+                           sessionTag + "] " + remoteAddr +
                            " - wrong v=[" + view + "]");
                 res.sendError(400, "Unrecognized protocol");
                 return;
             }
         } catch (NumberFormatException nfe) {
-            log.error("Login denied: [" + userName + "] session [" + 
-                           sessionTag + "] " + remoteAddr + 
+            log.error("Login denied: [" + userName + "] session [" +
+                           sessionTag + "] " + remoteAddr +
                            " - not an int v=[" + view + "]");
             res.sendError(400, "Unrecognized protocol");
             return;
         }
 
         String cmd = req.getParameter("cmd");
-        
-        String baseVersion = origUser + " % " + 
-                                req.getParameter("browser") + 
+
+        String baseVersion = origUser + " % " +
+                                req.getParameter("browser") +
                                 " % " + req.getParameter("version");
 
         String sessionBrowserVersion = baseVersion +
@@ -276,7 +277,7 @@ public class GetSession extends HttpServlet {
                 res.sendError(400, "Unrecognized protocol");
                 return;
             }
-            sessionBrowserVersion += " | N." + 
+            sessionBrowserVersion += " | N." +
                             (System.currentTimeMillis() % 100000);
         }
 
@@ -284,12 +285,13 @@ public class GetSession extends HttpServlet {
         Connection conn = null;
         try {
             conn = DaoBase.getConn();
-    
+
             Browser browser = null;
 
-            if ("fooser".equals(userName)  ||  
+            if ("fooser".equals(userName)  ||
                 "eooser".equals(userName)  ||
                 userName.startsWith("cu_") ||
+                "skooser".equals(userName) ||
                 "kwooser".equals(userName) ||
                 "moober".equals(userName)  ||
                 "mooser".equals(userName)) {
@@ -297,7 +299,7 @@ public class GetSession extends HttpServlet {
 log.info("ST none");
                     // see if it's a legacy user, or one that lost its cookie
 
-                    List<Browser> lb = BrowserDao.getBrowsersByVersion(conn, 
+                    List<Browser> lb = BrowserDao.getBrowsersByVersion(conn,
                                                                    baseVersion);
                     for (Browser b : lb) {
                         if (b.version.equals(sessionBrowserVersion)) {
@@ -305,7 +307,7 @@ log.info("ST none");
                         }
                     }
                     if (browser != null) {
-                        log.info("Mapping browser " + browser.id + " " + 
+                        log.info("Mapping browser " + browser.id + " " +
                                  browser.version + ": " + browser.sessionTag);
                         if (browser.sessionTag == null) {
                             BrowserDao.updateLegacyTag(conn, browser);
@@ -316,7 +318,7 @@ log.info("ST none");
 
                         // first time
 
-                        browser = BrowserDao.insertBrowser(conn, 
+                        browser = BrowserDao.insertBrowser(conn,
                                                            sessionBrowserVersion);
                         BIPDao.insertIP(conn, browser.id, remoteAddr);
                      }
@@ -349,16 +351,16 @@ log.info("ST none");
                         if ("x".equals(nw)) {
                             // new session
                             long oldId = browser.id;
-                            browser = BrowserDao.insertBrowser(conn, 
+                            browser = BrowserDao.insertBrowser(conn,
                                                            sessionBrowserVersion);
                             log.info("BROWSER CONVERT " + oldId + " => " +
                                          browser.id);
-                            
+
                         } else {
                             // printed ip's may differ too, somewhat spuriously
-                            log.warn("BROWSER " + browser.id + 
-                                     " VERSION CHANGED: [" + 
-                                     browser.version + "] to [" + 
+                            log.warn("BROWSER " + browser.id +
+                                     " VERSION CHANGED: [" +
+                                     browser.version + "] to [" +
                                      sessionBrowserVersion + "]");
                             strikeOne = true;
                         }
@@ -369,7 +371,7 @@ log.info("ST none");
                     String prevAddr = BIPDao.getLastIP(conn, browser.id);
                     boolean update = false;
                     if (prevAddr == null) {
-                        log.error("INTERNAL: no last b_ip for browser " + 
+                        log.error("INTERNAL: no last b_ip for browser " +
                                                    browser.id);
                         update = true;
                     } else if (!prevAddr.equals(remoteAddr)) {
@@ -446,7 +448,7 @@ screenCode = "1";
                         screens.add(
                          new Screen(browser.id, 2, "v", null, null));
                     }
-                    
+
                 } else {
                     String orient = null;
                     if ("1".equals(screenCode)) {
@@ -462,13 +464,22 @@ screenCode = "1";
                     Session session = new Session();
                     session.browserID = browser.id;
                     session.repeatPics = true; // superstition
-                    screens = engine.getScreens(conn, 
+                    if ("skooser".equals(userName)) {
+                        screens = feelEngine.getScreens(conn,
+                                                    session,
+                                                    viewNum, orient,
+                                                    null, // prev ids
+                                                    1, 2, // screenIds
+                                                    -1, null);
+                    } else {
+                        screens = pairEngine.getScreens(conn,
                                                     viewNum, orient, kwdCoder,
                                                     session,
                                                     /* option: */ -2, null,
-                                                    2, null, 
-                                                    /* screenIds */ 1, 2, 
+                                                    2, null,
+                                                    /* screenIds */ 1, 2,
                                                     -1, null);
+                    }
                     if (screens == null) {
                         log.error("engine.getScreens null");
                     }
@@ -495,20 +506,25 @@ screenCode = "1";
                     screens.get(0).showingId = sp.id;
                     screens.get(1).showingId = sp.id;
 
-                    engine.addSeen(conn, browser.id, sp.id1, orient);
-                    engine.addSeen(conn, browser.id, sp.id2, orient);
+                    if ("skooser".equals(userName)) {
+                        feelEngine.addSeen(conn, browser.id, sp.id1, orient);
+                        feelEngine.addSeen(conn, browser.id, sp.id2, orient);
+                    } else {
+                        pairEngine.addSeen(conn, browser.id, sp.id1, orient);
+                        pairEngine.addSeen(conn, browser.id, sp.id2, orient);
+                    }
                 }
-            
+
                 // relic class
-                User u = new User(userName, browser.id, remoteAddr); 
-                SessionDao.insertSessionIf(conn, u, browser.sessionTag, 
+                User u = new User(userName, browser.id, remoteAddr);
+                SessionDao.insertSessionIf(conn, u, browser.sessionTag,
                           Integer.parseInt(req.getParameter("hour")),
                           Integer.parseInt(req.getParameter("tzoff")),
                           req.getParameter("lang"),
                           req.getParameter("platform"), kwdChoice, screens);
             }
 
-            log.info("browser " + browser.id + " tag " + browser.sessionTag + 
+            log.info("browser " + browser.id + " tag " + browser.sessionTag +
                       " " + remoteAddr);
 
             res.setContentType( "text/plain" );

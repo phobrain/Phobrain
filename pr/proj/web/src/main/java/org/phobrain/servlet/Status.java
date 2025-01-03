@@ -73,6 +73,12 @@ public class Status extends HttpServlet {
             s = null;
         }
         String statusPwd = ConfigUtil.runtimeProperty("status.pwd");
+        if (statusPwd == null) {
+            log.error("No runtimeProperty status.pwd set");
+            res.sendError(500, "Admin status password not set.");
+            return;
+        }
+
         if (s != null  &&  statusPwd != null  &&  s.equals(statusPwd)) {
             // ok
         } else if (s == null  &&  statusPwd == null) {
@@ -172,10 +178,10 @@ public class Status extends HttpServlet {
         ShowingPair prev = null;
         int cts[] = new int[20];
         for (ShowingPair s : show) {
-            if (s.rating == -1  || s.rating > cts.length-1) {
+            if (s.pairRating == -1  || s.pairRating > cts.length-1) {
                 cts[0]++;
             } else {
-                cts[s.rating]++;
+                cts[s.pairRating]++;
             }
             if (prev != null) {
                 long dt = s.createTime.getTime() - prev.createTime.getTime();

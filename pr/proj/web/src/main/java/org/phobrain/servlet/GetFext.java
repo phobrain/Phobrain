@@ -7,9 +7,7 @@ package org.phobrain.servlet;
  **/
 
 /**
- **  GetMult - web interface for GetEngine.
- **     Potentially get more than pairs,
- **     e.g. number of walls in room.
+ **  GetFext - web interface for FeelEngine.
  **
  */
 
@@ -26,18 +24,16 @@ import org.phobrain.db.record.DotHistory;
 import org.phobrain.db.dao.DaoBase;
 import org.phobrain.db.dao.SessionDao;
 import org.phobrain.db.dao.BrowserDao;
-import org.phobrain.db.dao.ShowingPairDao;
+import org.phobrain.db.dao.FeelingPairDao;
 import org.phobrain.db.dao.PictureDao;
 import org.phobrain.db.dao.PictureMapDao;
 import org.phobrain.db.dao.PairDao;
-import org.phobrain.db.dao.UniquePairDao;
 import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Screen;
 import org.phobrain.db.record.Browser;
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.FeelingPair;
 import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureMap;
-import org.phobrain.db.record.ApprovedPair;
 import org.phobrain.db.record.PictureResponse;
 import org.phobrain.db.util.DBUtil;
 
@@ -91,8 +87,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//@WebServlet(urlPatterns={"/getmext"}, asyncSupported=true)
-public class GetMult extends HttpServlet {
+//@WebServlet(urlPatterns={"/getfext"}, asyncSupported=true)
+public class GetFext extends HttpServlet {
 
     private double TAP_MAX = 0.0;
 /*
@@ -116,11 +112,11 @@ public class GetMult extends HttpServlet {
 
     public static final int RATING_SCHEME = -1; // not used.. yet
 
-    private static final Logger log = LoggerFactory.getLogger(GetMult.class);
+    private static final Logger log = LoggerFactory.getLogger(GetFext.class);
 
     private static final Random rand = new Random();
 
-    private static final GetEngine engine = GetEngine.getEngine();
+    private static final FeelEngine engine = FeelEngine.getEngine();
 
     private static String IMAGE_DIR;
     private static boolean WEBP = false;  // on load, replace dbase pr..picture.fileName
@@ -178,12 +174,12 @@ public class GetMult extends HttpServlet {
         } catch (Exception e) {
             log.error("init: misc: " + e, e);
         }
-        log.info("GetMult Init OK,  IMAGE_DIR=" + IMAGE_DIR);
+        log.info("GetFext Init OK,  IMAGE_DIR=" + IMAGE_DIR);
     }
 
     @Override
     public String getServletInfo() {
-        return "GetMult";
+        return "GetFext";
     }
 
     private static final String ETAG_HEADER = "W/\"%s-%s\"";
@@ -342,6 +338,30 @@ public class GetMult extends HttpServlet {
         }
     }
 
+    private final String DOT_DIR = System.getProperty("user.home") + "/dots/";
+
+    private void writeDotHistoryFile(FeelingPair fp, String dotHistory) {
+
+        if (fp == null  ||  dotHistory == null) {
+            log.error("writeDotHistoryFile: null arg(s)");
+            return;
+        }
+
+        try {
+
+            File dir = new File(DOT_DIR + (fp.id / 100));
+            dir.mkdirs();
+            String fname = dir.getPath() + "/" + fp.id;
+
+            PrintWriter out = new PrintWriter(fname);
+            out.println(dotHistory);
+            out.close();
+
+        } catch (Exception e) {
+            log.error("writeDotHistoryFile: " + e);
+        }
+    }
+
     private void processRequest(HttpServletRequest request,
                                 HttpServletResponse response,
                                 boolean get)
@@ -373,6 +393,7 @@ public class GetMult extends HttpServlet {
         }
         return s;
     }
+
     private void processRequest2(HttpServletRequest request,
                                 HttpServletResponse response,
                                 boolean get)
@@ -384,7 +405,7 @@ public class GetMult extends HttpServlet {
         String remoteHost = myRemoteHost(request);
 
         if (!"[localhost]".equals(remoteHost)) {
-            log.info("GetMult " + (get? "GET " : "POST ") + remoteHost);
+            log.info("GetFext " + (get? "GET " : "POST ") + remoteHost);
         }
 
         String sessionTag = request.getParameter("sess");
@@ -504,122 +525,140 @@ log.info("TT " + Arrays.toString(locspec));
 String toggleSides = "tm";
 String toggleTStr = "tmp";
 
-        int r; /* rating, originally */
-        String cmdMod = null; // for latent space overlay, cos2 etc
+        //String cmdMod = null; // for latent space overlay, cos2 etc
 
         String str = request.getParameter("r");
         if (str == null) {
             response.sendError(400, "Failed to generate session tag - please refresh page");
             return;
         }
-        String[] cmp = str.split("_");
-        if (cmp.length < 1  ||  cmp.length > 2) {
-            log.error("Unexpected rating split: " + str);
-            response.sendError(400, "Failed to generate session tag - please refresh page");
+
+        // one or the other form
+        int r = -1;
+        int[] ri = { -1, -1 };
+
+        if (str.contains("_")) {
+
+            String[] ss = str.split("_");
+            if (ss.length != 2) {
+                log.error("Unexpected rating split: " + str);
+                response.sendError(400, "Failed to generate session tag - please refresh page");
+                return;
+            }
+            try {
+                ri[0] = Integer.parseInt(ss[0]);
+                ri[1] = Integer.parseInt(ss[1]);
+            } catch (Exception e) {
+                log.error("parsing ratings: [" + str + "]");
+                response.sendError(500, "Failed to generate session tag");
+                return;
+            }
+            if (ri[0] < 0  ||  ri[1] > 2  ||
+                ri[1] < 0  ||  ri[1] > 2) {
+                log.error("rating out of range: " + str);
+                response.sendError(500, "Failed to generate session tag");
+                return;
+            }
+        } else {
+            try {
+                r = Integer.parseInt(str);
+            } catch (NumberFormatException nfe) {
+                log.error("parsing rating: " + str);
+                response.sendError(500, "Failed to generate session tag");
+                return;
+            }
+        }
+        if (r == 4) {
+            log.error("engine.getNeuralMatch  DISABLED - fix it yourself");
+            response.sendError(500, "Disabled neural single-pic match option");
             return;
         }
-        if (cmp.length == 2  &&  !"none".equals(cmp[1])) {
-            //  vgg16-2 -> vgg16_2
-            cmdMod = cmp[1].replaceAll("-", "_");
-        }
-//else log.warn("WWWWWWWWWWWWWWW  " + str);
-        try {
-            r = Integer.parseInt(cmp[0]);
-        } catch (Exception e) {
-            log.error("Unexpected rating parse: " + str + " " + e);
-            response.sendError(400, "Failed to generate session tag - please refresh page");
-            return;
-        }
 
-        int viewTime;
-        int viewTime2;
-        int clickTime; // drawing dots
-        int watchDotsTime;
-        int mouseDownTime;
-        int mouseDist;
-        int mouseDist2;
-        int mouseDx;
-        int mouseDy;
-        int mouseVecx;
-        int mouseVecy;
-        int mouseMaxv;
-        int mouseMaxa;
-        int mouseMina;
-        int mouseMaxj;
-        int lastBig;
-        int loadTime;
-        int dotCount;
-        int dotDist;
-        int dotVecLen;
-        int dotVecAng;
-        int dotMaxVel;
-        int dotMaxAccel;
-        int dotMaxJerk;
-        int pixInPic;
-        int pixOutPic;
-        int callCount;
-        int nToggleLast;
+        boolean sendCurrent = (r==0);
+        
+        int viewTime = -1;
+        int viewTime2 = -1;
+        int clickTime = -1; // drawing dots
+        int watchDotsTime = -1;
+        int mouseDownTime = -1;
+        int mouseDist = -1;
+        int mouseDist2 = -1;
+        int mouseDx = -1;
+        int mouseDy = -1;
+        int mouseVecx = -1;
+        int mouseVecy = -1;
+        int mouseMaxv = -1;
+        int mouseMaxa = -1;
+        int mouseMina = -1;
+        int mouseMaxj = -1;
+        int lastBig = -1;
+        int loadTime = -1;
+        int dotCount = -1;
+        int dotDist = -1;
+        int dotVecLen = -1;
+        int dotVecAng = -1;
+        int dotMaxVel = -1;
+        int dotMaxAccel = -1;
+        int dotMaxJerk = -1;
+        int pixInPic = -1;
+        int pixOutPic = -1;
+        int callCount = -1;
+        int dialogDotsBlocked = -1;
+        int ratingAlerts = -1;
+        // int nToggleLast = -1;
 
         try {
 
-            callCount = getInt(request, "ct", sessionTag);
-            viewTime = getInt(request, "t", sessionTag);
-            viewTime2 = getInt(request, "t2", sessionTag);
-            watchDotsTime = getInt(request, "w", sessionTag);
-            mouseDownTime = getInt(request, "mt", sessionTag);
-            mouseDist = getInt(request, "d", sessionTag);
-            mouseDist2 = getInt(request, "d2", sessionTag);
-            mouseDx = getInt(request, "dx", sessionTag);
-            mouseDy = getInt(request, "dy", sessionTag);
-            mouseVecx = getInt(request, "vcx", sessionTag);
-            mouseVecy = getInt(request, "vcy", sessionTag);
-            mouseMaxv = getInt(request, "mxv", sessionTag);
-            mouseMaxa = getInt(request, "mxa", sessionTag);
-            mouseMina = getInt(request, "mna", sessionTag);
-            mouseMaxj = getInt(request, "mxj", sessionTag);
-            clickTime = getInt(request, "ctm", sessionTag);
             loadTime = getInt(request, "ltm", sessionTag);
-            pixInPic = getInt(request, "pp", sessionTag);
-            pixOutPic = getInt(request, "po", sessionTag);
 
-            dotCount = getInt(request, "dc", sessionTag);
-            dotDist = getInt(request, "dd", sessionTag);
-            dotVecLen = getInt(request, "dv", sessionTag);
-            dotVecAng = getInt(request, "da", sessionTag);
+            if (!"l".equals(cmd)) {
 
-            dotMaxVel = getInt(request, "dmv", sessionTag);
-            dotMaxAccel = getInt(request, "dma", sessionTag);
-            dotMaxJerk = getInt(request, "dmj", sessionTag);
+                // ci[2] already parsed
 
-            nToggleLast = getInt(request, "ntog", sessionTag);
+                callCount = getInt(request, "ct", sessionTag);
+                viewTime = getInt(request, "t", sessionTag);
+                viewTime2 = getInt(request, "t2", sessionTag);
+                watchDotsTime = getInt(request, "w", sessionTag);
+                clickTime = getInt(request, "ctm", sessionTag);
+                mouseDownTime = getInt(request, "mt", sessionTag);
+                mouseDist = getInt(request, "d", sessionTag);
+                mouseDist2 = getInt(request, "d2", sessionTag);
+                mouseDx = getInt(request, "dx", sessionTag);
+                mouseDy = getInt(request, "dy", sessionTag);
+                mouseVecx = getInt(request, "vcx", sessionTag);
+                mouseVecy = getInt(request, "vcy", sessionTag);
+                mouseMaxv = getInt(request, "mxv", sessionTag);
+                mouseMaxa = getInt(request, "mxa", sessionTag);
+                mouseMina = getInt(request, "mna", sessionTag);
+                mouseMaxj = getInt(request, "mxj", sessionTag);
+                pixInPic = getInt(request, "pp", sessionTag);
+                pixOutPic = getInt(request, "po", sessionTag);
+
+                dotCount = getInt(request, "dc", sessionTag);
+                dotDist = getInt(request, "dd", sessionTag);
+                dotVecLen = getInt(request, "dv", sessionTag);
+                dotVecAng = getInt(request, "da", sessionTag);
+
+                dotMaxVel = getInt(request, "dmv", sessionTag);
+                dotMaxAccel = getInt(request, "dma", sessionTag);
+                dotMaxJerk = getInt(request, "dmj", sessionTag);
+
+                dialogDotsBlocked = getInt(request, "ddb", sessionTag);
+                ratingAlerts = getInt(request, "raa", sessionTag);
+            
+            }
+
         } catch (Exception e) {
             response.sendError(400, "Failed to generate session tag - please refresh page");
             return;
         }
+
         // be forgiving
         try {
             lastBig = getInt(request, "btm", sessionTag);
         } catch (Exception e) {
             lastBig = -1;
         }
-/*
-        String toggleTStr = request.getParameter("togt");
-        if (toggleTStr == null  ||  "none".equals(toggleTStr)) {
-            log.error("Bad toggleTStr: " + toggleTStr);
-            response.sendError(400,
-                        "Failed to generate session tag - please refresh page");
-            return;
-        }
-log.info("TT " + toggleTStr);
-try {
-if (!MiscUtil.NULL_BASE64.equals(toggleTStr)) {
-log.info("TT " + Arrays.toString(MiscUtil.base64ToIntArray(toggleTStr)));
-}
-} catch (Exception e) {
-log.error("ToggleTimes: " + e);
-toggleTStr = null;
-}
-*/
 
         if (clickTime < -1) {
             log.warn("CLICKTIME < -1 [" + clickTime + "] sessionTag " +
@@ -746,20 +785,21 @@ toggleTStr = null;
 
             // 2 l(oads) on top of initial is too much
             if (!"l".equals(cmd)) {
-                log.info("REQ " + viewNum + "/" + orient + " r " + r +
-                     " cmd " + cmd +
+                log.info("REQ " + viewNum + "/" + orient +
+                     " cmd " + cmd +  // <pair>_<flow>
                      " screens " + screenId1 + "|" + screenId2 +
                      " repeat " + session.repeatPics +
                      " " + browserID + " " + remoteHost);
             }
 
-            ShowingPair last = ShowingPairDao.getLastShowingToBrowser(
+            FeelingPair last = FeelingPairDao.getLastFeelingToBrowser(
                                          conn, browserID);
 
             if (last != null) {
 
                 last.rateTime = rateTime;
-                last.pairRating = r;
+                last.pairRating = ri[0];
+                last.flowRating = ri[1];
                 last.ratingScheme = RATING_SCHEME;
 
                 last.userTime = viewTime;
@@ -797,13 +837,18 @@ toggleTStr = null;
                 last.dotMaxJerk = dotMaxJerk;
 
                 last.picClik = clickLoc;
-                last.nTogs = nToggleLast;
-                last.togSides = toggleSides;
-                last.toggleTStr = toggleTStr;
+
+                last.dialogDotsBlocked = dialogDotsBlocked;
+                last.ratingAlerts = ratingAlerts;
 
                 last.locSpec = locspec; // not saved
-                last.dotHistory = new DotHistory(last, dotHistory); // not saved
-//log.info("LDH " + last.dotHistory);
+                if ( ! "l".equals(cmd)) {
+                    last.dotHistory = new DotHistory(last, dotHistory);
+                    if (last.dotHistory != null) { // parsed ok
+                        writeDotHistoryFile(last, dotHistory);
+                    }
+                }
+log.info("LDH cmd/" + cmd + (last.dotHistory == null ? " null/txt " + dotHistory : " actual " + last.dotHistory) );
             }
 
             if ("l".equals(cmd)) {
@@ -840,11 +885,10 @@ toggleTStr = null;
                     scr.sessionId = session.id;
                 }
 
-                boolean sendCurrent = (r==0);
-
                 PictureResponse pr = new PictureResponse();
 
                 Screen nbr_screen = null;
+
                 if (sendCurrent) {
 
                     // send current, whether seen or not
@@ -886,11 +930,13 @@ toggleTStr = null;
 
                 } else {  // !sendCurrent
 
+log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
+
                     if (last == null) {
-                        log.error("l: NO PREV ShowingPair: " + browserID + " " +
+                        log.error("l: NO PREV FeelingPair: " + browserID + " " +
                                    remoteHost);
                     } else {
-                        ShowingPairDao.updateShowingPair(conn, last);
+                        FeelingPairDao.updateFeelingPair(conn, last);
                     }
 
                     // match screen to left
@@ -909,12 +955,12 @@ toggleTStr = null;
                     SeenIds seenIds = engine.getSeen(conn, session);
                     seenIds.exclude.add(scr.id_s); // need to see a change
 
-                    if (r == 4) {
-                        pr = engine.getNeuralMatch(conn, viewNum, orient, session,
-                                                  last, nbr_screen.id_s,
-                                                  nbr_screenId);
-                    } else if (r == 5) {
+                    // if (r == 4)  pr = engine.getNeuralMatch(conn, viewNum, orient, session,
+                    //                              last, nbr_screen.id_s,
+                    //                              nbr_screenId);
+                    // else if (r == 5) 
 
+                    if (r == 5) {
                         pr = engine.replacePicOnClick(conn, viewNum, orient, session,
                                                         last, scr.id, clickLoc, locspec,
                                                         nbr_screen.id_s, scr.id_s);
@@ -926,16 +972,6 @@ toggleTStr = null;
                         return;
                     }
 
-                    if (session.curator != null  &&
-                            pr != null  &&  pr.p != null) {
-                        if (scr.id == 0) {
-                            UniquePairDao.insert(conn, session.curator,
-                                                       pr.p.id, nbr_screen.id_s);
-                        } else {
-                            UniquePairDao.insert(conn, session.curator,
-                                                       nbr_screen.id_s, pr.p.id);
-                        }
-                    }
                 }
                 if (!sendCurrent &&  pr != null  &&  pr.p != null) {
 
@@ -946,42 +982,42 @@ toggleTStr = null;
                                "l: Last is null on single-pic " +
                                browserID + " " + remoteHost);
                     }
-                    ShowingPairDao.updateShowingPair(conn, last);
+                    FeelingPairDao.updateFeelingPair(conn, last);
 
-                    ShowingPair sp = new ShowingPair();
-                    sp.browserID = browserID;
-                    sp.callCount = callCount;
-                    sp.orderInSession = engine.getOrderInSession(conn,
+                    FeelingPair fp = new FeelingPair();
+                    fp.browserID = browserID;
+                    fp.callCount = callCount;
+                    fp.orderInSession = engine.getOrderInSession(conn,
                                                                 browserID);
-                    sp.mouseDownTime = mouseDownTime;
+                    fp.mouseDownTime = mouseDownTime;
                     if (scr.id == 0) {
-                        sp.id1 = pr.p.id;
-                        sp.archive1 = pr.p.archive;
-                        sp.fileName1 = pr.p.fileName;
-                        sp.selMethod1 = pr.method;
+                        fp.id1 = pr.p.id;
+                        fp.archive1 = pr.p.archive;
+                        fp.fileName1 = pr.p.fileName;
+                        fp.selMethod1 = pr.method;
 
-                        sp.id2 = last.id2;
-                        sp.archive2 = last.archive2;
-                        sp.fileName2 = last.fileName2;
-                        sp.selMethod2 = last.selMethod2;
+                        fp.id2 = last.id2;
+                        fp.archive2 = last.archive2;
+                        fp.fileName2 = last.fileName2;
+                        fp.selMethod2 = last.selMethod2;
 
                     } else {
-                        sp.id1 = last.id1;
-                        sp.archive1 = last.archive1;
-                        sp.fileName1 = last.fileName1;
-                        sp.selMethod1 = last.selMethod1;
+                        fp.id1 = last.id1;
+                        fp.archive1 = last.archive1;
+                        fp.fileName1 = last.fileName1;
+                        fp.selMethod1 = last.selMethod1;
 
-                        sp.id2 = pr.p.id;
-                        sp.archive2 = pr.p.archive;
-                        sp.fileName2 = pr.p.fileName;
-                        sp.selMethod2 = pr.method;
+                        fp.id2 = pr.p.id;
+                        fp.archive2 = pr.p.archive;
+                        fp.fileName2 = pr.p.fileName;
+                        fp.selMethod2 = pr.method;
                     }
-                    sp.vertical = pr.p.vertical;
-                    sp.atomImpact = AtomSpec.NO_ATOM;
-                    sp.bigStime = (int) (System.currentTimeMillis() - t1);
-                    ShowingPairDao.insertShowingPair(conn, sp);
+                    fp.vertical = pr.p.vertical;
+                    fp.atomImpact = AtomSpec.NO_ATOM;
+                    fp.bigStime = (int) (System.currentTimeMillis() - t1);
+                    FeelingPairDao.insertFeelingPair(conn, fp);
 
-                    scr.showingId = sp.id;
+                    scr.showingId = fp.id;
                     scr.id_s = pr.p.id;
                     scr.selMethod = pr.method;
 
@@ -1000,10 +1036,6 @@ toggleTStr = null;
                         tag = "LR: ";
                     } else {
                         tag = "RL: ";
-                    }
-                    if (engine.KEYWORDS) {
-                        log.info(tag + DBUtil.kwdCompare(conn, kwdCoder, scr.id_s,
-                                                             nbr_screen.id_s));
                     }
                     t1 = System.currentTimeMillis() - t1;
                     log.info("browser " + browserID + " " + sessionTag +
@@ -1026,20 +1058,21 @@ toggleTStr = null;
                         " " + Math.round(Math.sqrt(
                                    mouseVecx*mouseVecx + mouseVecy*mouseVecy))
                             +"\n" +
+                        " dotsBeforeRating: " + dialogDotsBlocked +
+                            " ratingAlerts: " + ratingAlerts + "\n" +
                         " m_in_pic: " + pixInPic
                             + " m_out_pic: " + pixOutPic + "\n" +
                         " picClik: " + clickLoc +
                            " dots: " + dotCount + " ang: " + dotVecAng +
                            " dist: " + dotDist + "\n" +
-                        " tog: " + nToggleLast + "/" + toggleSides + "\n" +
                          "==> " + pr.p.archive + "/" + pr.p.fileName +
                             " " + pr.method +
-                        "]\nn: " + + sp.orderInSession +
+                        "]\nn: " + + fp.orderInSession +
                            " pct: " + engine.getPctSeen(conn, session,
                                                         viewNum, orient) +
                            " count: " + callCount +
-                        " time " + t1 + " sel: " + sp.selMethod1 + "::" +
-                                                   sp.selMethod2);
+                        " time " + t1 + " sel: " + fp.selMethod1 + "::" +
+                                                   fp.selMethod2);
                 }
                 if (pr != null  &&  pr.p != null) {
 
@@ -1070,7 +1103,7 @@ toggleTStr = null;
             } else if ("m".equals(cmd)) {
 
                 // multi
-
+/*
                 if (r == -3) {
                     // let last screens ride TODO unless format has changed
                     //response.setStatus(HttpServletResponse.SC_NO_CONTENT);
@@ -1090,19 +1123,21 @@ toggleTStr = null;
                     response.flushBuffer();
                     return;
                 }
+*/
 
                 // reset session_screen
 
-                if (r != -2) { // past initial load
+                //if (r != -2) { // past initial load
                     if (last == null) {
-                        log.error("NO PREV ShowingPair: " + browserID + " " +
+                        log.error("NO PREV FeelingPair: " + browserID + " " +
                                    remoteHost);
 
                     } else {
-                        ShowingPairDao.updateShowingPair(conn, last);
+                        FeelingPairDao.updateFeelingPair(conn, last);
                     }
-                }
+                //}
                 List<String> ids = new ArrayList<>();
+/*
                 if (r == 30) {
                     // screenId1,2 are depths
                     if (screenId1 < 0  ||  screenId1 > 1  ||
@@ -1126,13 +1161,13 @@ toggleTStr = null;
                     ids.add(s2.id_s);
 
                 } else if (r != -2) { // past initial load
-
+*/
                     for (Screen scr : session.screens) {
                         if (scr.depth == 0) {
                             ids.add(scr.id_s);
                         }
                     }
-                }
+                //}
 
                 // this may be default from browser after server comes up??
                 if (screenId1 == 0  &&  screenId2 == 0) {
@@ -1146,11 +1181,8 @@ toggleTStr = null;
                 List<Screen> screens = null;
                 try {
 
-                    screens = engine.getScreens(conn, viewNum, orient,
-                                                        kwdCoder,
-                                                        session, r, cmdMod,
-                                                        2, ids,
-                                                        screenId1, screenId2,
+                    screens = engine.getScreens(conn, session, viewNum, orient,
+                                                        ids, screenId1, screenId2,
                                                         lastBig, last);
                 } catch (Exception e) {
                     log.error("Engine: " + e.getMessage(), e);
@@ -1179,60 +1211,56 @@ toggleTStr = null;
                 PictureResponse pr2 = (PictureResponse) screens.get(1).pr;
 
                 if (pr1 == null  &&  pr2 == null) {
-                    log.error("Inserting ShowingPair: both pr's null");
+                    log.error("Inserting FeelingPair: both pr's null");
                 } else if (pr1 == null  ||  pr2 == null) {
-                    log.error("Inserting ShowingPair: Null pr on screen: " +
+                    log.error("Inserting FeelingPair: Null pr on screen: " +
                                 (pr1 == null ? "1" : "") +
                                 (pr2 == null ? "2" : ""));
                 }
 
-                ShowingPair sp = new ShowingPair();
-                sp.browserID = browserID;
+                FeelingPair fp = new FeelingPair();
+                fp.browserID = browserID;
 
                 if (pr1 != null) {
-                    sp.vertical = pr1.p.vertical;
+                    fp.vertical = pr1.p.vertical;
                 } else if (pr2 != null) {
-                    sp.vertical = pr2.p.vertical;
+                    fp.vertical = pr2.p.vertical;
                 }
                 if (pr1 != null) {
-                    sp.id1 = pr1.p.id;
-                    sp.archive1 = pr1.p.archive;
-                    sp.fileName1 = pr1.p.fileName;
-                    sp.selMethod1 = pr1.method;
+                    fp.id1 = pr1.p.id;
+                    fp.archive1 = pr1.p.archive;
+                    fp.fileName1 = pr1.p.fileName;
+                    fp.selMethod1 = pr1.method;
                 }
                 if (pr2 != null) {
-                    sp.id2 = pr2.p.id;
-                    sp.archive2 = pr2.p.archive;
-                    sp.fileName2 = pr2.p.fileName;
-                    sp.selMethod2 = pr2.method;
+                    fp.id2 = pr2.p.id;
+                    fp.archive2 = pr2.p.archive;
+                    fp.fileName2 = pr2.p.fileName;
+                    fp.selMethod2 = pr2.method;
                 }
-                sp.callCount = callCount;
-                sp.mouseDownTime = mouseDownTime;
-                sp.orderInSession = engine.getOrderInSession(conn, browserID);
-                sp.bigStime = (int) t1;
-                sp.atomImpact = AtomSpec.NO_ATOM;
+                fp.callCount = callCount;
+                fp.mouseDownTime = mouseDownTime;
+                fp.orderInSession = engine.getOrderInSession(conn, browserID);
+                fp.bigStime = (int) t1;
+                fp.atomImpact = AtomSpec.NO_ATOM;
 
-                ShowingPairDao.insertShowingPair(conn, sp);
-                screens.get(0).showingId = sp.id;
-                screens.get(1).showingId = sp.id;
+                FeelingPairDao.insertFeelingPair(conn, fp);
+                screens.get(0).showingId = fp.id;
+                screens.get(1).showingId = fp.id;
 
                 screens.get(0).sessionId = session.id;
                 screens.get(1).sessionId = session.id;
 
-                engine.addSeen(conn, browserID, orient, sp.id1, sp.id2);
+                engine.addSeen(conn, browserID, orient, fp.id1, fp.id2);
 
                 for (Screen scr : screens) {
                     SessionDao.updateSessionScreen(conn, scr);
 /*
                     log.info("\n==> " + s.archive + "/" + s.fileName + " " +
-                        " n: " + + sp.orderInSession + " count: " + callCount +
+                        " n: " + + fp.orderInSession + " count: " + callCount +
                         " sel: " + ((PictureResponse)scr.pr).selMethod);
 */
                 }
-                if (session.curator != null) {
-                    UniquePairDao.insert(conn, session.curator, sp.id1, sp.id2);
-                }
-                //t1 = System.currentTimeMillis() - t1;
 
                 long nextDrawStyle = viewTime + viewTime2 + watchDotsTime +
                                     2 * clickTime + 3 * mouseDownTime +
@@ -1265,16 +1293,18 @@ toggleTStr = null;
                         " picClik: " + clickLoc +
                            " dots: " + dotCount + " ang: " + dotVecAng +
                            " dist: " + dotDist + "\n" +
-                        " tog: " + nToggleLast + "/" + toggleSides + "\n" +
+                        // " tog: " + nToggleLast + "/" + toggleSides + "\n" +
                         "==: " +
-                           sp.id1 + " " + sp.fileName1 + " " + sp.selMethod1 +
+                           fp.id1 + " " + fp.fileName1 + " " + fp.selMethod1 +
                            "\n==> " +
-                           sp.id2 + " " + sp.fileName2 + " " + sp.selMethod2 +
-                        "]\nn: " + + sp.orderInSession +
+                           fp.id2 + " " + fp.fileName2 + " " + fp.selMethod2 +
+                        "]\nn: " + + fp.orderInSession +
                            " pct: " + engine.getPctSeen(conn, session,
                                                         viewNum, orient) +
                            " count: " + callCount +
-                        " rating: " + r + " nextDraw " + nextDrawStyle +
+                        " rating: " + 
+                            (ri == null ? "none" : ri[0] + "," + ri[1]) +
+                        " nextDraw " + nextDrawStyle +
                            " time " + t1);
 
                 StringBuilder sb = new StringBuilder();
@@ -1321,7 +1351,7 @@ toggleTStr = null;
                         log.warn("old debug, so Ignoring " + e);
                     }
                 }
-
+/*
                 if (r == 10) {
                     // TODO - has 2-min block on restarting for now, needs complication
                     engine.cacheNeighborsThread(session, viewNum, orient, screens, 0);
@@ -1333,7 +1363,7 @@ toggleTStr = null;
                     //log.info("NEW cache thread");
                     engine.cacheD0BadThread(session, viewNum, orient);
                 }
-
+*/
                 return;
 
             } else {

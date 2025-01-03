@@ -117,6 +117,7 @@ public class SessionDao extends DaoBase {
 
         //log.info("screenFromResultSet: id " + id + " orient " + o + " id_s " + id_s + " shid " + shid);
 
+/*
         if (id_s == null  ||  id_s.length() < 3) {
 
             log.info("Null/short id [" + id_s + "], sid,o,shid: " +
@@ -124,6 +125,7 @@ public class SessionDao extends DaoBase {
             id_s = null;
 
         }
+*/
 /*
         else if (id_s.contains(":")) {
 
@@ -323,7 +325,6 @@ public class SessionDao extends DaoBase {
             if (rows == 0) {
                 throw new SQLException("Insert returned 0");
             }
-            log.info("Inserted kwdchoice " + kwdChoice);
 
             ResultSet generatedKeys = ps.getGeneratedKeys();
             long id = -1;
@@ -332,6 +333,7 @@ public class SessionDao extends DaoBase {
             } else {
                 throw new SQLException("Insert session failed, no ID obtained.");
             }
+            log.info("Inserted id " + id);
 
             if (screens != null) {
                 closeSQL(ps);

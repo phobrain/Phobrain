@@ -5,9 +5,39 @@
 //
 //  Functions used in Phobrain pages.
 //
-//  These are copied/modified snippets of code from
+//  Most are copied/modified snippets of code from
 //      web searches. No ownership is claimed or
 //      responsibility assumed for correctness.
+
+function getPlatform() {
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    if (userAgent.includes("Android")) {
+        return "Android";
+    }
+    if (navigator.platform.includes("armv")) {
+        return "Android";
+    }
+    if (userAgent.includes("iPhone")) {
+        return "iOS";
+    }
+    if (userAgent.includes("iPad")) {
+        return "iOS";
+    }
+    //alert("ua " + userAgent + " platf " + navigator.platform);
+    return "desktop";
+}
+
+var platform = getPlatform();
+
+var isAndroid = platform == "Android";
+var isIOS = platform == "iOS";
+var hasTouch = ('ontouchstart' in window) ||
+        (window.DocumentTouch &&
+            window.document instanceof DocumentTouch) ||
+        window.navigator.maxTouchPoints ||
+        window.navigator.msMaxTouchPoints ? true : false;
+
+console.log("phobasic.platform " + platform + " .hasTouch " + hasTouch);
 
 // crossbrowser version
 function getCoords(elem)
@@ -172,7 +202,7 @@ function setLastXY(event)
   lastY = event.pageY;
 
   if (inImage && mouseDown) {
-console.log("inimage/MDOWN XY " + lastX + " " + lastY);
+    // console.log("inimage/MDOWN XY " + lastX + " " + lastY);
     mousedownX = lastX;
     mousedownY = lastY;
   }
@@ -188,7 +218,7 @@ function getLox(img)
     setLastXY(new Event("getLox"));
 
 	if (mousedownX == null  ||  mousedownY == null) {
-		console.log('getLox: mousedownXY null, default LTc');
+		// console.log('getLox: mousedownXY null, default LTc');
 		return [ 'LTc', locspec ];
 	}
 
@@ -263,3 +293,76 @@ navigator.browserSpecs = (function(){
         return $(this.get(0)).hasClass('open')
     }
 })(jQuery)
+
+var mdown_time = null;
+
+function mdown() {
+//alert('mdown');
+  mdown_time = new Date();
+}
+
+var mouseDownNextToPlus = false;
+
+function hideKwds() {
+  mouseDownNextToPlus = false;
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "&nbsp;";
+}
+
+var mouseDownOnCredit = false;
+
+function hideCredit() {
+  mouseDownOnCredit = false;
+  var td = document.getElementById("kwdTd");
+  if (td != null) td.innerHTML = "&nbsp;";
+}
+
+var mdK = null;
+var retry0Ct = 0;
+
+function showMD() {
+
+  if (!mouseDownNextToPlus  &&  !mouseDownOnCredit) return;
+
+  if (tileId == 0) {
+    if (md == null) {
+console.log("md is null retry " + retry0Ct);
+      retry0Ct++;
+      if (retry0Ct > 2) {
+        retry0Ct = 0;
+        return;
+      }
+      getMD();
+      return;
+    }
+    retry0Ct = 0;
+
+  } else {
+
+    var ii = 1;
+    if (tileId == 3) ii = 3;
+
+    var ps = "0." + vDepth[ii] + "1." + vDepth[ii+1];
+    if (md == null  ||  ps != mdK) {
+      mdK = ps;
+      getMD();
+      return;
+    }
+  }
+  var content;
+  if (mouseDownOnCredit) {
+    content = md.credit;
+  } else {
+    content = md.kw;
+  }
+  //console.log("content [" + content.trim() + "]");
+  var fsize = 15;
+  if (hasTouch) fsize = 40;
+  var td = document.getElementById("kwdTd");
+  td.innerHTML = "<span style=\"text-align:right;" +
+		" color:rgba(255,255,255,0.4);" +
+		"font-size: " + fsize + "pt;" +
+		" font-family:'Courier New',Courier,monospace;\">" +
+			content.trim() +
+		"</span>";
+}

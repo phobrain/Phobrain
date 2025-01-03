@@ -379,6 +379,7 @@ public class ApprovalDao extends DaoBase {
             }
             String s = rs.getString(1);
             if (!s.equalsIgnoreCase(curator)  &&  
+                !curator.startsWith("bill")  &&
                 !"bill".equalsIgnoreCase(curator)  &&
                 !"bill2".equalsIgnoreCase(curator)  &&
                 !"bill3".equalsIgnoreCase(curator)  &&

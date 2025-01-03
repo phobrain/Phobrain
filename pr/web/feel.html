@@ -1,25 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <!--
- *  SPDX-FileCopyrightText: 2015-2024 Bill Ross Photoriot <phobrain@sonic.net>
+ *  SPDX-FileCopyrightText: 2025 Bill Ross Photoriot <phobrain@sonic.net>
  *
  *  SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
 <head>
+
  <link rel="canonical" href="http://phobrain.com"/>
  <link rel="icon" href="favicon.ico"/>
  <!-- base href="http://phobrain.com" target="_top"/-->
- <meta name="Description" content="Photo association with neural nets.">
- <meta name="robots" content="noindex"/>
- <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+ <meta name="Description" content="Photo association with neural nets." />
+ <meta name="robots" content="noindex" />
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
  <title>Phobrain Slideshow</title>
-
-  <script src="js/jquery/jquery-1.11.3.min.js"></script>
-  <script src="js/bootstrap/bootstrap.min.js"></script>
-  <script src="js/phobasic.js"></script>
-  <script src="js/phodots.js"></script>
 
   <link rel="stylesheet" type="text/css"
          href="js/bootstrap/bootstrap.min.css" />
@@ -28,6 +24,11 @@
          href="css/footer.css" />
   <link rel="stylesheet" type="text/css"
          href="css/phobasic.css" />
+
+ <script src="js/jquery/jquery-1.11.3.min.js"></script>
+ <script src="js/bootstrap/bootstrap.min.js"></script>
+ <script src="js/phobasic.js"></script>
+ <script src="js/phodots.js"></script>
 
 <style>
 
@@ -47,32 +48,9 @@
 <script>
 <!--
 
-var lastAlert = new Date().getMilliseconds();
-var alertCt = 0;
-
-function callAlert(msg)
-{
-	var now = new Date().getMilliseconds();
-	if (now - lastAlert > 1500) {
-		alertCt = 0;
-		lastAlert = now;
-		alert(msg);
-		return;
-	}
-	lastAlert = now;
-	alertCt++;
-	if (alertCt > 4) {
-		return;
-	}
-	alert(msg);
-}
-
-//%%%%%%%% start photoriot
+var loadCountCookieName = "loadCount31";
 
 var loadCt = null;
-var inPic = -1;
-
-var loadCountCookieName = "loadCount31";
 
 function loadCount()
 {
@@ -97,7 +75,36 @@ function loadCount()
   console.log("LoadCt [" + loadCountCookieName + "]: " + loadCt);
 }
 
-var ADMIN_PIX = 220; // for selector/footer plus 20px
+// shared w/ phodots.js
+var inImage = 0;
+var dotSpeed = 0;
+
+var lastAlert = new Date().getMilliseconds();
+var alertCt = 0;
+
+function callAlertTooMuch(msg)
+{
+	var now = new Date().getMilliseconds();
+	if (now - lastAlert > 1500) {
+		alertCt = 0;
+		lastAlert = now;
+		alert(msg);
+		return;
+	}
+	lastAlert = now;
+	alertCt++;
+	if (alertCt > 4) {
+		return;
+	}
+	alert(msg);
+}
+
+//%%%%%%%% start photoriot
+
+var inPic = -1;
+
+
+var ADMIN_PIX = 180; // for selector/footer plus 20px
 
 var view = null;
 
@@ -173,7 +180,7 @@ function wipeSession()
 
 var DEFAULT_TILE = 1; // 2 portraits; reset on new session based on screen dims
 var tileId = DEFAULT_TILE;
-var cmdMode = 1; // search options hidden
+var cmdMode = 1; // feelings: [u n a]
 
 function getSessionId(load)
 {
@@ -243,16 +250,16 @@ console.log("sessionID: " + sessionID);
           //setCookie("session", sessionID);
           var k = getSessionKey();
           setCookie(k, sessionID);
-          console.log("sessionID/k " + sessionID + "/" + k);
+          // console.log("sessionID/k " + sessionID + "/" + k);
           document.getElementById("menu_tog_repeats").innerHTML = "&#x25ab;";
           repeats = false;
           showDog();
         } else if (xmlHttp.status == 401) {
           console.log("401: " + xmlHttp.responseText);
-          callAlert("Unknown user");
+          callAlertTooMuch("Unknown user");
         } else if (xmlHttp.status == 500) {
           wipeSession();
-          callAlert("Server error, try reloading page or returning to main page first.");
+          callAlertTooMuch("Server error, try reloading page or returning to main page first.");
            } else {
             console.log("Error: " + xmlHttp.status + ": " +
                 xmlHttp.responseText);
@@ -261,15 +268,15 @@ console.log("sessionID: " + sessionID);
                 t1 += 7;
                 var t2 = xmlHttp.responseText.indexOf("</title>", t1);
                 var tt = xmlHttp.responseText.substring(t1, t2);
-                callAlert("Oops! " + tt);
+                callAlertTooMuch("Oops! " + tt);
             } else {
-                callAlert(xmlHttp.responseText);
+                callAlertTooMuch(xmlHttp.responseText);
             }
            }
 
       }
     };
-    var userName = "eooser";
+    var userName = "skooser";
     var k = "m";
     var params = "tzoff=" + d.getTimezoneOffset() +
 		"&hour=" + d.getHours() +
@@ -307,23 +314,7 @@ console.log("sessionID: " + sessionID);
         setTile(i, 0);
       }
     }
-    t = getCookie("goNeg");
-    if (t != null  &&  t != "") {
-        t = (t === 'true');
-        console.log("cookie goNeg: [" + t + "] current=[" + goNeg + "]");
-        if (goNeg != t) {
-            console.log("using cookie goNeg: " + t + " current=" + goNeg);
-            toggleNeg('reload');
-        }
-        if (goNeg == true) {
-            alert('Reminder: "Worst pairs" option is set.');
-        }
-    }
-	t = getCookie(getCmdModeKey());
-	if (t != null  &&  t != ""  &&  cmdMode != t) {
-		console.log("using previous cmdMode: " + t);
-		toggleCmd(t);
-	}
+
 	toggleRepeats('status');
 
 	if (imgNexts > 0) { // shouln't happen now that setTile reloadCode==0
@@ -370,38 +361,17 @@ function getVDepthKey() {
   return "view_vdepth";
 }
 
-function hasTouch()
-{
-
-	return ('ontouchstart' in window) ||
-		(window.DocumentTouch &&
-			window.document instanceof DocumentTouch) ||
-		window.navigator.maxTouchPoints ||
-		window.navigator.msMaxTouchPoints ? true : false;
-}
-
-var isAndroid = false;
-var isIphone = false;
-var isMobile = false;
-var duzTuch = hasTouch();
-
 function adjustPageElements()
 {
-  var ua = navigator.userAgent.toLowerCase();
-  isAndroid = ua.indexOf("android") > -1;
-  isIphone = ua.indexOf("iphone") > -1;
-
-  if (!isIphone && !isAndroid) {
-    console.log('Browser; touch: ' + duzTuch);
+  //if (!isIOS && !isAndroid) {
+  if (!hasTouch) {
+    console.log('Browser has no touch');
     var carets = document.getElementsByClassName("caret");
     for(var i=0, il = carets.length;i<il;i++){
         carets[i].className += " browserCaret";
     }
     return;
   }
-  console.log('Mobile: ' + (isIphone ? "iPhone" : "anDroid"));
-
-  isMobile = true;
 
   var carets = document.getElementsByClassName("caret");
   for(var i=0, il = carets.length;i<il;i++){
@@ -432,15 +402,8 @@ function adjustPageElements()
 	["menu_twol_span", 50],
 	["menu_twols_span", 50],
 	["menu_tog_repeats_style", 50],
-	["menu_tog_neg_style", 50],
-	["menu_radio_browse_mode", 50],
-	["menu_radio_browse_mode_style", 50],
-	["menu_radio_srch_ai_mode", 50],
-	["menu_radio_srch_ai_mode_style", 50],
-	["menu_radio_srch_gold_mode", 50],
-	["menu_radio_srch_gold_mode_style", 50],
-	["menu_radio_color_draw", 50],
-	["menu_radio_watch_dots", 50],
+	//["menu_radio_color_draw", 50],
+	//["menu_radio_watch_dots", 50],
 
 	["rain_about", 50],
 	["drop_right", 50],
@@ -454,23 +417,11 @@ function adjustPageElements()
 	["desc_td7", 50],
 	["desc_td8", 50],
 
-	["yplus", 100],
-	["minus", 100],
-	["phiM0", 50],
-	["phiM1", 50],
-	["phiM2", 50],
-	["phiM3", 50],
-	["phiM4", 50],
-	["phiM5", 50],
-	["phiM6", 50],
-	["curated", 100],
-	["golden_ab", 60],
-	["golden_rgb", 60],
-	["golden_8", 60],
-	["golden_27", 40],
-	["bill_rgb_32", 40],
-	["bar", 80],
-	["gplus", 100],
+    ["dialog_yes_pair", 80],
+    ["dialog_no_pair", 80],
+    ["dialog_no_flow", 80],
+    ["dialog_yes_flow", 80],
+    ["dialog_neutral", 80],
 
 	["toggle_both", 70],
 
@@ -479,11 +430,12 @@ function adjustPageElements()
   for (var i=0; i<heights.length; i++) {
     var x = document.getElementById(heights[i][0]);
     if (x == null) {
-      callAlert("Internal error: no " + heights[i][0]);
+      callAlertTooMuch("Internal error: no " + heights[i][0]);
     } else {
       var size = heights[i][1];
-      if (isIphone) size = parseInt(size *= 0.6);
+      if (isIOS) size = parseInt(size *= 0.6);
       x.style.fontSize = size + "px";
+//if ("dialog_neutral".equals(heights[i][0])) alert("dialog_neutral " + size);
     }
   }
 
@@ -508,194 +460,13 @@ function adjustPageElements()
   for (var i=0; i<buttons.length; i++) {
     var b = document.getElementById(buttons[i][0]);
     if (b == null) {
-      callAlert("Internal error: no " + buttons[i][0]);
+      callAlertTooMuch("Internal error: no " + buttons[i][0]);
     } else {
       b.style.width = buttons[i][1] + "px";
       b.style.height = buttons[i][2] + "px";
     }
   }
 
-}
-
-function adjustCmdTds(row)
-{
-  console.log("adjustCmdTds: cmd/row: " + cmdMode + "/" + row);
-
-  if (cmdMode == 1) {
-
-    document.getElementById("yplus").style.display = 'none';
-    document.getElementById("curated").style.display = 'none';
-    document.getElementById("gplus").style.display = 'none';
-
-    document.getElementById("cmdTd").style.display = 'none';
-    document.getElementById("showTd").style.width = "50%";
-    document.getElementById("kwdTd").style.width = "50%";
-
-    return;
-  }
-  document.getElementById("cmdTd").style.display = '';
-  var nitems = -1;
-  if (cmdMode == 2) {
-    nitems = 11;
-
-    document.getElementById("golden_ab").style.display = 'none';
-    document.getElementById("golden_rgb").style.display = 'none';
-    document.getElementById("golden_8").style.display = 'none';
-    document.getElementById("golden_27").style.display = 'none';
-    document.getElementById("bill_rgb_32").style.display = 'none';
-
-    if (isMobile) {
-      document.getElementById("yplus").style.display = 'none';
-      document.getElementById("curated").style.display = 'none';
-      document.getElementById("gplus").style.display = 'none';
-      document.getElementById("phiM6").style.display = 'none';
-    }
-
-    document.getElementById("phiM0").style.display = '';
-    document.getElementById("phiM1").style.display = '';
-    document.getElementById("phiM2").style.display = '';
-    document.getElementById("phiM3").style.display = '';
-    document.getElementById("phiM4").style.display = '';
-    document.getElementById("phiM5").style.display = '';
-    document.getElementById("phiM6").style.display = '';
-
-  } else if (cmdMode == 3) {
-    nitems = 10;
-
-    document.getElementById("phiM0").style.display = 'none';
-    document.getElementById("phiM1").style.display = 'none';
-    document.getElementById("phiM2").style.display = 'none';
-    document.getElementById("phiM3").style.display = 'none';
-    document.getElementById("phiM4").style.display = 'none';
-    document.getElementById("phiM5").style.display = 'none';
-    document.getElementById("phiM6").style.display = 'none';
-
-    document.getElementById("golden_ab").style.display = '';
-    document.getElementById("golden_rgb").style.display = '';
-    document.getElementById("golden_8").style.display = '';
-    document.getElementById("golden_27").style.display = '';
-    document.getElementById("bill_rgb_32").style.display = '';
-
-    document.getElementById("yplus").style.display = '';
-    document.getElementById("curated").style.display = '';
-    document.getElementById("gplus").style.display = '';
-
-  } else {
-    alert('unknown cmdmode ' + cmdMode);
-  }
-
-  console.log('nitems: ' + nitems);
-
-  var winWidth = window.innerWidth; // disbelief factor
-  var cmdlen = 0;
-  var name = navigator.browserSpecs.name;
-  if (name == 'Chrome') {
-    if (row == 0) cmdlen = 110;
-    else cmdlen = nitems * 45;
-  } else if (name == 'Firefox') {
-    if (row == 0) cmdlen = 140;
-    else cmdlen = nitems * 50;
-  } else if (isIphone) {
-    //if (row == 0) cmdlen = 110;
-    //else cmdlen = nitems * 50;
-    document.getElementById("cmdTd").style.width =  "";
-    document.getElementById("showTd").style.width = "";
-    document.getElementById("kwdTd").style.width =  "";
-    return;
-  } else {
-    if (row == 0) cmdlen = 120;
-    else cmdlen = nitems * 50;
-  }
-  if ((name != 'Chrome') && (isMobile)) {
-    cmdlen *= 2;
-  }
-  var sidelen = Math.floor(0.99 * (winWidth - cmdlen) / 2);
-  if (sidelen < 0 || isMobile) {
-    cmdlen = winWidth;
-    sidelen = 0;
-  }
-
-  console.log("adjustCmdTds: win, cmd, side " +
-        winWidth + " " + cmdlen + " " + sidelen);
-  document.getElementById("cmdTd").style.width = cmdlen + "px";
-  document.getElementById("showTd").style.width = sidelen + "px";
-  document.getElementById("kwdTd").style.width = sidelen + "px";
-
-  document.getElementById("cmdTd").style.display = '';
-}
-
-function toggleCmd(val)
-{
-  console.log("toggleCmd tileId " + tileId +
-	" cmdMode " + cmdMode + '-> [' + val + ']');
-  if (tileId == 0) {
-    return;
-  }
-  if (val == 1) {
-
-	document.getElementById("menu_radio_browse_mode").innerHTML =
-		"&#x25aa;";
-	document.getElementById("menu_radio_srch_ai_mode").innerHTML =
-		"&#x25ab;";
-	document.getElementById("menu_radio_srch_gold_mode").innerHTML =
-		"&#x25ab;";
-
-  } else if (val == 2) {
-
-	document.getElementById("menu_radio_browse_mode").innerHTML =
-		"&#x25ab;";
-	document.getElementById("menu_radio_srch_ai_mode").innerHTML =
-		"&#x25aa;";
-	document.getElementById("menu_radio_srch_gold_mode").innerHTML =
-		"&#x25ab;";
-
-  } else if (val == 3) {
-
-	document.getElementById("menu_radio_browse_mode").innerHTML =
-		"&#x25ab;";
-	document.getElementById("menu_radio_srch_ai_mode").innerHTML =
-		"&#x25ab;";
-	document.getElementById("menu_radio_srch_gold_mode").innerHTML =
-		"&#x25aa;";
-
-  } else {
-	alert('unknown radio but: ' + val);
-  }
-  cmdMode = val;
-  setCookie(getCmdModeKey(), cmdMode);
-  adjustCmdTds(tileId);
-}
-
-var watchDots = false;
-var waitingDotty = 0;
-
-function toggleWatchDots()
-{
-    watchDots = !watchDots;
-    waitingDotty = 0;
-
-    if (watchDots) {
-		document.getElementById("menu_radio_watch_dots").innerHTML =
-			"Dots: don't wait";
-    } else {
-		document.getElementById("menu_radio_watch_dots").innerHTML =
-			"Dots: 2nd click";
-    }
-}
-
-
-var colorDraw = true;
-
-function toggleColorDraw()
-{
-	colorDraw = !colorDraw;
-	if (colorDraw) {
-		document.getElementById("menu_radio_color_draw").innerHTML =
-			"Draw: use grey";
-	} else {
-		document.getElementById("menu_radio_color_draw").innerHTML =
-			"Draw: use colors";
-	}
 }
 
 var md = null;
@@ -723,10 +494,10 @@ console.log("getMD retry " + retry0Ct);
          showMD();
       } else if (xmlHttp.status == 401) {
         console.log("401: " + xmlHttp.responseText);
-        callAlert("Unknown user");
+        callAlertTooMuch("Unknown user");
       } else if (xmlHttp.status == 500) {
         wipeSession();
-        callAlert("Server error, try reloading page.");
+        callAlertTooMuch("Server error, try reloading page.");
       }
     }
   };
@@ -761,6 +532,7 @@ console.log("md params for getkext: " + params);
   }
   return true;
 }
+
 var repeats = false;
 
 function toggleRepeats(val)
@@ -799,10 +571,10 @@ function toggleRepeats(val)
         // console.log("md " + md);
       } else if (xmlHttp.status == 401) {
         console.log("401: " + xmlHttp.responseText);
-        callAlert("Unknown user");
+        callAlertTooMuch("Unknown user");
       } else if (xmlHttp.status == 500) {
         wipeSession();
-        callAlert("Server error, try reloading page.");
+        callAlertTooMuch("Server error, try reloading page.");
       }
     }
   };
@@ -827,31 +599,10 @@ console.log("tog repeats params: " + params);
   return true;
 }
 
-var goNeg = false;
-
-function toggleNeg(msg)
-{
-  console.log("toggleNeg [" + msg + "] on: " + goNeg);
-
-  if (goNeg) {
-    document.getElementById("menu_tog_neg").innerHTML = "&#x25ab;";
-	"<span style='color:black;'>&#x25ab</span>";
-    //document.getElementById("menu_tog_neg_style").innerHTML = "'Bad' prs";
-  } else {
-    document.getElementById("menu_tog_neg").innerHTML =
-	"<span style='color:red;'>&#x25aa</span>";
-//alert('col ' +  document.getElementById("menu_tog_neg").style.color);
-    //document.getElementById("menu_tog_neg_style").innerHTML = "Train prs";
-  }
-  goNeg = !goNeg;
-  setCookie("goNeg", goNeg);
-console.log("Cookie: " + getCookie("goNeg") + " ..set=" + goNeg);
-}
-
 
 function setTile(row, reloadCode)
 {
-console.log("setTile " + row + " reloadCode " + reloadCode);
+//console.log("setTile " + row + " reloadCode " + reloadCode);
 
   switch (row) {
     case 0:
@@ -899,7 +650,7 @@ console.log("setTile " + row + " reloadCode " + reloadCode);
     imgRcvdPrev[i] = null;
   }
 
-  if (isMobile) {
+  if (hasTouch) {
     switch (row) {
       case 0:
       case 1:
@@ -920,18 +671,6 @@ console.log("setTile " + row + " reloadCode " + reloadCode);
   if (row == 0) {
     cmdMode = 2;
   }
-  if (row == 0  ||  tileId == 0) {
-    adjustCmdTds(row);
-  }
-
-  // only with tr1+
-  var curated = document.getElementById("curated");
-  var yplus = document.getElementById("yplus");
-  var golden_ab = document.getElementById("golden_ab");
-  var golden_rgb = document.getElementById("golden_rgb");
-  var golden_8 = document.getElementById("golden_8");
-  var golden_27 = document.getElementById("golden_27");
-  var bill_rgb_32 = document.getElementById("bill_rgb_32");
 
   if (row == 0) {
     tileId = 0;
@@ -940,16 +679,6 @@ console.log("setTile " + row + " reloadCode " + reloadCode);
 
     document.getElementById("spacer").style.height = "10px";
 
-    curated.style.display = 'none';
-    yplus.style.display = 'none';
-
-    golden_ab.style.display = 'none';
-    golden_rgb.style.display = 'none';
-    golden_8.style.display = 'none';
-    golden_27.style.display = 'none';
-    bill_rgb_32.style.display = 'none';
-
-    adjustCmdTds(row);
     waitingDisplays = 1;
     nextImage0(0);
 
@@ -958,17 +687,6 @@ console.log("setTile " + row + " reloadCode " + reloadCode);
     tileId = row;
 
     screens = 2;
-
-    adjustCmdTds(row);
-/*
-    curated.style.display = '';
-    yplus.style.display = '';
-    golden_ab.style.display = '';
-    golden_rgb.style.display = '';
-    golden_8.style.display = '';
-    golden_27.style.display = '';
-    bill_rgb_32.style.display = '';
-*/
 
     if (reloadCode==1 ||
         (oldTileId == 2  &&  tileId == 3) ||
@@ -980,22 +698,17 @@ console.log("setTile " + row + " reloadCode " + reloadCode);
   }
 }
 
-
-var mouseDown = 0;
-
-var inImage = 0;
-var imageIn = -1;
-
 var myScroll;
 
-$(document).ready(function() {
+$(document).ready(
+    function() {
   //resizeImg();
   //$(window).resize(resizeImg);
 
   //myScroll = new IScroll('#wrapper'); // prevent horiz scroll
-/*
-  if (isAndroid || isIphone || duzTuch) {
-alert('touchy!');
+
+  if (hasTouch || isAndroid || isIOS) {
+    //alert('touchy!');
     $("#image0").on("touchenter", function() { inImage++; });
     $("#image0").on("touchleave", function() { inImage--; });
     $("#image1").on("touchenter", function() { alert('te1');inImage++; });
@@ -1006,8 +719,9 @@ alert('touchy!');
     $("#image3").on("touchleave", function() { inImage--; });
     $("#image4").on("touchenter", function() { inImage++; });
     $("#image4").on("touchleave", function() { inImage--; });
+
   } else {
-*/
+
     $("#image0").on("mouseenter", function() { inImage++; imageIn = 0; });
     $("#image0").on("mouseleave", function() { inImage--; imageIn = -1; });
     $("#image1").on("mouseenter", function() { inImage++; imageIn = 1; });
@@ -1021,23 +735,23 @@ alert('touchy!');
 	       // override chrome user agent stylesheet body.margin=8
 	       document.getElementById("fbody").style.margin = 0;
 	       //document.getElementById("fbody").style.display = 'block';
-//  }
+  }
 
 //$( "#invisButton" ).dblclick(function() {
 //  alert( "Handler for .dblclick() called." );
 //});
+
 });
 
 var servletRoot = "/pr";  // set in proj/web/build.gradle
 
-
 function drawTwo()
 {
-console.log("drawTwo");
+//console.log("drawTwo");
 
   reDot();
 
-  if (isAndroid || isIphone) {
+  if (hasTouch || isAndroid || isIOS) {
 
     var height = 0.6 * window.innerWidth;
     if (tileId == 2) height *= 0.6;
@@ -1059,7 +773,7 @@ console.log("drawTwo");
         console.log("null 2draw");
       } else {
         var img = document.getElementById("image" + i);
-        if (img == null) callAlert("NO image " + i);
+        if (img == null) callAlertTooMuch("NO image " + i);
         setImg(img2draw, img, height);
         drawTouch(img, i);
         //img.src = img2draw.src;
@@ -1068,11 +782,8 @@ console.log("drawTwo");
   } else {
     // resizeImage() inline for newimg use TODO consolidate
     var tot_height = window.innerHeight;
-
     var avail_height = tot_height - ADMIN_PIX;
-    if (tileId != 2) {
-      avail_height += 60;
-    }
+    // if (tileId != 2) { avail_height += 60; }
     var remaining_width = 0;
 
     if (tileId == 2) {
@@ -1107,15 +818,15 @@ console.log("drawTwo");
           var avail_width = window.innerWidth;
           avail_width -= 80; // clickable margins
           remaining_width = 80;
-console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
-" = " + tot_width + " W " + avail_width + " " + window.innerWidth +
-" tot_height " + window.innerHeight +
-" avail_height " + avail_height);
+          console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
+            " = " + tot_width + " W " + avail_width + " " + window.innerWidth +
+            " tot_height " + window.innerHeight +
+            " avail_height " + avail_height);
           if (tot_width > avail_width) {
             var ws = avail_width / tot_width;
             avail_height *= ws;
             avail_height = Math.floor(avail_height);
-console.log("avail_height " + avail_height);
+            console.log("avail_height floored " + avail_height);
           }
         }
 /*
@@ -1211,11 +922,10 @@ var waitingDisplays = 0;
 
 function decrementDisplayCountdown()
 {
-console.log("decrementDisplayCountdown " + waitingDisplays +
-" tileId " + tileId);
+//console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId);
 
   if (waitingDisplays == 0) {
-    callAlert("Error, decrementing 0");
+    callAlertTooMuch("Error, decrementing 0");
     return;
   }
   // not thread safe
@@ -1225,16 +935,25 @@ console.log("decrementDisplayCountdown " + waitingDisplays +
   }
 
   drawTwo();
+console.log("[Pair|Flow]Rating = null! RATE IT");
+  dialogPairRating = null; // TODO directly after display?
+  dialogFlowRating = null; // TODO directly after display?
 }
 
 var imgNexts = 0;
 function nextImage(screen, rating, caller) // screen in 1,2 or 3,4
 {
-  imgNexts += 1;
+  // rating in {0,3,4} -?
+
+if(rating>3) alert('nextImage screen ' + screen + ' rating ' + rating);
+
+  imgNexts++;
+/*
   console.log('NEXTIMAGE_' + imgNexts +
 			': caller ' + caller +
 			' screen ' + screen +
 			' waitingDisplays: ' + waitingDisplays);
+*/
 
 //alert('nextImage ' + caller);
   md = null;
@@ -1260,7 +979,7 @@ function nextImage(screen, rating, caller) // screen in 1,2 or 3,4
   var newimg = new Image();
   newimg.onerror=function(evt) {
     console.log("newimg.onerror: ", evt);
-    callAlert("Image load problem: (Safari+MacOS<11: use Chrome) try refreshing page or choosing another view");
+    callAlertTooMuch("Image load problem: (Safari+MacOS<11: use Chrome) try refreshing page or choosing another view");
     decrementDisplayCountdown();
   }
   newimg.onload=function() {
@@ -1280,7 +999,7 @@ function nextImage(screen, rating, caller) // screen in 1,2 or 3,4
       }
       return;
     }
-console.log("loaded " + screen + " " + newimg.width + "x" + newimg.height);
+    console.log("loaded screen" + screen + " " + newimg.width + "x" + newimg.height);
 
     // when image is loaded, make it visible
     var now = new Date();
@@ -1302,12 +1021,8 @@ console.log("loaded " + screen + " " + newimg.width + "x" + newimg.height);
     var img = document.getElementById("image" + screen);
     lox = getLox(img);
   }
-  var url = servletRoot + "/getmext";
-  // TODO - add lots and binhex it
-  var togSide = togL + togR;
-  if (togSide === '') {
-    togSide = 'na';
-  }
+  var url = servletRoot + "/getfext";
+
   // map to 1,2
   var ss = screen;
   if (tileId > 2) {
@@ -1319,7 +1034,6 @@ if (ss > 2 || ss < 1) alert ("ss " + ss + " tileId " + tileId);
   if (tileId == 1) o = "v";
   else if (tileId > 1) o = "h";
 
-  var dots = summarizeDots(false);
   var params = "?sess=" + sessionID +
 		"&sc1=" + ss +
 		"&sc2=" + ss +
@@ -1346,24 +1060,13 @@ if (ss > 2 || ss < 1) alert ("ss " + ss + " tileId " + tileId);
 		"&loc=" + lox[0] +
 		"&locspec=" + lox[1] +
 		"&btm=" + bigTime +
-		"&ltm=" + imageLoaded +
-		"&ntog=" + nToggleLast +
-		"&tgs=" + togSide +
-		"&togt=" + base64Str(togTimes).trim() +
-		dots;
-  params = limitURIDots(params);
+		"&ltm=" + imageLoaded;
+
   // start load of image into memory
-console.log("GO " + url + "\n" + params);
+  console.log("GO/loadpic " + url + "\n" + params);
   newimg.src = url + params;
 
   // while waiting, have a good time
-
-  nToggleLast = 0;
-  togTimes = [];
-  lastTogTime = null;
-  togL = "";
-  togR = "";
-  togSide = null;
 
   resetDrawCounts();
 }
@@ -1386,7 +1089,7 @@ function showDog() {
 }
 
 function fade(element) {
-  console.log("fade tileId " + tileId);
+  //console.log("fade tileId " + tileId);
   var op = 1;  // initial opacity
   var timer = setInterval(function () {
       if (op <= 0.1) {
@@ -1419,87 +1122,10 @@ var vDepth = [0, 0, 0, 0, 0];
 var imgRcvd = [null, null, null, null, null];
 var imgRcvdPrev = [null, null, null, null, null];
 
-var nToggleLast = 0;
-var togL = '';
-var togR = '';
-var togTimes = [];
-var lastTogTime = null;
-
 function toggleLast(screen, side) {
 
-  if ($('#drop1').isActive()  ||  $('#drop2').isActive()) {
-    console.log("toggleLast: dropdown is active/skip");
-    return;
-  }
-
-  console.log("toggleLast " + screen + " " + side);
-
-  if (side === 'l') {
-    togL = 'l';
-  } else if (side === 'r') {
-    togR = 'r';
-  } else {
-    togL = 'l';
-    togR = 'r';
-  }
-
-  md = null;
-  mdK = null;
-
-  var t0 = lastTogTime;
-  if (t0 == null) {
-    t0 = prevTime;
-  }
-  lastTogTime = new Date();
-  togTimes.push(lastTogTime - t0);
-  if (screen == -1) {
-    var ii = 0; // 1-1
-    if (tileId == 3) ii = 2; // 3-1
-    for (var i=0; i<2; i++) {
-      ii++;
-      if ((vDepth[ii] == 0  &&  imgRcvdPrev[ii] == null)  ||
-          (vDepth[ii] == 1  &&  imgRcvd[ii] == null)) {
-        alert("No pictures to go back to " + ii);
-        return;
-      }
-      nToggleLast++;
-      if (vDepth[ii] == 0) {
-        vDepth[ii] = 1;
-      } else {
-        vDepth[ii] = 0;
-      }
-
-    }
-    drawTwo();
-    return;
-  } else {
-
-    if ((vDepth[screen] == 0  &&  imgRcvdPrev[screen] == null)  ||
-        (vDepth[screen] == 1  &&  imgRcvd[screen] == null)) {
-      alert("No picture to go back to " + screen);
-      return;
-    }
-    if (vDepth[screen] == 0) {
-      vDepth[screen] = 1;
-    } else {
-      vDepth[screen] = 0;
-    }
-
-    nToggleLast++;
-
-    if (screen == 0) {
-      drawOne();
-    } else {
-      drawTwo();
-    }
-  }
-}
-
-var mdown_time = null;
-
-function mdown() {
-//alert('mdown');
-  mdown_time = new Date();
+  console.log("toggleLast - disabled for feel");
+  return;
 }
 
 var bothToggleDown = null;
@@ -1528,301 +1154,43 @@ function bothToggle() {
   bothToggleDown = null;
 }
 
-
-var mouseDownNextToPlus = false;
-var mouseDownOnCredit = false;
-
-var mdK = null;
-var retry0Ct = 0;
-
-function showMD() {
-
-  if (!mouseDownNextToPlus  &&  !mouseDownOnCredit) return;
-
-  if (tileId == 0) {
-    if (md == null) {
-console.log("md is null retry " + retry0Ct);
-      retry0Ct++;
-      if (retry0Ct > 2) {
-        retry0Ct = 0;
-        return;
-      }
-      getMD();
-      return;
-    }
-    retry0Ct = 0;
-
-  } else {
-
-    var ii = 1;
-    if (tileId == 3) ii = 3;
-
-    var ps = "0." + vDepth[ii] + "1." + vDepth[ii+1];
-    if (md == null  ||  ps != mdK) {
-      mdK = ps;
-      getMD();
-      return;
-    }
-  }
-  var content;
-  if (mouseDownOnCredit) {
-    content = md.credit;
-  } else {
-    content = md.kw;
-  }
-  //console.log("content [" + content.trim() + "]");
-  var fsize = 15;
-  if (duzTuch) fsize = 40;
-  var td = document.getElementById("kwdTd");
-  td.innerHTML = "<span style=\"text-align:right;" +
-		" color:rgba(255,255,255,0.4);" +
-		"font-size: " + fsize + "pt;" +
-		" font-family:'Courier New',Courier,monospace;\">" +
-			content.trim() +
-		"</span>";
-}
-
-function hideKwds() {
-  mouseDownNextToPlus = false;
-  var td = document.getElementById("kwdTd");
-  td.innerHTML = "&nbsp;";
-}
-
-function hideCredit() {
-  mouseDownOnCredit = false;
-  var td = document.getElementById("kwdTd");
-  td.innerHTML = "&nbsp;";
-}
-
-function logApproval(status)
-{
-  var xmlHttp;
-  try {
-     xmlHttp = getHTTP();
-  } catch (e) {
-     alert(e);
-     return false;
-  }
-  xmlHttp.onreadystatechange=function() {
-    if(xmlHttp.readyState==4) {
-      if (xmlHttp.status == 200) {
-         console.log("approval " + xmlHttp.responseText);
-      } else if (xmlHttp.status == 401) {
-        console.log("401: " + xmlHttp.responseText);
-        callAlert("Unknown user");
-      } else if (xmlHttp.status == 500) {
-        wipeSession();
-        callAlert("Server error, try reloading page.");
-      }
-    }
-  };
-  try {
-    var v1Depth, v2Depth;
-    if (tileId < 3) {
-      v1Depth = vDepth[1];
-      v2Depth = vDepth[2];
-    } else {
-      v1Depth = vDepth[3];
-      v2Depth = vDepth[4];
-    }
-    var params = "sess=" + sessionID +
-		"&p1=1." + v1Depth +
-        "&p2=2." + v2Depth +
-        "&st=" + status + "\n";
-
-console.log(params);
-    var url = servletRoot + "/errorme";
-    xmlHttp.onreadystatechange=function() {
-      if(xmlHttp.readyState==4) {
-        if (xmlHttp.status != 200) {
-          callAlert("failed: " + xmlHttp.status + " " + xmlHttp.responseText);
-        }
-      }
-    };
-    xmlHttp.open("POST", url, true);
-    xmlHttp.setRequestHeader("Content-type",
-                               "application/x-www-form-urlencoded");
-    xmlHttp.send(params);
-  } catch (e) {
-    alert(e);
-    return false;
-  }
-  return true;
-}
+var mouseDown = false;
 
 
-function resizeImg0() {
+var prevT = null;
+var prevX = null, prevY;
+var rMax = 0;
+//var rates = [];
+var dTot = 0;
+var maxVel = 0;
+var distMaxVel = 0;
+var timeMaxVel = 0;
+var lastVel = 0;
+var lastAcc = 0;
+var maxAcc = 0;
+var minAcc = 0;
+var maxJerk = 0;
+var maxX = 0;
+var minX = 0;
+var maxY = 0;
+var minY = 0;
+var lastX = 0;
+var lastY = 0;
+var accumX = 0;
+var accumY = 0;
+var accumCount = 0;
 
-console.log("resizeImg0");
-
-  var tot_height = window.innerHeight;
-  var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
-
-  var td = document.getElementById("td0");
-  td.setAttribute("height", avail_height);
-
-  var img = document.getElementById("image0");
-
-  if (isAndroid || isIphone) {
-    img.style.opacity = "1.0";
-    return;
-  }
-
-  if (img.height > avail_height) {
-
-    console.log("resize height " + img.height + " to " + avail_height +
-                " tot_height " + window.innerHeight);
-
-    var scaled_width = (avail_height / img.height) * img.width;
-
-    var canvas = document.createElement( 'canvas' );
-    canvas.width = scaled_width;
-    canvas.height = avail_height;
-    var tmp = new Image();
-    tmp.src = img.src;
-    context = canvas.getContext( '2d' );
-    context.drawImage( tmp, 0, 0, scaled_width, avail_height);
-    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
-    drawTouch(img, 0);
-
-  }
-  img.onmousedown = disableDragging; // for FF
-  img.style.opacity = "1.0";
-}
-
-
+var picCount = 0;
+var pixInPic = 0;
+var pixOutPic = 0;
+var prevTime;
+var startNext;
+var imageLoaded = -1;
 
 function nextImage0(rating)
 {
-
-console.log("nextImage0: " + rating);
-alert("nextImage0 NEEDS REHAB");
-if (true) return;
-
-  md = null;
-  mdK = null;
-
-  startNext = new Date();
-
-  var vecX = 0;
-  var vecY = 0;
-  if (accumCount > 0) {
-    // console.log("acc " + accumX + "/" + accumY + " " + accumCount + "\n" +
-                   // lastClickX + "/" + lastClickY);
-    vecX = (accumX / accumCount) - mouseDownX;
-    vecY = (accumY / accumCount) - mouseDownY;
-  }
-
-  //console.log("rating " + rating);
-  var interval = 0;
-  if (prevTime) {
-    interval = new Date() - prevTime;
-  }
-
-  var newimg = new Image();
-  newimg.onerror=function(evt) {
-    callAlert("Image load problem: try refreshing page");
-  }
-  newimg.onload=function() {
-    if (newimg.height == 1  &&  newimg.width == 1) {
-
-      // empty.jpg
-      var conf = confirm("DONE with view. You can start over or go back and enter another view. Start over?");
-      if (conf) {
-        getSessionId(false);
-      }
-      return;
-    }
-console.log("loaded");
-
-    imgRcvdPrev[0] = imgRcvd[0];
-    imgRcvd[0] = newimg;
-    vDepth[0] = 0;
-    drawOne();
-  }
-
-  dTot = Math.round(dTot);
-
-  var lox = [ "na", "na" ];
-
-  if (rating == 4  ||  rating == 5) {
-
-    var img = document.getElementById("image0");
-    lox = getLox(img);
-
-    console.log("top " + crds.top + " bottom " + bottom +
-                "\nleft " + crds.left + " right " + right +
-                "\nX " + mousedownX + " Y " + mousedownY +
-                "\nloc " + lox[0] +
-                "\nlocspec " + lox[1]);
-
-  }
-  var url = servletRoot +"/getnext";
-  // TODO - add lots and binhex it
-  var togSide = togL + togR;
-  if (togSide === '') {
-    togSide = 'na';
-  }
-  var dots = summarizeDots(true);
-  var params = "?sess=" + sessionID +
-		"&ct=" + picCount +
-		"&r=" + rating +
-		"&pp=" + pixInPic +
-		"&po=" + pixOutPic +
-		"&t=" + interval +
-		"&t2=" + timeMaxVel +
-		"&w=0&mt=0" +
-		"&d=" + dTot +
-		"&d2=" + Math.round(distMaxVel) +
-		"&mxv=" + maxVel +
-		"&mxa=" + maxAcc +
-		"&mna=" + minAcc +
-		"&mxj=" + maxJerk +
-		"&dx=" + (maxX - minX) +
-		"&dy=" + (maxY - minY) +
-		"&vcx=" + Math.round(vecX) +
-		"&vcy=" + Math.round(vecY) +
-		"&loc=" + lox[0] +
-		"&locspec=" + lox[1] +
-		"&ltm=" + imageLoaded +
-		"&ntog=" + nToggleLast +
-		"&tgs=" + togSide +
-		"&togt=" + base64Str(togTimes).trim() +
-		dots;
-  params = limitURIDots(params);
-  // start load of image into memory
-  newimg.src = url + params;
-  drawTouch(newimg, 0);
-
-  // while waiting, have a good time
-
-  nToggleLast = 0;
-  togTimes = [];
-  lastTogTime = null;
-  togL = "";
-  togR = "";
-  togSide = null;
-
-  pixInPic = 0;
-  pixOutPic = 0;
-  dTot = 0;
-  maxVel = 0;
-  lastVel = 0;
-  distMaxVel = 0;
-  timeMaxVel = 0;
-  maxAcc = 0;
-  minAcc = 0;
-  lastAcc = 0;
-  maxJerk = 0;
-  lastClickX = lastX;
-  lastClickY = lastY;
-  maxX = lastX;
-  minX = lastX;
-  maxY = lastY;
-  minY = lastY;
-  accumX = lastX;
-  accumY = lastY;
-  accumCount = 1;
+    console.log("nextImage0: " + rating);
+    alert("nextImage0 NEEDS REHAB");
 }
 
 var ctxt = null;
@@ -1830,7 +1198,7 @@ var ctxt = null;
 function setImg(imgsrc, img, avail_height)
 {
   if (img == null) {
-    callAlert("NO image");
+    callAlertTooMuch("NO image");
     return;
   }
   if (imgsrc.height == avail_height) {
@@ -1861,7 +1229,7 @@ function setImg(imgsrc, img, avail_height)
   img.src = tmp;
   img.onmousedown = disableDragging; // for FF
   img.style.opacity = "1.0";
-  console.log("resized");
+  //console.log("resized");
 }
 
 function drawOne()
@@ -1882,7 +1250,7 @@ function drawOne()
 
   showView();
 
-  if (isAndroid || isIphone) {
+  if (hasTouch || isAndroid || isIOS) {
     img.src = newimg.src;
     drawTouch(img, 0);
     //var canvas = document.createElement( 'canvas' );
@@ -1968,7 +1336,7 @@ alert('bigone scrn(s) 0 ' + signatoor);
             ' -=-=> sweet Callipsioids! tromping');
     return;
   }
-console.log('WOW ' + signatoor);
+console.log(signatoor);
 
   if (enterBig == null) {
     enterBig = new Date();
@@ -1980,7 +1348,7 @@ console.log('WOW ' + signatoor);
       return;
     }
   }
-  console.log(signatoor);
+  //console.log(signatoor);
   waitingDisplays = 2;
 
   if (scrn1 == 3) scrn1 = 1;
@@ -2027,7 +1395,7 @@ console.log('WOW ' + signatoor);
   xmlHttp.onreadystatechange=function() {
     //var t0 = new Date();
     if(xmlHttp.readyState==4) {
-      console.log("bigone http " + xmlHttp.status);
+      //console.log("bigone http " + xmlHttp.status);
       if (xmlHttp.status == 200) {
         console.log('BIG200: ' + xmlHttp.responseText);
         bigTime = new Date();
@@ -2049,7 +1417,7 @@ console.log('WOW ' + signatoor);
           rgbRadius = raw[3];
           raw[3] = rgbRadius / 255; // make frac
           rgbs['2.1'] = raw;
- //QQQ
+
           dotSpeed++;
           startDotGibber(false);
 
@@ -2082,46 +1450,45 @@ console.log('WOW ' + signatoor);
             enterBig = null;
             return;
         } else {
-            callAlert('Unexpected BIG200: ' + xmlHttp.responseText);
+            callAlertTooMuch('Unexpected BIG200: ' + xmlHttp.responseText);
         }
       } else if (xmlHttp.status == 204) {
 alert('big 204/legacy');
       } else if (xmlHttp.status == 401) {
         console.log("401: " + xmlHttp.responseText);
-        callAlert("Unknown user");
+        callAlertTooMuch("Unknown user");
       } else if (xmlHttp.status == 500) {
         wipeSession();
-        callAlert("Server error, try reloading page.");
+        callAlertTooMuch("Server error, try reloading page.");
 
       } else if (xmlHttp.status == 0) {
-	    callAlert('Unexpected Server response (0) - ' +
+	    callAlertTooMuch('Unexpected Server response (0) - ' +
 		    'you may be disconnected from the net.');
         waitingDisplays = 0;
       } else {
-	    callAlert('Unexpected Server response: ' + xmlHttp.status);
+	    callAlertTooMuch('Unexpected Server response: ' + xmlHttp.status);
       }
       enterBig = null;
     }
   };
 
-  // TODO - add lots and binhex it
-  var togSide = togL + togR;
-  if (togSide === '') {
-    togSide = 'na';
-  }
   var orient = "o";
   if (tileId == 1) {
     orient = "v"
   } else if (tileId == 2 || tileId == 3) {
     orient = "h";
   }
+
+  var ratings = getRatings();
+  if (ratings == null) return;
+
   var dots = summarizeDots(true);
   var params = "sess=" + sessionID +
 		"&sc1=" + scrn1 +
 		"&sc2=" + scrn2 +
         "&c=m" +
         "&o="  + orient +
-		"&r=" + rating +
+		"&r=" + ratings +
 		"&ct=" + picCount +
 		"&pp=" + pixInPic +
 		"&po=" + pixOutPic +
@@ -2143,14 +1510,14 @@ alert('big 204/legacy');
 		"&locspec=" + lox[1] +
 		"&btm=" + bigTime +
 		"&ltm=" + imageLoaded +
-		"&ntog=" + nToggleLast +
-		"&tgs=" + togSide +
-		"&togt=" + base64Str(togTimes).trim() +
 		dots;
+
+  //console.log('params\n' + params);
   params = limitURIDots(params);
-//console.log('params\n' + params);
+  //console.log('params.limited_dots\n' + params);
+
   try {
-    var url = servletRoot + "/getmext";
+    var url = servletRoot + "/getfext";
     bigStartPost = new Date();
     xmlHttp.open("POST", url, true);
     xmlHttp.setRequestHeader("Content-type",
@@ -2165,20 +1532,47 @@ alert('big 204/legacy');
 
   // while waiting, have a good time
 
-  nToggleLast = 0;
-  togTimes = [];
-  lastTogTime = null;
-  togL = "";
-  togR = "";
-  togSide = null;
-
   resetDrawCounts();
 }
 
+function resetDrawCounts()
+{
+  dialogDotsBlocked = 0;
+  ratingAlerts = 0;
+
+  pixInPic = 0;
+  pixOutPic = 0;
+  dTot = 0;
+  maxVel = 0;
+  lastVel = 0;
+  distMaxVel = 0;
+  timeMaxVel = 0;
+  maxAcc = 0;
+  minAcc = 0;
+  lastAcc = 0;
+  maxJerk = 0;
+
+  lastX = null;
+  lastY = null;
+  prevX = null;
+  prevY = null;
+  prevT = null;
+/*
+  mousedownX = null;
+  mousedownY = null;
+*/
+  maxX = -1;
+  minX = -1;
+  maxY = -1;
+  minY = -1;
+  accumX = 0;
+  accumY = 0;
+  accumCount = 0;
+}
 
 function imgClick(nimg, ev)
 {
-console.log('imgClick ' + nimg + ' cmdMode ' + cmdMode + ' ' + ev);
+//console.log('imgClick ' + nimg + ' cmdMode ' + cmdMode + ' ' + ev);
 	if (cmdMode == 1) {
 		return;
 	}
@@ -2209,7 +1603,7 @@ if (scrn1 == 0  ||  scrn2 == 0) alert('iClick scrns ' + scrn1 + '/' + scrn2 + ' 
 		console.log('Browse mode and no dots: denied');
 		return;
 	}
-//if (isMobile) alert('iClick ' + scrn1 + ' ' + scrn2 + ' cmdMode ' + cmdMode);
+//if (hasTouch) alert('iClick ' + scrn1 + ' ' + scrn2 + ' cmdMode ' + cmdMode);
 	if ((cmdMode == 2  ||  cmdMode == 3)  &&  scrn1 == scrn2) {
 		// same as imgClick() /click on pic
 		if (cmdMode == 2) {
@@ -2222,88 +1616,10 @@ if (scrn1 == 0  ||  scrn2 == 0) alert('iClick scrns ' + scrn1 + '/' + scrn2 + ' 
 		return;
 	}
 
-	var cmd = (goNeg ? 13 : 10);
-	var cmt = (goNeg ? 'iClick/neg' : 'iClick');
+	var cmd = 10;
+	var cmt = 'iClick';
 //alert('ICLICLLLLKLKLK ' + cmd);
 	bigone(scrn1, scrn2, cmd, cmt);
-}
-
-function yplus()
-{
-  switch (tileId) {
-    case 0:
-      alert("yplus not impl");
-      return;
-    case 1:
-    case 2:
-    case 3:
-      // 2023_07 - adjusting 0,0 to 1,1
-      var scrn1 = vDepth[1];
-      var scrn2 = vDepth[2];
-      if (scrn1 == 0  &&  scrn2 == 0) {
-        scrn1 = 1;
-        scrn2 = 1;
-      }
-      bigone(scrn1, scrn2, 1, 'yplus');
-      break;
-
-    default:
-      alert("yplus not impl " + tileId);
-  }
-}
-
-function minus()
-{
-  switch (tileId) {
-    case 0:
-      waitingDisplays = 1;
-      nextImage0(1);
-      break;
-    case 1:
-    case 2:
-    case 3:
-      bigone(1, 1, 0, 'minus');
-      break;
-    default:
-      alert("minus not impl " + tileId);
-  }
-}
-
-function phi(val)
-{
-  bigone(1, 1, val, 'phi');
-}
-
-function curated()
-{
-  switch (tileId) {
-    case 0:
-      alert("curated not impl");
-      return;
-    case 1:
-    case 2:
-    case 3:
-      bigone(1, 1, 10, 'curated');
-      break;
-    default:
-      alert("curated not impl " + tileId);
-  }
-}
-
-function golden(option)
-{
-  switch (tileId) {
-    case 0:
-      alert("golden not impl");
-      return;
-    case 1:
-    case 2:
-    case 3:
-      bigone(vDepth[1], vDepth[2], option, 'golden');
-      break;
-    default:
-      alert("golden not impl " + tileId);
-  }
 }
 
 function ranD()
@@ -2323,23 +1639,6 @@ function ranD()
   }
 }
 
-function gplus()
-{
-  switch (tileId) {
-    case 0:
-      waitingDisplays = 1;
-      nextImage0(3);
-      break;
-    case 1:
-    case 2:
-    case 3:
-      bigone(1, 1, 3, 'gplus');
-      break;
-    default:
-      alert("gplus not impl, tileid " + tileId);
-  }
-}
-
 
 function launchOrWaitDotty(src)
 {
@@ -2349,49 +1648,54 @@ function launchOrWaitDotty(src)
   var lastDot = dotList[i]; // made an effort
   var side2 = dotSide(lastDot);
 
-  var cmd = (goNeg ? 13 :10);
-  var cmt = src + (goNeg ? '/neg' : '');
+  var cmd = getRatings();
+  if (cmd == null) return;
 
   if (watchDots) {
     if (waitingDotty > 0) {
 
       waitingDotty = 0;
 
-      bigone(side1, side2, cmd, cmt);
+      bigone(side1, side2, cmd, '');
 
     } else {
       waitingDotty++;
     }
   } else {
-    bigone(side1, side2, cmd, cmt);
+    bigone(side1, side2, cmd, '');
   }
 }
 
 var TIMEOUT = 100 * 1000;
 
 document.addEventListener('DOMContentLoaded', function () {
-    // ...
+
+  var logDownUp = false;
+
   document.body.onmousedown = function() {
-console.log('DOWN ' + mouseDown);
-    mouseDown = 1;
-    //++mouseDown;
+    if (logDownUp) console.log('DOWN->true: ' + mouseDown);
+    mouseDown = true;
   }
-  //document.body.ontouchstart = document.body.onmousedown;
 
   document.body.onmouseup = function() {
-    console.log('MOUSEUP/body  down=' + mouseDown +
+
+    if (logDownUp) {
+      console.log('MOUSEUP/body  down=' + mouseDown +
             ' waitingDisplays=' + waitingDisplays +
             ' dotList=' + dotList.length);
+    }
 
-    mouseDown = 0;
-    //if (mouseDown > 0) { --mouseDown; }
+    mouseDown = false;
 
     if (dotList.length == 0) {
       return;
     }
 
-    //placeDot => -1's == mouseup
-	placeDot(imageIn, -1, -1, lastX, lastY, new Date(), false);
+    // placeDot -1's => dot.mouseup = true... 
+    //  makes no sense to call it here w/o mouseDown 
+    //  unless re-adding multiple draws on slow server response
+    //  and changing mouseDown or how placeDot works.
+	//placeDot(imageIn, -1, -1, lastX, lastY, new Date(), false);
 
     if (waitingDisplays != 0) {
       if (enterBig != null  &&  new Date() - enterBig > TIMEOUT) {
@@ -2400,14 +1704,14 @@ console.log('DOWN ' + mouseDown);
         waitingDisplays = 0; // allows bigone() to go
       }
     }
+
     launchOrWaitDotty('mouseup');
   }
-  //document.body.ontouchend = document.body.onmouseup;
 });
-
 
 // -->
 </script>
+
 </head>
 
 <!-- NEUTRAL GREY BACKGROUND -->
@@ -2524,40 +1828,6 @@ Phob <span class="caret"></span> </button>
 
   <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
 
-  <li> <button id="browse_mode"  class="blackBut"
-	onclick="toggleCmd(1);">
-	<span id="menu_radio_browse_mode_style"
-		style="font-size:14pt;white-space:nowrap;">
-	  <span id="menu_radio_browse_mode"
-		style="color:#404040;">&#x25aa;</span>
-	  Browse Mode
-	</span></button></li>
-  <li> <button id="ai_mode" onclick="toggleCmd(2);" class="blackBut">
-	<span id="menu_radio_srch_ai_mode_style"
-		style="font-size:14pt;white-space:nowrap;">
-	  <span id="menu_radio_srch_ai_mode"
-		style="color:#404040;">&#x25ab;</span>
-	  Search Mode: AI
-	</span></button></li>
-  <li> <button id="angle_mode" class="blackBut"
-	onclick="toggleCmd(3);">
-	<span id="menu_radio_srch_gold_mode_style"
-		style="font-size:14pt;white-space:nowrap;">
-	  <span id="menu_radio_srch_gold_mode"
-		style="color:#404040;">&#x25ab;</span>
-	  Search: Golden Angle
-	</span></button></li>
-
-  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
-
-  <li> <button id="neg_but" class="blackBut"
-	onclick="toggleNeg('menu')">
-	<span id="menu_tog_neg_style"
-		style="font-size:14pt;white-space:nowrap;">
-	<span id="menu_tog_neg" style="color:#404040;">&#x25ab;</span>
-	Worst pairs (slow)
-	</span></button></li> <!-- &#x25aa black -->
-
   <li> <button id="repeat_but" class="blackBut"
 	onclick="toggleRepeats('value')" >
 	<span id="menu_tog_repeats_style"
@@ -2565,22 +1835,6 @@ Phob <span class="caret"></span> </button>
 	<span id="menu_tog_repeats" style="color:#404040;">&#x25ab;</span>
 	Let pics repeat
 	</span></button></li> <!-- &#x25aa black -->
-
-  <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
-
-  <li> <button id="watch_dots" class="blackBut"
-	onclick="toggleWatchDots();">
-	<span id="menu_radio_watch_dots"
-			style="font-size:14pt;white-space:nowrap;">
-		Dots: 2nd click</span>
-	</button></li>
-
-  <li> <button id="color_draw" class="blackBut"
-	onclick="toggleColorDraw();">
-	<span id="menu_radio_color_draw"
-			style="font-size:14pt;white-space:nowrap;">
-		Draw: use grey</span>
-	</button></li>
 
  </ul>
 </div>
@@ -2741,7 +1995,68 @@ Phob <span class="caret"></span> </button>
  </tr>
 </tbody></table>
 </center>
+
+
+<center>
+
+  <button id="dialog_no_flow" title="dialog_no_flow"
+   style="font-size:50px; color:rgba(255,255,255,0.6);"
+   onmousedown="mdown();"
+   onmouseup="dialogFlowApproval(2);">
+&#xA7FB;
+  </button>
+
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+
+  <button id="dialog_no_pair" title="dialog_no_pair"
+   style="font-size:50px; color:rgba(255,255,255,0.6);"
+   onmousedown="mdown();"
+   onmouseup="dialogPairApproval(2);">
+q
+  </button>
+
+
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+
+  <button id="dialog_neutral" title="dialog_neutral"
+   style="font-size:50px; color:rgba(255,255,255,0.3);"
+   onmousedown="mdown();"
+   onmouseup="dialogPairAndFlowNeutral();">
+n
+  </button>
+
+
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+
+  <button id="dialog_yes_pair" title="dialog_yes_pair"
+   style="font-size:50px; color:green;"
+   onmousedown="mdown();"
+   onmouseup="dialogPairApproval(1);">
+p
+  </button>
+
+
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+
+  <button id="dialog_yes_flow" title="dialog_yes_flow"
+   style="font-size:50px; color:green;"
+   onmousedown="mdown();"
+   onmouseup="dialogFlowApproval(1);">
+F
+  </button>
+
+</center>
+
 </div>
+
 <div id="footer">
 
 <button style="width:100%;background:transparent;border:none;"
@@ -2753,142 +2068,6 @@ Phob <span class="caret"></span> </button>
  &nbsp;
 </button> <br />
 
-<table id="cmds" style="width:100%; text-align:center;"><tbody>
-<tr>
- <td id="showTd"
-   title="show info"
-   onmousedown="mouseDownNextToPlus=true; showMD(event);"
-   onmouseup="hideKwds();"
-   onmouseleave="hideKwds();"> &nbsp;</td>
- <td id="cmdTd" style="display: none; width:130px; text-align:center;">
-  <button id="yplus" title="color match"
-   style="font-size:50px; color:yellow;"
-   onmousedown="mdown();"
-   onmouseup="yplus();">
-+
-  </button>
-  <button id="minus" title="neural net distant" style="font-size:50px; color:red;"
-   onmousedown="mdown();"
-   onmouseup="minus();">
--
-  </button>
-
-  <button id="curated" title="curated pair"
-   style="font-size:50px; color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="curated();">
-c
-  </button>
-
-
-  <button id="phiM1" title="Neural nets: pos group 1: all pos-only"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(21);">
-&Sigma;1
-  </button>
-
-  <button id="phiM2" title="Neural nets: pos group 2"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(22);">
-&Sigma;2
-  </button>
-
-  <button id="phiM3" title="Neural nets: pos group 3"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(23);">
-&Sigma;3
-  </button>
-
-  <button id="phiM4" title="Neural nets: pos group 4"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(24);">
-&Sigma;4
-  </button>
-
-  <button id="phiM5" title="Neural nets: pos group 5"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(25);">
-&Sigma;5
-  </button>
-
-  <button id="phiM0" title="Neural nets: average of all predictions"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(20);">
-&Sigma;0
-  </button>
-
-  <button id="phiM6" title="Neural nets: random group"
-        style="font-size:20px; color:#553355;"
-        onmousedown="mdown();"
-        onmouseup="phi(26);">
-<span style="font-family:'Times New Roman', Times, serif">
-&Sigma;&xscr;
-</span>
-  </button>
-
-
-  <button id="golden_ab" title="golden angle AB"
-   style="font-size:30px; color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="golden(6);">
-2
-  </button>
-
-  <button id="golden_rgb" title="golden angle RGB"
-   style="font-size:30px; color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="golden(7);">
-3
-  </button>
-
-  <button id="golden_8" title="golden angle RGB 2x2x2"
-   style="font-size:30px; color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="golden(9);">
-8
-  </button>
-
-  <button id="golden_27" title="golden angle RGB 3x3x3"
-   style="font-size:20px; color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="golden(8);">
-27
-  </button>
-
-  <button id="bill_rgb_32" title="Bill's angle RGB 32x32x32"
-   style="font-size:15px; color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="golden(11);">
-32K
-  </button>
-
-
-  <button id="bar" title="random" style="font-size:40px; color:blue;"
-   onmousedown="mdown();"
-   onmouseup="ranD();">
-|
-  </button>
-
-  <button id="gplus" title="keyword match" style="font-size:50px; color:green;"
-   onmousedown="mdown();"
-   onmouseup="gplus();">
-+
-  </button>
- </td>
- <td style="text-align:left;"
-   title="show info"
-   onmousedown="mouseDownNextToPlus=true; showMD(event);"
-   onmouseup="hideKwds();"
-   onmouseleave="hideKwds();">
-	<span id="kwdTd" style="vertical-align:40%;font-size:50px;"> &nbsp;</span></td>
-</tr>
-</tbody></table>
 <br>
 <p id="foot_credit"
 	class="unselectable"
@@ -2897,24 +2076,26 @@ c
 	onmouseleave="hideCredit();"
    title="show photo credit"
    style="color:rgba(255,255,255,0.4);font-size: 14pt; font-family:'Courier New',Courier,monospace; text-align:right;">
-  &copy; 2015-2024 Photoriot.</p>
+  &copy; 2025 Photoriot.</p>
+
 <!-- INITIALIZE -->
 
 <script>
 <!--
+
 try {
   if (window.location.search) {
     window.location.href = window.location.origin + window.location.pathname;
   }
   loadCount();
   adjustPageElements();
-  adjustCmdTds(1);
   getSessionId(true);
 } catch (e) {
-  alert(e);
+  alert( e );
 }
 // -->
 </script>
+
 </div>
 </div>
 </div>

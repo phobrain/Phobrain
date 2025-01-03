@@ -28,7 +28,7 @@ import java.util.Random;
 import org.phobrain.util.MiscUtil;
 import org.phobrain.util.HashCount;
 
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,8 @@ public class DotHistory {
 
     // histograms sized from browser
 
-    public int[] angleHist;    // 38
+    public int[] d2angleHist;    // 38
+    public int[] d3angleHist;    // 38
     public int[] distHist;     // 51
     public int[] velocityHist; // 51
 
@@ -55,7 +56,7 @@ public class DotHistory {
     public int[] center2;
     public int centersDist;
 
-    final private ShowingPair sp;
+    final private HistoryPair hp;
     final private String inputString;
 
     private int[] ints;
@@ -97,9 +98,9 @@ public class DotHistory {
     /**
      **  DotHistory - leave ints[] null if it didn't work.
      */
-    public DotHistory(ShowingPair sp, String dotHistory) {
+    public DotHistory(HistoryPair hp, String dotHistory) {
 
-        this.sp = sp;
+        this.hp = hp;
         this.inputString = dotHistory;
 
         if ("none".equals(dotHistory)  ||  "0".equals(dotHistory)) {
@@ -130,23 +131,36 @@ public class DotHistory {
             return;
         }
 
-        // FROM view.html.summarizeDots():
+        // FROM phodots.js.summarizeDots():
         //
         //  var dh = [];
-        //  dh.push(-1 * angleHist.length);
-        //  for (var i=0; i<angleHist.length; i++) {
-        //    dh.push(angleHist[i]);
-        //  }
+        //
+        //  dh.push(-1 * d2angleHist.length);
+        //  Array.prototype.push.apply(dh, d2angleHist);
+        //
+        //  dh.push(-1 * d3angleHist.length);
+        //  Array.prototype.push.apply(dh, d3angleHist);
 
         int len = getArraySize();
         if (len == 0) {
             return;
         }
 
-        this.angleHist = new int[len];
+        this.d2angleHist = new int[len];
 
         for (int i=0; i<len; i++) {
-            this.angleHist[i] = ints[ix++];
+            this.d2angleHist[i] = ints[ix++];
+        }
+
+        len = getArraySize();
+        if (len == 0) {
+            return;
+        }
+
+        this.d3angleHist = new int[len];
+
+        for (int i=0; i<len; i++) {
+            this.d3angleHist[i] = ints[ix++];
         }
 
         //  dh.push(-1 * dists.length);
@@ -243,12 +257,13 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
             ints = null;
             return;
         }
-        if (len / 3 != sp.dotCount) {
+        if (len / 3 != hp.dotCount) {
             ints = null;
             return;
         }
 
-        log.info("DOTS: angleHist: " + angleHist.length +
+        log.info("DOTS: d3angleHist: " + d3angleHist.length +
+                      " d2angleHist: " + d2angleHist.length +
                       " distHist: " + distHist.length +
                       " velHist: " + velocityHist.length);
 
@@ -348,7 +363,7 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
 
         int lastP = -1;
 
-        for (int i=0; i<sp.dotCount; i++) {
+        for (int i=0; i<hp.dotCount; i++) {
 
             int dotX = ints[ix++];
             int dotY = ints[ix++];
@@ -391,7 +406,7 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
 
         if (huh > 0) {
             log.warn("analyzeDots: HUH dots: " + huh +
-                          "/" + sp.dotCount +
+                          "/" + hp.dotCount +
                           " CROSS " + lastCrossings);
         }
         if (dots1 + dots2 == 0) {
@@ -406,7 +421,7 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
             }
         }
         log.info("analyzeDots: " + 
-                        "\n|\t  dots: " + sp.dotCount +
+                        "\n|\t  dots: " + hp.dotCount +
                         "\n|\t    p1: " + dots1 + " p2: " + dots2 +
                         "\n|\t    UPs " + mouseUps +
                             " CROSS " + lastCrossings + 
@@ -431,7 +446,7 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
                 // assuming side-by-side,
                 // less compelling for v, TODO
 
-                if (sp.dotStartScreen == 1) {
+                if (hp.dotStartScreen == 1) {
 
                     int far =   p1ninths.getCount0("00") +
                                 p1ninths.getCount0("01") +
@@ -677,7 +692,7 @@ log.error("analyzeDots: HUH2");
 
                 // direction counts
 
-                if (sp.dotStartScreen == 1) {
+                if (hp.dotStartScreen == 1) {
 
                     next_frac = 1.0 / 3.0;
 
@@ -739,9 +754,9 @@ log.error("analyzeDots: HUH2");
 
         // 0.0000x .. 1
         double distRatio = 1.0;
-        if (sp.dotDist > 0) {
-            distRatio = Math.sqrt((double) sp.dotVecLen) /
-                                               sp.dotDist;
+        if (hp.dotDist > 0) {
+            distRatio = Math.sqrt((double) hp.dotVecLen) /
+                                               hp.dotDist;
         }
         //double dRat2 = Math.sqrt(dRat);// for fun?
         //log.info("analyzeDots lenrat " + distRatio);
@@ -750,13 +765,13 @@ log.error("analyzeDots: HUH2");
 
         // 2 - maxVel, maxAcc, maxJerk
 
-        int tot = sp.dotMaxVel + sp.dotMaxAccel + sp.dotMaxJerk;
+        int tot = hp.dotMaxVel + hp.dotMaxAccel + hp.dotMaxJerk;
         double circIsh = Math.PI * tot * tot;
         circIsh -= (int) circIsh;
 /*
-        log.info("analyzeDots final vaj " + sp.dotMaxVel + " " +
-                              sp.dotMaxAccel + " " +
-                              sp.dotMaxJerk +
+        log.info("analyzeDots final vaj " + hp.dotMaxVel + " " +
+                              hp.dotMaxAccel + " " +
+                              hp.dotMaxJerk +
                               " -> " + circIsh);
 */
         frac += circIsh * avail_third;
@@ -765,29 +780,29 @@ log.error("analyzeDots: HUH2");
 
         double dcCt;
 
-        if (sp.clickTime > 0) {
+        if (hp.clickTime > 0) {
             // dots/sec
-            dcCt = (double) (1000*sp.dotCount) / sp.clickTime;
+            dcCt = (double) (1000*hp.dotCount) / hp.clickTime;
             log.info("analyzeDots: dots/sec: " + dcCt);
-        } else if (sp.userTime > 0) {
-            dcCt = (double) sp.dotCount / sp.userTime;
+        } else if (hp.userTime > 0) {
+            dcCt = (double) hp.dotCount / hp.userTime;
         } else {
-            dcCt = (double) sp.dotCount / sp.dotDist;
+            dcCt = (double) hp.dotCount / hp.dotDist;
         }
         if (dcCt > 1.0) {
             //log.info("analyzeDots flip dotCount");
             dcCt -= (int) dcCt;
         }
 /*
-        log.info("analyzeDots ct/time " + sp.clickTime +
-                     "/" + sp.dotCount +
+        log.info("analyzeDots ct/time " + hp.clickTime +
+                     "/" + hp.dotCount +
                      " -> " + dcCt);
 */
 
         frac += dcCt * avail_third;
 /*
-        log.info("analyzeDots clk " + sp.clickTime + " " +
-                      sp.dotCount + " -> " + dcCt + " -> " + frac);
+        log.info("analyzeDots clk " + hp.clickTime + " " +
+                      hp.dotCount + " -> " + dcCt + " -> " + frac);
 
         log.info("analyzeDots: " + frac +
                  " range [" + first_frac + " .. " + next_frac + "]: " +
@@ -855,32 +870,33 @@ log.error("analyzeDots: HUH2");
         if (dotMapFrac < 0.0) {
             analyzeDots();
         }
-        if (this.angleHist == null) {
-            log.error("No angle hist?");
-return -1; // ? making exit-proof
-//System.exit(1);
-}
 
         // try histograms bigger than n first
 
         List<String> hists = new ArrayList<>();
 
-        if (n < this.angleHist.length) {
-            hists.add("angle");    // 38
+        if (n < this.d3angleHist.length) {
+            hists.add("d3angle");    // 38
+        }
+        if (n < this.d2angleHist.length) {
+            hists.add("d2angle");    // 38
+        }
+        if (n < this.distHist.length) {
             hists.add("dist");     // 100
-            hists.add("velocity"); // 100
-        } else if (n < this.distHist.length) {
-            hists.add("dist");     // 100
+        }
+        if (n < this.velocityHist.length) {
             hists.add("velocity"); // 100
         }
+
         if (hists.size() > 0) {
 
             //log.info("dotMap: hists: " + hists.size());
             int f = (int) (dotMapFrac * (double) hists.size());
             String h = hists.get(f);
-                
+
             int[] hist = null;
-            if ("angle".equals(h)) hist = this.angleHist;
+            if ("d3angle".equals(h)) hist = this.d3angleHist;
+            else if ("d2angle".equals(h)) hist = this.d2angleHist;
             else if ("dist".equals(h)) hist = this.distHist;
             else if ("velocity".equals(h)) hist = this.velocityHist;
             if (hist != null) {
@@ -906,6 +922,21 @@ return -1; // ? making exit-proof
                     " using frac " + dotMapFrac);
 
         return choice;
+    }
+
+    public int[] histFromDotCount() {
+
+        switch (hp.dotCount % 4) {
+        case 0:
+            return d2angleHist; // 36
+        case 1:
+            return d3angleHist; // 36
+        case 2:
+            return distHist; // 51
+        case 3:
+        default:
+            return velocityHist; // 51
+        }
     }
 
     public String toString() {

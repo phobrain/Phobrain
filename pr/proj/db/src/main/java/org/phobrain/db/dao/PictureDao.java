@@ -58,6 +58,11 @@ public class PictureDao extends DaoBase {
 
     private static final Logger log = LoggerFactory.getLogger(PictureDao.class);
 
+    private static boolean VEXX_CHEX = false;
+    private final static int ENOUGH_OK_CHECKS = 10;
+
+    // --
+
     private final static String RECORD_FIELDS =
         " xid, create_time, ";
 
@@ -1287,7 +1292,7 @@ log.info("arr2 " +v);
 
         lh.value_l = Lists.invertDistribution(lh.value_l);
 
-        if (LOG) {
+        if (VEXX_CHEX) {
             log.info("orderByVectors distances " + tag + "\n" +
                     "VEXX" + screen + "/fixed " +
                     Arrays.toString(lh.value_l.toArray(Long[]::new)));
@@ -1316,8 +1321,6 @@ log.info("arr2 " +v);
 
     final static boolean LOG = true;
     final static Object sinker = new Object();
-    static boolean CHECK = true;
-    final static int ENOUGH_OK_CHECKS = 10;
     static int checks = 0;
     static int checked_vecs = 0;
     static int errors = 0;
@@ -1609,7 +1612,7 @@ log.info("arr2 " +v);
             return null;
         }
 
-        if (CHECK) {
+        if (VEXX_CHEX) {
             log.info("matchVector distances " + tag + "\n" +
                     "VEXX" + screen + "/orig " +
                     Arrays.toString(lh.value_l.toArray(Long[]::new)));
@@ -1617,10 +1620,10 @@ log.info("arr2 " +v);
 
         lh.value_l = Lists.invertDistribution(lh.value_l);
 
-        if (LOG) {
+        if (VEXX_CHEX) {
             log.info("matchVector distances " + tag + "\n" +
-                    "VEXX" + screen + "/fixed " +
-                    Arrays.toString(lh.value_l.toArray(Long[]::new)));
+                        "VEXX" + screen + "/fixed " +
+                        Arrays.toString(lh.value_l.toArray(Long[]::new)));
         }
 
         log.info("PictureDao.matchVector\nVEXX " + screen + " " + tag +
@@ -1630,11 +1633,11 @@ log.info("arr2 " +v);
                              lh.size() + "), " +
                 "  examined " + count +
                 " skipped " + skipped.size() +
-                (CHECK && checked_vecs>0 ?
+                (VEXX_CHEX && checked_vecs>0 ?
                     " total errors seen: " + errors + " checked " + checked_vecs
                     : ""));
 
-        if (!CHECK) {
+        if (!VEXX_CHEX) {
             return lh;
         }
 
@@ -1667,19 +1670,19 @@ log.info("arr2 " +v);
                 log.info("PictureDao.matchVector:\nVEXX: " +
                         "turning off checks at " + checks +
                         " calls, total vecs " + checked_vecs);
-                CHECK = false;
+                VEXX_CHEX = false;
             }
 
             if (err > 0) {
                 log.warn("PictureDao.matchVector\nVEXX " + screen + " " + tag +
                     "  err " + err + " >0.1 " + frac_err);
-            } else if (CHECK) {
+            } else if (VEXX_CHEX) {
                 log.info("\nVEXX" + screen + "/check ok, cumulative ok calls/distances " +
                             checks + "/" + checked_vecs);
             }
         } // sync
 
-        // CHECKed
+        // VEXX_CHEXed
         return lh;
     }
 
@@ -1941,7 +1944,7 @@ log.info("arr2 " +v);
                         lhs[0].size() + "," + lhs[1].size() + " " +
                         skipped.size());
 
-        if (CHECK) {
+        if (VEXX_CHEX) {
             log.info("distances " + Arrays.toString(funcDims) + "\n" +
             "VEXX1/orig " + Arrays.toString(lhs[0].value_l.toArray(Long[]::new)) + "\n" +
             "VEXX2/orig " + Arrays.toString(lhs[1].value_l.toArray(Long[]::new)));
@@ -2167,7 +2170,7 @@ log.info("arr2 " +v);
                         lhs[0].size() + "," + lhs[1].size() + " " +
                         skipped.size());
 
-        if (CHECK) {
+        if (VEXX_CHEX) {
             log.info("distances " + tag + "\n" +
             "VEXX1/orig " + Arrays.toString(lhs[0].value_l.toArray(Long[]::new)) + "\n" +
             "VEXX2/orig " + Arrays.toString(lhs[1].value_l.toArray(Long[]::new)));
@@ -2176,7 +2179,7 @@ log.info("arr2 " +v);
         lhs[0].value_l = Lists.invertDistribution(lhs[0].value_l);
         lhs[1].value_l = Lists.invertDistribution(lhs[1].value_l);
 
-        if (LOG) {
+        if (VEXX_CHEX) {
             log.info("distances " + tag + "\n" +
             "VEXX1/fixed " + Arrays.toString(lhs[0].value_l.toArray(Long[]::new)) + "\n" +
             "VEXX2/fixed " + Arrays.toString(lhs[1].value_l.toArray(Long[]::new)));
@@ -2192,11 +2195,11 @@ log.info("arr2 " +v);
                              lhs[1].size() + ") " +
                 "  examined " + count +
                 " skipped " + skipped.size() +
-                (CHECK && checked_vecs>0 ?
+                (VEXX_CHEX && checked_vecs>0 ?
                     " total errors seen: " + errors + " checked " + checked_vecs
                     : ""));
 
-        if (!CHECK) {
+        if (!VEXX_CHEX) {
             return lhs;
         }
 
@@ -2230,14 +2233,14 @@ log.info("arr2 " +v);
                 log.info("PictureDao.matchVectors:\nVEXX: " +
                         "turning off checks at " + checks +
                         " calls, total vecs " + checked_vecs);
-                CHECK = false;
+                VEXX_CHEX = false;
             }
         }
 
         if (err > 0) {
             log.warn("PictureDao.matchVectors\nVEXX " + tag +
                 "  err " + err + " >0.1 " + frac_err);
-        } else if (CHECK) {
+        } else if (VEXX_CHEX) {
             log.info("\nVEXX/check ok, cumulative ok calls/distances " +
                         checks + "/" + checked_vecs);
         }

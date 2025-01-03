@@ -661,7 +661,7 @@ function toggleRepeats(val)
       params += "&pr=" + !repeats;
     }
 
-console.log("repeats params: [" + params + "]");
+    console.log("repeats params: [" + params + "]");
     var url = servletRoot + "/getkext";
     xmlHttp.open("POST", url, true);
     xmlHttp.setRequestHeader("Content-type",
@@ -1360,7 +1360,7 @@ function colorBaseArr(rgbarr, vel)
 	//return colorBaseGoldenRatio(rgbarr);
 	var x = Math.trunc(vel);
 
-	console.log("colorBaseArr " + x);
+	// console.log("colorBaseArr " + x);
 
 	if (x < 3) return colorBaseCompl(rgbarr);
 	if (x > 70) return colorBaseRand(rgbarr);
@@ -1452,7 +1452,7 @@ function colorBaseCompl(rgbarr)
 	// avg ll = 38
 	if (ll > 55) { // light
 		if (contrast < 50) {
-console.log("CAP light/lowc");
+            // console.log("CAP light/lowc");
 			var cap = 120;
 			var gap = 80;
 			if (rgb.r > cap) rgb.r = cap -
@@ -1462,7 +1462,7 @@ console.log("CAP light/lowc");
 			if (rgb.b > cap) rgb.b = cap +
 						Math.floor((gap * rgb.b)/255);
 		} else {
-console.log("CAP light/hic");
+            // console.log("CAP light/hic");
 			var cap = 160;
 			var gap = 255 - cap;
 			if (rgb.r > cap) rgb.r = cap +
@@ -1474,7 +1474,7 @@ console.log("CAP light/hic");
 		}
 	} else if (ll > 30) {
 		if (contrast < 50) {
-console.log("CAP med/lowc");
+            // console.log("CAP med/lowc");
 			var cap = 190;
 			var gap = 255 - cap;
 			if (rgb.r < cap) rgb.r = cap +
@@ -1484,7 +1484,7 @@ console.log("CAP med/lowc");
 			if (rgb.b < cap) rgb.b = cap +
 						Math.floor((gap * rgb.g)/255);
 		} else {
-console.log("CAP med/hic");
+            // console.log("CAP med/hic");
 			var cap = 180;
 			var gap = 255 - cap;
 			if (rgb.r < cap) rgb.r = cap +
@@ -1496,7 +1496,7 @@ console.log("CAP med/hic");
 		}
 	} else { // dark
 		if (contrast < 50) {
-console.log("CAP dark/lowc");
+            // console.log("CAP dark/lowc");
 			var cap = 80;
 			var gap = 255 - cap;
 			if (rgb.r < cap) rgb.r = cap +
@@ -1506,7 +1506,7 @@ console.log("CAP dark/lowc");
 			if (rgb.b < cap) rgb.b = cap +
 						Math.floor((gap * rgb.b)/255);
 		} else {
-console.log("CAP dark/hic");
+            // console.log("CAP dark/hic");
 			var cap = 180;
 			var gap = 255 - cap;
 			if (rgb.r < cap) rgb.r = cap +
@@ -1517,7 +1517,7 @@ console.log("CAP dark/hic");
 						Math.floor((gap * rgb.b)/255);
 		}
 	}
-	console.log("colorBaseCompl: " + rgb.r + " " + rgb.g + " " + rgb.b);
+	// console.log("colorBaseCompl: " + rgb.r + " " + rgb.g + " " + rgb.b);
 
 	return [rgb.r, rgb.g, rgb.b ];
 
@@ -1647,8 +1647,8 @@ function greyBase(dot, prMeta, day, hour, millis)
 	}
 	val = wrapFac(prMeta, val);
 
-//console.log('millis ' + millis);
-console.log('BW val ' + val);
+    //console.log('millis ' + millis);
+    // console.log('BW val ' + val);
 
 	msg += 'bw' + val + '|';
 
@@ -2050,8 +2050,7 @@ var isMobile = false; // big change to enable
 
 function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile, caller)
 {
-console.log('placeDot ' + caller + ' scrn ' + scrn + ' xy ' + x + ',' + y +
-' mouseDown ' + mouseDown);
+//console.log('placeDot ' + caller + ' scrn ' + scrn + ' xy ' + x + ',' + y + ' mouseDown ' + mouseDown);
 
 	// if (isMobile) { figure out which scrn==pic x,y in, for color match }
 
@@ -2118,8 +2117,10 @@ console.log('placeDot ' + caller + ' scrn ' + scrn + ' xy ' + x + ',' + y +
 		var distsq = dx*dx + dy*dy;
 
 		if (distsq < cutdistsq) {
+/*
 			console.log('d2='+distsq+' < cut=' + cutdistsq +
 				' / skip dot');
+*/
 			return;
 		}
 
@@ -2127,7 +2128,7 @@ console.log('placeDot ' + caller + ' scrn ' + scrn + ' xy ' + x + ',' + y +
 
 		if (dot.dist < startsize) {
 			if (dotList.length % 2) {
-				console.log('d < ss + even: skip dot');
+				// console.log('d < ss + even: skip dot');
 				return;
 			}
 			msg += '[d<ss]|';
@@ -2447,10 +2448,13 @@ console.log('sv ' + solid + ' ' + dot.vel + ' (' + f1 + ' / ' + f2 + ')');
 	if (dotList.length == 5) {
 		startDotGibber(true); // 'slow'
 	}
-console.log('dot ' + dotList.length +
-' color ' + colstr +
-'\nv ' + dot.vel +
-'\nt ' + t1 + ' ' + (new Date()-t0));
+/*
+    console.log('dot ' + dotList.length +
+      ' color ' + colstr +
+      '\nv ' + dot.vel +
+      '\nt ' + t1 + ' ' + (new Date()-t0));
+*/
+
 }
 
 // reset by reDot()
@@ -2459,8 +2463,13 @@ var dialogRating = -1;
 function dialogApproval(status)
 {
   // change of mind unrecorded for now
-  console.log('diapp ' + dialogRating + '->' + status);
+  if (dialogRating == -1) {
+    console.log('diapp ' + status);
+  } else {
+    console.log('diapp CHANGE ' + dialogRating + '->' + status);
+  }
   dialogRating = status;
+  dotAlert = false;
 }
 
 function dotSide(dot)
@@ -2709,10 +2718,10 @@ function resizeImg0()
   }
 
   if (img.height > avail_height) {
-
+/*
     console.log("resize height " + img.height + " to " + avail_height +
                 " tot_height " + window.innerHeight);
-
+*/
     var scaled_width = (avail_height / img.height) * img.width;
 
     var canvas = document.createElement( 'canvas' );
@@ -2948,7 +2957,7 @@ function startDotGibber(slow)
 			/ dotSpeed; // rel to dotList[0].time;
 	}
     delay = Math.floor(delay);
-console.log('GIBBER: ' + msg + ': ' + delay);
+    // console.log('GIBBER: ' + msg + ': ' + delay);
 	dotGibberTimer = setInterval(function() { dotGibber(); }, delay);
 	lastGibberStart = new Date();
 }
@@ -3215,7 +3224,8 @@ var lastTileId2Height = null;
 
 function decrementDisplayCountdown()
 {
-console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId);
+  console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId);
+
   if (waitingDisplays == 0) {
     alert("Error, decrementing 0");
     return;
@@ -3231,7 +3241,7 @@ console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId
 
 function drawTwo()
 {
-console.log("drawTwo");
+  console.log("drawTwo begin");
 
   reDot();
 
@@ -3244,8 +3254,8 @@ console.log("drawTwo");
     if (tileId > 2) start = 3;
 
     for (var i=start; i<start+2; i++) {
+      console.log("vdepth " + i + " " + vDepth[i]);
       var img2draw;
-console.log("vdepth " + i + " " + vDepth[i]);
       if (vDepth[i] == 0) {
           img2draw = imgRcvd[i];
       } else {
@@ -3302,14 +3312,18 @@ console.log("vdepth " + i + " " + vDepth[i]);
           var avail_width = window.innerWidth;
           avail_width -= 80; // clickable margins
           remaining_width = 80;
-console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
-" = " + tot_width + " W " + avail_width + " " + window.innerWidth +
-" avail_height " + avail_height);
+
+/*
+        console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
+             " = " + tot_width + " W " + avail_width + " " + window.innerWidth +
+             " avail_height " + avail_height);
+*/
+
           if (tot_width > avail_width) {
             var ws = avail_width / tot_width;
             avail_height *= ws;
             avail_height = Math.floor(avail_height);
-console.log("avail_height " + avail_height);
+            // console.log("avail_height " + avail_height);
           }
         }
 /*
@@ -3359,7 +3373,7 @@ console.log("avail_height " + avail_height);
 
         setImg(imgsrc, img, avail_height);
         if (tileId == 3) {
-console.log("SET td" + i + " to match img width " + img.width);
+          // console.log("SET td" + i + " to match img width " + img.width);
           document.getElementById("td" + i).setAttribute("width", img.width);
         }
       }
@@ -3443,7 +3457,11 @@ function screenShot()
     var ratio = canvas.height / imgAorig.height;
     canvas.width = Math.round(ratio * (imgAorig.width + imgBorig.width + CONST));
     var smallConst = Math.round(ratio * CONST);
-console.log('rat ' + ratio + ' => h/w=' + canvas.height + '/' + canvas.width + ' c=' + smallConst + ' in-widths=' + imgAorig.width + '/' + imgBorig.width);
+/*
+    console.log('rat ' + ratio + ' => h/w=' + 
+        canvas.height + '/' + canvas.width + 
+        ' c=' + smallConst + ' in-widths=' + imgAorig.width + '/' + imgBorig.width);
+*/
 
     var context = canvas.getContext( '2d' );
     context.fillStyle = "#909090";
@@ -3711,7 +3729,7 @@ function nextImage(screen, rating) // screen in 1,2 or 3,4
       }
       return;
     }
-console.log("loaded " + screen + " " + newimg.width + "x" + newimg.height);
+    console.log("loaded " + screen + " " + newimg.width + "x" + newimg.height);
 
     // when image is loaded, make it visible
     var now = new Date();
@@ -3874,7 +3892,9 @@ function bigone(scrn1, scrn2, rating, caller)  // scrn[12] in 0=ignore, 1,2
       if (xmlHttp.status == 200) {
         bigTime = new Date();
         bigTime -= bigStart;
-console.log("bigone ok");
+
+        console.log("bigone ok");
+
         if (xmlHttp.responseText.startsWith("rgb,")) {
             var lines = xmlHttp.responseText.split('\n');
             if (lines.length > 1  &&  lines[1].startsWith("m,")) {
@@ -3977,7 +3997,7 @@ console.log("bigone ok");
 		"&tgs=" + togSide +
 		"&togt=" + togTimesStr() +
         dots;
-console.log('-- params ' + params);
+  console.log('-- params ' + params);
   try {
     var url = servletRoot + "/getmext";
     bigStart = new Date();
@@ -4169,6 +4189,8 @@ function gplus() // button not shown
 
 var mouseDown = false;
 
+// reset by dialogApproval()
+var dotAlert = false;
 
 (function() {
   document.onmousemove = handleMouseMove;
@@ -4197,10 +4219,17 @@ var mouseDown = false;
       pixInPic++;
 
       if (mouseDown) {
-
-        var dotSize = Math.ceil(3 +
+        if (cmdMode == 1  &&  dialogRating == -1) {
+            if (dotAlert) {
+                alert("Dialog training: please choose 'u n a' option.");
+                dotAlert = true;
+            }
+            // keep on w/ mouse move stats
+        } else {
+          var dotSize = Math.ceil(3 +
             (window.innerHeight * window.innerWidth) / 800000);
-        placeDot(imageIn, dotSize, dotSize*dotSize, lastX, lastY, now, false, 'mmove/down');
+          placeDot(imageIn, dotSize, dotSize*dotSize, lastX, lastY, now, false, 'mmove/down');
+        }
       }
 
     } else {
