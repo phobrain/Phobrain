@@ -13,26 +13,60 @@
 
 HOME=`bin/get_phobrain_home.sh`
 
+if [ ! -d "$HOME" ] ; then
+    echo "Expected HOME: $HOME"
+    exit 1
+fi
+
 # dir where source 'pr' dir lives
 
 PR_HOME=$HOME/pr_git
 
+if [ ! -d "$PR_HOME" ] ; then
+    echo "Expected PR_HOME: $PR_HOME"
+    exit 1
+fi
+
 # dir where derived pic data lives
 
 IMAGE_DESC=`bin/phobrain_property.sh image.desc.dir`
+
+if [ ! -d "$IMAGE_DESC" ] ; then
+    echo "Expected IMAGE_DESC: $IMAGE_DESC"
+    exit 1
+fi
 
 # dirs where ML is done
 
 ML_V_HOME=`bin/phobrain_property.sh ml.v.dir`
 ML_H_HOME=`bin/phobrain_property.sh ml.h.dir`
 
+if [ ! -d "$ML_V_HOME" ] ; then
+    echo "Expected ML_V_HOME: $ML_V_HOME"
+    exit 1
+fi
+if [ ! -d "$ML_H_HOME" ] ; then
+    echo "Expected ML_H_HOME: $ML_H_HOME"
+    exit 1
+fi
+
 # place to tar to
 
 BAK_DIR=$HOME/phobrain_bak/
 
+if [ ! -d "$BAK_DIR" ] ; then
+    echo "Expected BAK_DIR: $BAK_DIR"
+    exit 1
+fi
+
 # place to save to
 
 BAK_DEV=`bin/phobrain_property.sh bak.dev`
+
+if [ ! -d "$BAK_DEV" ] ; then
+    echo "Expected BAK_DEV: $BAK_DEV"
+    exit 1
+fi
 
 #### sanity check
 

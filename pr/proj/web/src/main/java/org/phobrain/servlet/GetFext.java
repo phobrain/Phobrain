@@ -37,6 +37,12 @@ import org.phobrain.db.record.PictureMap;
 import org.phobrain.db.record.PictureResponse;
 import org.phobrain.db.util.DBUtil;
 
+import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+//import org.nd4j.linalg.io.ClassPathResource;
+
 import java.util.Random;
 import java.util.Collections;
 import java.util.Map;
@@ -221,7 +227,7 @@ public class GetFext extends HttpServlet {
 
         // content
 
-        if (file.getName().endsWith(".webp")) {
+        if (WEBP) {
             response.setHeader("Content-Type", "image/webp");
         } else { // TODO check all?
             response.setHeader("Content-Type", "image/jpeg");
@@ -843,7 +849,7 @@ String toggleTStr = "tmp";
 
                 last.locSpec = locspec; // not saved
                 if ( ! "l".equals(cmd)) {
-                    last.dotHistory = new DotHistory(last, dotHistory);
+                    last.dotHistory = new DotHistory(last, dotHistory, remoteHost);
                     if (last.dotHistory != null) { // parsed ok
                         writeDotHistoryFile(last, dotHistory);
                     }

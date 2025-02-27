@@ -25,9 +25,14 @@
   <link rel="stylesheet" type="text/css"
          href="css/phobasic.css" />
 
- <script src="js/jquery/jquery-1.11.3.min.js"></script>
+ <!-- script src="js/jquery/jquery-1.11.3.min.js"></script -->
+  <script
+  src="https://code.jquery.com/jquery-3.7.1.js"
+  integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+  crossorigin="anonymous"></script>
+
  <script src="js/bootstrap/bootstrap.min.js"></script>
- <script src="js/phobasic.js"></script>
+  <script src="js/phobasic.js"></script>
  <script src="js/phodots.js"></script>
 
 <style>
@@ -41,6 +46,17 @@
 }
 .mobileCaret {
   border-width: 18px ;
+}
+
+.infoFont {
+  font-size: 25pt;
+  font-family:'Courier New',Courier,monospace;
+  white-space:nowrap;
+}
+.cmdFont {
+  font-size: 50pt;
+  font-family:'Courier New',Courier,monospace;
+  white-space:nowrap;
 }
 
 </style>
@@ -105,6 +121,7 @@ var inPic = -1;
 
 
 var ADMIN_PIX = 180; // for selector/footer plus 20px
+if (hasTouch) ADMIN_PIX = 100;
 
 var view = null;
 
@@ -178,6 +195,137 @@ function wipeSession()
 	lastWipe = new Date().getMilliseconds();
 }
 
+var imgNexts = 0;
+function nextImage(screen, rating, caller) // screen in 1,2 or 3,4
+{
+  // rating in {0,3,4} -?
+
+//alert('nextImage ' + screen + '.' + rating + ' ' + caller);
+//consle.log('nextImage ' + screen + '.' + rating + ' ' + caller);
+
+if(rating>3) alert('nextImage screen ' + screen + ' rating ' + rating);
+
+  imgNexts++;
+/*
+  console.log('NEXTIMAGE_' + imgNexts +
+			': caller ' + caller +
+			' screen ' + screen +
+			' waitingDisplays: ' + waitingDisplays);
+*/
+
+  md = null;
+  mdK = null;
+
+  startNext = new Date();
+
+  var vecX = 0;
+  var vecY = 0;
+  if (accumCount > 0) {
+    // console.log("acc " + accumX + "/" + accumY + " " + accumCount + "\n" +
+                   // lastClickX + "/" + lastClickY);
+    vecX = (accumX / accumCount) - mousedownX;
+    vecY = (accumY / accumCount) - mousedownY;
+  }
+
+  var interval = 0;
+  if (prevTime) {
+    interval = new Date() - prevTime;
+  }
+
+  var newimg = new Image();
+  newimg.onerror=function(evt) {
+    console.log("newimg.onerror: ", evt);
+    callAlertTooMuch("Image load problem: (Safari+MacOS<11: use Chrome) try refreshing page or choosing another view");
+    decrementDisplayCountdown();
+  }
+  newimg.onload=function() {
+    if (newimg.height == 1  &&  newimg.width == 1) {
+      console.log('empty image');
+      decrementDisplayCountdown();
+
+      // empty.jpg
+      var conf = confirm(
+                "DONE with view. You can start over, " +
+                "switch orientation to " +
+                        ( tileId == 1 ? "horizontal" : "vertical" ) + ", " +
+                (repeats == false ? "enable pic repeats, " : "") +
+                "or view another photographer. Start over?");
+      if (conf) {
+        getSessionId(false);
+      }
+      return;
+    }
+    console.log("loaded screen" + screen + " " + newimg.width + "x" + newimg.height);
+
+    // when image is loaded, make it visible
+    var now = new Date();
+    imageLoaded = now - startNext;
+
+    imgRcvdPrev[screen] = imgRcvd[screen];
+    imgRcvd[screen] = newimg;
+    vDepth[screen] = 0;
+    decrementDisplayCountdown();
+    dotSpeed++;
+    startDotGibber(false);
+  }
+
+
+  dTot = Math.round(dTot);
+
+  var lox = [ "na", "na" ];
+  if (rating == 4  ||  rating == 5) {
+    var img = document.getElementById("image" + screen);
+    lox = getLox(img);
+  }
+  var url = servletRoot + "/getfext";
+
+  // map to 1,2
+  var ss = screen;
+  if (tileId > 2) {
+    ss = screen - 2;
+  }
+if (ss > 2 || ss < 1) alert ("ss " + ss + " tileId " + tileId);
+
+  var o = "o";
+  if (tileId == 1) o = "v";
+  else if (tileId > 1) o = "h";
+
+  var params = "?sess=" + sessionID +
+		"&sc1=" + ss +
+		"&sc2=" + ss +
+		"&d=" + vDepth[screen] +
+        "&c=l" +
+        "&o=" + o +
+		"&r=" + rating +
+		"&w=0&mt=0" +
+		"&ct=" + picCount++ +
+		"&pp=" + pixInPic +
+		"&po=" + pixOutPic +
+		"&t=" + interval +
+		"&t2=" + timeMaxVel +
+		"&d=" + dTot +
+		"&d2=" + Math.round(distMaxVel) +
+		"&mxv=" + maxVel +
+		"&mxa=" + maxAcc +
+		"&mna=" + minAcc +
+		"&mxj=" + maxJerk +
+		"&dx=" + (maxX - minX) +
+		"&dy=" + (maxY - minY) +
+		"&vcx=" + Math.round(vecX) +
+		"&vcy=" + Math.round(vecY) +
+		"&loc=" + lox[0] +
+		"&locspec=" + lox[1] +
+		"&btm=" + bigTime +
+		"&ltm=" + imageLoaded;
+
+  // start load of image into memory
+  console.log("GO/loadpic " + url + "\n" + params);
+  newimg.src = url + params;
+
+  // while waiting, have a good time
+
+  resetDrawCounts();
+}
 var DEFAULT_TILE = 1; // 2 portraits; reset on new session based on screen dims
 var tileId = DEFAULT_TILE;
 var cmdMode = 1; // feelings: [u n a]
@@ -315,7 +463,7 @@ console.log("sessionID: " + sessionID);
       }
     }
 
-	toggleRepeats('status');
+	//toggleRepeats('status');
 
 	if (imgNexts > 0) { // shouln't happen now that setTile reloadCode==0
 	       console.log('SKIP getSess img load on imgNexts=' + imgNexts);
@@ -363,7 +511,6 @@ function getVDepthKey() {
 
 function adjustPageElements()
 {
-  //if (!isIOS && !isAndroid) {
   if (!hasTouch) {
     console.log('Browser has no touch');
     var carets = document.getElementsByClassName("caret");
@@ -423,8 +570,6 @@ function adjustPageElements()
     ["dialog_yes_flow", 80],
     ["dialog_neutral", 80],
 
-	["toggle_both", 70],
-
 	["foot_credit", 50]
   ];
   for (var i=0; i<heights.length; i++) {
@@ -435,7 +580,6 @@ function adjustPageElements()
       var size = heights[i][1];
       if (isIOS) size = parseInt(size *= 0.6);
       x.style.fontSize = size + "px";
-//if ("dialog_neutral".equals(heights[i][0])) alert("dialog_neutral " + size);
     }
   }
 
@@ -469,69 +613,6 @@ function adjustPageElements()
 
 }
 
-var md = null;
-
-function getMD(e)
-{
-
-console.log("getMD retry " + retry0Ct);
-
-  //e.preventDefault();
-
-  var xmlHttp;
-  try {
-     xmlHttp = getHTTP();
-  } catch (e) {
-     alert(e);
-     return false;
-  }
-  xmlHttp.onreadystatechange=function() {
-    if(xmlHttp.readyState==4) {
-      if (xmlHttp.status == 200) {
-         md = JSON.parse(xmlHttp.responseText);
-         console.log("md.credit rcvd: " + md.credit);
-         console.log("md.kw rcvd: " + md.kw);
-         showMD();
-      } else if (xmlHttp.status == 401) {
-        console.log("401: " + xmlHttp.responseText);
-        callAlertTooMuch("Unknown user");
-      } else if (xmlHttp.status == 500) {
-        wipeSession();
-        callAlertTooMuch("Server error, try reloading page.");
-      }
-    }
-  };
-  try {
-    var params = "sess=" + sessionID;
-    switch (tileId) {
-      case 0:
-        params += "&p1=x&p2=x\n"; break;
-      case 1:
-      case 2:
-        params += "&p1=1." + vDepth[1] +
-                  "&p2=2." + vDepth[2] + "\n";
-        break;
-      case 3:
-        params += "&p1=1." + vDepth[3] +
-                  "&p2=2." + vDepth[4] + "\n";
-        break;
-      default:
-        alert("unexp tileId: " + tileId);
-        break;
-    }
-
-console.log("md params for getkext: " + params);
-    var url = servletRoot + "/getkext";
-    xmlHttp.open("POST", url, true);
-    xmlHttp.setRequestHeader("Content-type",
-                               "application/x-www-form-urlencoded");
-    xmlHttp.send(params);
-  } catch (e) {
-    alert(e);
-    return false;
-  }
-  return true;
-}
 
 var repeats = false;
 
@@ -586,7 +667,7 @@ function toggleRepeats(val)
       params += "&pr=" + !repeats;
     }
 
-console.log("tog repeats params: " + params);
+console.log("getkext tog repeats params: " + params);
     var url = servletRoot + "/getkext";
     xmlHttp.open("POST", url, true);
     xmlHttp.setRequestHeader("Content-type",
@@ -702,11 +783,6 @@ var myScroll;
 
 $(document).ready(
     function() {
-  //resizeImg();
-  //$(window).resize(resizeImg);
-
-  //myScroll = new IScroll('#wrapper'); // prevent horiz scroll
-
   if (hasTouch || isAndroid || isIOS) {
     //alert('touchy!');
     $("#image0").on("touchenter", function() { inImage++; });
@@ -940,153 +1016,6 @@ console.log("[Pair|Flow]Rating = null! RATE IT");
   dialogFlowRating = null; // TODO directly after display?
 }
 
-var imgNexts = 0;
-function nextImage(screen, rating, caller) // screen in 1,2 or 3,4
-{
-  // rating in {0,3,4} -?
-
-if(rating>3) alert('nextImage screen ' + screen + ' rating ' + rating);
-
-  imgNexts++;
-/*
-  console.log('NEXTIMAGE_' + imgNexts +
-			': caller ' + caller +
-			' screen ' + screen +
-			' waitingDisplays: ' + waitingDisplays);
-*/
-
-//alert('nextImage ' + caller);
-  md = null;
-  mdK = null;
-
-  startNext = new Date();
-
-  var vecX = 0;
-  var vecY = 0;
-  if (accumCount > 0) {
-    // console.log("acc " + accumX + "/" + accumY + " " + accumCount + "\n" +
-                   // lastClickX + "/" + lastClickY);
-    vecX = (accumX / accumCount) - mousedownX;
-    vecY = (accumY / accumCount) - mousedownY;
-  }
-
-  //console.log("rating " + rating);
-  var interval = 0;
-  if (prevTime) {
-    interval = new Date() - prevTime;
-  }
-
-  var newimg = new Image();
-  newimg.onerror=function(evt) {
-    console.log("newimg.onerror: ", evt);
-    callAlertTooMuch("Image load problem: (Safari+MacOS<11: use Chrome) try refreshing page or choosing another view");
-    decrementDisplayCountdown();
-  }
-  newimg.onload=function() {
-    if (newimg.height == 1  &&  newimg.width == 1) {
-      console.log('empty image');
-      decrementDisplayCountdown();
-
-      // empty.jpg
-      var conf = confirm(
-                "DONE with view. You can start over, " +
-                "switch orientation to " +
-                        ( tileId == 1 ? "horizontal" : "vertical" ) + ", " +
-                (repeats == false ? "enable pic repeats, " : "") +
-                "or view another photographer. Start over?");
-      if (conf) {
-        getSessionId(false);
-      }
-      return;
-    }
-    console.log("loaded screen" + screen + " " + newimg.width + "x" + newimg.height);
-
-    // when image is loaded, make it visible
-    var now = new Date();
-    imageLoaded = now - startNext;
-
-    imgRcvdPrev[screen] = imgRcvd[screen];
-    imgRcvd[screen] = newimg;
-    vDepth[screen] = 0;
-    decrementDisplayCountdown();
-    dotSpeed++;
-    startDotGibber(false);
-  }
-
-
-  dTot = Math.round(dTot);
-
-  var lox = [ "na", "na" ];
-  if (rating == 4  ||  rating == 5) {
-    var img = document.getElementById("image" + screen);
-    lox = getLox(img);
-  }
-  var url = servletRoot + "/getfext";
-
-  // map to 1,2
-  var ss = screen;
-  if (tileId > 2) {
-    ss = screen - 2;
-  }
-if (ss > 2 || ss < 1) alert ("ss " + ss + " tileId " + tileId);
-
-  var o = "o";
-  if (tileId == 1) o = "v";
-  else if (tileId > 1) o = "h";
-
-  var params = "?sess=" + sessionID +
-		"&sc1=" + ss +
-		"&sc2=" + ss +
-		"&d=" + vDepth[screen] +
-        "&c=l" +
-        "&o=" + o +
-		"&r=" + rating +
-		"&w=0&mt=0" +
-		"&ct=" + picCount++ +
-		"&pp=" + pixInPic +
-		"&po=" + pixOutPic +
-		"&t=" + interval +
-		"&t2=" + timeMaxVel +
-		"&d=" + dTot +
-		"&d2=" + Math.round(distMaxVel) +
-		"&mxv=" + maxVel +
-		"&mxa=" + maxAcc +
-		"&mna=" + minAcc +
-		"&mxj=" + maxJerk +
-		"&dx=" + (maxX - minX) +
-		"&dy=" + (maxY - minY) +
-		"&vcx=" + Math.round(vecX) +
-		"&vcy=" + Math.round(vecY) +
-		"&loc=" + lox[0] +
-		"&locspec=" + lox[1] +
-		"&btm=" + bigTime +
-		"&ltm=" + imageLoaded;
-
-  // start load of image into memory
-  console.log("GO/loadpic " + url + "\n" + params);
-  newimg.src = url + params;
-
-  // while waiting, have a good time
-
-  resetDrawCounts();
-}
-
-
-function showDog() {
-  var newimg = new Image();
-  newimg.onload=function() {
-    // when image is loaded, make it visible
-    var img = document.getElementById("imageP");
-    img.src = newimg.src;
-    img.width = window.innerWidth;
-    img.setAttribute("height", "auto");
-    img.setAttribute("vertical-align", "top");
-    img.setAttribute("float", "right");
-    fade(img);
-  };
-  // start load of image into memory
-  newimg.src = "dog_eyes2.jpg";
-}
 
 function fade(element) {
   //console.log("fade tileId " + tileId);
@@ -1112,6 +1041,23 @@ function fade(element) {
       op -= op * 0.3;
     }, 100);
 }
+
+function showDog() {
+  var newimg = new Image();
+  newimg.onload=function() {
+    // when image is loaded, make it visible
+    var img = document.getElementById("imageP");
+    img.src = newimg.src;
+    img.width = window.innerWidth;
+    img.setAttribute("height", "auto");
+    img.setAttribute("vertical-align", "top");
+    img.setAttribute("float", "right");
+    fade(img);
+  };
+  // start load of image into memory
+  newimg.src = "dog_eyes2.jpg";
+}
+
 
 function showView() {
   document.getElementById("thepreview").style.display = 'none';
@@ -1208,7 +1154,7 @@ function setImg(imgsrc, img, avail_height)
     canvas.height = avail_height;
     var context = canvas.getContext( '2d' );
     context.drawImage( imgsrc, 0, 0, imgsrc.width, imgsrc.height);
-    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );;
+    img.src = canvas.toDataURL( 'image/webp', 0.92 );;
     return;
   }
 
@@ -1225,88 +1171,17 @@ function setImg(imgsrc, img, avail_height)
   context.drawImage( imgsrc, 0, 0, scaled_width, avail_height);
   context.lineWidth = 150;
   ctxt = context;
-  var tmp = canvas.toDataURL( 'image/jpeg', 0.92 );
+  var tmp = canvas.toDataURL( 'image/webp', 0.92 );
   img.src = tmp;
   img.onmousedown = disableDragging; // for FF
   img.style.opacity = "1.0";
   //console.log("resized");
 }
 
-function drawOne()
-{
-
-  // when image is loaded, make it visible
-  var now = new Date();
-  imageLoaded = now - startNext;
-
-  var img = document.getElementById("image0");
-
-  var newimg;
-  if (vDepth[0] == 0) {
-    newimg = imgRcvd[0];
-  } else {
-    newimg = imgRcvdPrev[0];
-  }
-
-  showView();
-
-  if (hasTouch || isAndroid || isIOS) {
-    img.src = newimg.src;
-    drawTouch(img, 0);
-    //var canvas = document.createElement( 'canvas' );
-    //canvas.width = newimg.width;
-    //canvas.height = newimg.height;
-    //context = canvas.getContext( '2d' );
-    //context.drawImage( newimg, 0, 0, newimg.width, newimg.height);
-    //img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
-  } else {
-console.log("maybe resize");
-    // resizeImage() inline for newimg use TODO consolidate
-    var tot_height = window.innerHeight;
-    var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
-    avail_height += 60; // inverse logic
-    var td = document.getElementById("td0");
-    td.setAttribute("height", avail_height);
-
-    if (newimg.height <= avail_height) {
-console.log("use as-is");
-      img.src = newimg.src;
-      drawTouch(img, 0);
-    } else {
-
-      console.log("inline resize height " + newimg.height + " to " +
-		avail_height + " tot_height " + window.innerHeight);
-
-      var scaled_width = (avail_height / newimg.height) * newimg.width;
-
-      var canvas = document.createElement( 'canvas' );
-      canvas.width = scaled_width;
-      canvas.height = avail_height;
-      context = canvas.getContext( '2d' );
-      context.drawImage( newimg, 0, 0, scaled_width, avail_height);
-context.lineWidth = 15;
-      img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
-      drawTouch(img, 0);
-    }
-  }
-  img.onmousedown = disableDragging; // for FF
-  img.style.opacity = "1.0";
-
-  document.getElementById("tr0").style.display = '';
-  document.getElementById("tr1").style.display = 'none';
-  document.getElementById("tr2").style.display = 'none';
-
-  prevTime = new Date();
-  picCount++;
-}
-
-
 var minHeightTile2 = 99999999;
 
 var useLastTileId2Height = false;
 var lastTileId2Height = null;
-
-
 
 var bigStartPost = null;
 var bigTime = -1;
@@ -1712,6 +1587,13 @@ document.addEventListener('DOMContentLoaded', function () {
 // -->
 </script>
 
+<style>
+.buttonA {
+    font-family: 'Dejavu Sans', sans-serif;
+    font-size: 58pt;
+}
+</style>
+
 </head>
 
 <!-- NEUTRAL GREY BACKGROUND -->
@@ -1832,8 +1714,8 @@ Phob <span class="caret"></span> </button>
 	onclick="toggleRepeats('value')" >
 	<span id="menu_tog_repeats_style"
 		style="font-size:14pt;white-space:nowrap;">
-	<span id="menu_tog_repeats" style="color:#404040;">&#x25ab;</span>
-	Let pics repeat
+	  <span id="menu_tog_repeats" style="color:#404040;">&#x25ab;</span>
+	    Let pics repeat
 	</span></button></li> <!-- &#x25aa black -->
 
  </ul>
@@ -1855,10 +1737,10 @@ Phob <span class="caret"></span> </button>
 	<span style="color: darkblue;">About&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></a></li>
   <li>
 <table><tbody><tr>
- <td id="desc_td1" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td1" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap; color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
   Browse mode:
  </td>
- <td id="desc_td2" style="padding:5px;text-align:left; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td2" style="padding:5px;text-align:left; color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
 	Draw on the photos to see another pair.
 	<br />
 	See 'Phob' options:
@@ -1870,29 +1752,29 @@ Phob <span class="caret"></span> </button>
 	For pure random choice, click in the grey strip just above the pairs.
  </td>
 </tr> <tr>
- <td id="desc_td3" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td3" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
   Heartbeat:
  </td>
- <td id="desc_td4" style="padding:5px;text-align:left; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td4" style="padding:5px;text-align:left; color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
 	Your click timing
 	is used in the choices, to set up a self-hypnotic feedback loop.
 	Wave the mouse or draw on the photos for more effect:
 	every effort is made to see movement like an animal.
  </td>
 </tr> <tr>
- <td id="desc_td5" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td5" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
   Universe:
  </td>
  <td id="desc_td6"
-	style="padding:5px;text-align:left; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+	style="padding:5px;text-align:left; color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
 	To let the universe speak directly in pure random choice,
 	in Browse Mode click in the grey strip just above the pairs.
  </td>
 </tr> <tr>
- <td id="desc_td7" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td7" style="vertical-align: text-top;padding:5px;text-align:left;white-space:nowrap;color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
   Search modes:
  </td>
- <td id="desc_td8" style="padding:5px;text-align:left; color:black;font-size: 10pt; font-family:'Courier New',Courier,monospace">
+ <td id="desc_td8" style="padding:5px;text-align:left; color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
         Use +-c|+ and mode-specific options to associate the next pair,
         hover on options for descriptions.
         Click on center or corners of a photo to use different algorithms
@@ -1996,93 +1878,106 @@ Phob <span class="caret"></span> </button>
 </tbody></table>
 </center>
 
+<table id="cmds" style="width:100%; text-align:center;"><tbody>
 
-<center>
+<tr><td id="spaceIt" style="width:1%; height:1%"> &nbsp; </td> </tr>
 
-  <button id="dialog_no_flow" title="dialog_no_flow"
-   style="font-size:50px; color:rgba(255,255,255,0.6);"
+<tr>
+
+ <td id="showTdL" style="width:20%; text-align:left;"
+   title="show info"
+   onmousedown="mouseDownNextToOptions=true; showMD(event);"
+   onmouseup="hideMDCredit();"
+   onmouseleave="hideMDCredit();"> 
+  &nbsp;
+  <!--span style="width:100%;"> &nbsp; </span -->
+ </td>
+
+ <td id="cmdTd" style="width:50%; text-align:center;">
+
+  <button class="buttonA" id="dialog_no_flow" title="dialog_no_flow"
+   class="cmdFont"
+   style="color:rgba(255,255,255,0.6);"
    onmousedown="mdown();"
    onmouseup="dialogFlowApproval(2);">
 &#xA7FB;
   </button>
 
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-&nbsp; &nbsp;
+&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;
 
-  <button id="dialog_no_pair" title="dialog_no_pair"
-   style="font-size:50px; color:rgba(255,255,255,0.6);"
+  <button class="buttonA" id="dialog_no_pair" title="dialog_no_pair"
+   class="cmdFont"
+   style="color:rgba(255,255,255,0.6);"
    onmousedown="mdown();"
    onmouseup="dialogPairApproval(2);">
 q
   </button>
 
+&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;
 
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-
-  <button id="dialog_neutral" title="dialog_neutral"
-   style="font-size:50px; color:rgba(255,255,255,0.3);"
+  <button class="buttonA" id="dialog_neutral" title="dialog_neutral"
+   class="cmdFont"
+   style="color:rgba(255,255,255,0.3);"
    onmousedown="mdown();"
    onmouseup="dialogPairAndFlowNeutral();">
 n
   </button>
 
+&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;
 
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-
-  <button id="dialog_yes_pair" title="dialog_yes_pair"
-   style="font-size:50px; color:green;"
+  <button class="buttonA" id="dialog_yes_pair" title="dialog_yes_pair"
+   class="cmdFont"
+   style="color:green;"
    onmousedown="mdown();"
    onmouseup="dialogPairApproval(1);">
 p
   </button>
 
+&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;
 
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-&nbsp; &nbsp;
-
-  <button id="dialog_yes_flow" title="dialog_yes_flow"
-   style="font-size:50px; color:green;"
+  <button class="buttonA" id="dialog_yes_flow" title="dialog_yes_flow"
+   class="cmdFont"
+   style="color:green;"
    onmousedown="mdown();"
    onmouseup="dialogFlowApproval(1);">
 F
   </button>
+ </td>
+ <td 
+   id="showTdR"
+   title="show info r"
+   style="width:20%; text-align:left;"
+    onmousedown="mouseDownNextToOptions=true; showMD(event);"
+    onmouseup="hideMDCredit();"
+    onmouseleave="hideMDCredit();"> 
+  <span id="showId" style="width:100%; text-align:left;"> &nbsp;</span>
+ </td>
+</tr>
+</tbody></table>
 
-</center>
-
+</div>
 </div>
 
 <div id="footer">
 
-<button style="width:100%;background:transparent;border:none;"
-	id="toggle_both"
-	title="toggle both"
-	onclick="this.blur();"
-	onmousedown="bothToggleDown=new Date();"
-	onmouseup="bothToggle();">
- &nbsp;
-</button> <br />
-
 <br>
 <p id="foot_credit"
-	class="unselectable"
+	class="infoFont unselectable"
+    style="color:rgba(255,255,255,0.4); text-align:right;"
 	onmousedown="mouseDownOnCredit=true; showMD(event);"
-	onmouseup="hideCredit();"
-	onmouseleave="hideCredit();"
-   title="show photo credit"
-   style="color:rgba(255,255,255,0.4);font-size: 14pt; font-family:'Courier New',Courier,monospace; text-align:right;">
+	onmouseup="hideMDCredit();"
+	onmouseleave="hideMDCredit();"
+    title="show photo credit">
   &copy; 2025 Photoriot.</p>
 
 <!-- INITIALIZE -->
 
 <script>
 <!--
-
 try {
   if (window.location.search) {
     window.location.href = window.location.origin + window.location.pathname;
@@ -2097,6 +1992,7 @@ try {
 </script>
 
 </div>
+
 </div>
 </div>
 </body>

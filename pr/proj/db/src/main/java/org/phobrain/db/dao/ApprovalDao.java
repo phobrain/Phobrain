@@ -11,6 +11,7 @@ package org.phobrain.db.dao;
  **
  **/
 
+import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.MiscUtil;
 import org.phobrain.util.ID;
 
@@ -43,6 +44,8 @@ public class ApprovalDao extends DaoBase {
 
     private static final Logger log = LoggerFactory.getLogger(
                                                  ApprovalDao.class);
+
+    private static final String CURATOR_PREFIX = ConfigUtil.runtimeProperty("curator.prefix");
 
     // trim should work
     private final static String SQL_CHECK =
@@ -358,6 +361,10 @@ public class ApprovalDao extends DaoBase {
                                                String id1, String id2) 
             throws SQLException {
 
+        if (CURATOR_PREFIX == null) {
+            throw new SQLException("update: no runtime curator.prefix set");
+        }
+
         boolean uppercase = false;
         if (status < 0) {
             status *= -1;
@@ -377,18 +384,16 @@ public class ApprovalDao extends DaoBase {
                 log.info(msg);
                 return msg;
             }
-            String s = rs.getString(1);
-            if (!s.equalsIgnoreCase(curator)  &&  
-                !curator.startsWith("bill")  &&
-                !"bill".equalsIgnoreCase(curator)  &&
-                !"bill2".equalsIgnoreCase(curator)  &&
-                !"bill3".equalsIgnoreCase(curator)  &&
-                !"bill4".equalsIgnoreCase(curator)  &&
+            String s = rs.getString(1);  // prev curator
+            if (!s.equalsIgnoreCase(curator)  &&           // prev curator not diff and
+                !curator.startsWith(CURATOR_PREFIX)  &&    // this curator has diff prefix from runtime config
                 !"ripplay".equals(curator)) {
 
-                log.warn("Skipping non-owner/non-bill/ripplay update: " + 
+                log.warn("Skipping non-owner/non-<prefix>/ripplay update: " +
+                            "[CURATOR_PREFIX " + CURATOR_PREFIX + "] " + 
                              curator + " updating " + s + " " + 
                              id1 + " " + id2);
+
                 return "Owned by " + s;
             }
             int oldstatus = rs.getInt(3);
@@ -484,61 +489,6 @@ public class ApprovalDao extends DaoBase {
     // curation so non-trim
     private final static String SQL_DELETE = 
         "DELETE FROM pr.approved_pair WHERE id1 = ? AND id2 = ?";
-
-    // not sure.. renaming
-    public static String deleteWHY(Connection conn, String curator, long browserID,
-                                               String id1, String id2) 
-            throws SQLException {
-
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = conn.prepareStatement(chooseDB(SQL_GENERAL_CHECK));
-            ps.setString(1, id1);
-            ps.setString(2, id2);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                String s = rs.getString(1);
-                if (!s.equals(curator)  &&  !"bill".equals(curator)  &&
-                    !"BILL".equals(curator)) {
-                    log.warn("Skipping non-owner/non-bill delete: " + 
-                             curator + " deleting " + s + " " + 
-                             id1 + " " + id2);
-                    return s;
-                }
-/*
-                long l = rs.getLong(2);
-                if (l != browserID  ||  Character.isUppercase(s.charAt(0))) {
-                    log.warn("Replacing delete of bulk or non-browserID delete " +
-                             "with offline: " + 
-                             curator + " deleting " + s + " " + 
-                             id1 + " " + id2 + 
-                             " (" + browserID + ", " + l + ")");
-                    update(conn, curator, 2, id1, id2);
-                    return "marked offline";
-                }
-*/
-               update(conn, curator, 2, id1, id2);
-               return null;
-            } else {
-                log.info("Not found: " + id1 + " " + id2);
-                return "not found";
-            }
-/*
-            ps = conn.prepareStatement(SQL_DELETE);
-            ps.setString(1, id1);
-            ps.setString(2, id2);
-            int r = ps.executeUpdate();
-            if (r != 1) {
-                log.info("No delete: " + id1 + " " + id2);
-            }
-            return null;
-*/
-        } finally {
-            rs.close();
-            ps.close();
-        }
-    }
 
     private static ApprovedPair pairFromRs(ResultSet rs) 
             throws SQLException {

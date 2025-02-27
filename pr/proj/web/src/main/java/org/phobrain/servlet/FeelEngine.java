@@ -46,6 +46,11 @@ import org.phobrain.db.record.Pair;
 import org.phobrain.db.record.ApprovedPair;
 import org.phobrain.db.util.DBUtil;
 
+import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
 import java.util.Random;
 import java.util.Collections;
 import java.util.Map;
@@ -84,6 +89,8 @@ public class FeelEngine {
     final boolean KEYWORDS = false;
 
     private long DEBUG_SLEEP_O_KINGLY_BUG = 0;
+
+    private MultiLayerNetwork flowModel;
 
     private int modMillis(int n) {
         return (int) (System.currentTimeMillis() % n);
@@ -785,6 +792,17 @@ public class FeelEngine {
 
             // TODO - use same algo as other apps??
             PHOBRAIN_LOCAL = ConfigUtil.runtimeProperty("local.dir");
+
+final String MODEL = PHOBRAIN_LOCAL + "models2/qiktry_val_63_roc_66_dim_7_softsign.keras";
+
+            log.info("Loading model " + MODEL);
+            try {
+                flowModel = KerasModelImport.
+                    importKerasSequentialModelAndWeights(MODEL);
+                log.info("Loaded model " + MODEL);
+            } catch (Exception e) {
+                log.error("Model load: " + e);
+            }
 
             statusDir = ConfigUtil.runtimeProperty("status.dir");
             if (statusDir == null) {
@@ -5186,6 +5204,88 @@ personal-pair ml
         return null;
     }
 
+    private List<Screen> modelMatch(Connection conn, 
+                                    UserProfile up, int viewNum, String orient,
+                                    Session session, List<String> ids, ListHolder lhs[])
+            throws Exception {
+
+        FeelingPair last = up.last;
+        if (last == null) {
+            log.info("modelMatch: no prev");
+            return null;
+        }
+        if (last.dotCount < 3) {
+            log.info("modelMatch: ndots<3: " + last.dotCount);
+            return null;
+        }
+
+        // dot histograms from drawing on pics1_1,_2
+        DotHistory dh = last.dotHistory;
+        int[] histo1 = dh.distHist;
+        int[] histo2 = dh.velocityHist;
+        int[] histo3 = dh.d3angleHist;
+        int[] histo4 = dh.d2angleHist;
+
+        // gather the pic reps: previous pair for every case
+        //   leave pics handy for now
+        Picture p_1_1 = PictureDao.getPictureById(conn, ids.get(0));
+        Picture p_1_2 = PictureDao.getPictureById(conn, ids.get(1));
+        float v_1_1[] = p_1_1.nnl_7;
+        float v_1_2[] = p_1_2.nnl_7;
+
+        // gather picreps for candidates on left and right
+
+        Map<String, float[]> picreps = new HashMap<>();
+
+        int errors = 0;
+
+        for (String id : lhs[0].id2_l) {
+            Picture p = PictureDao.getPictureById(conn, id);
+            if (p.nnl_7 == null) {
+                errors++;
+                continue;
+            }
+            picreps.put(id, p.nnl_7);
+        }
+        for (String id : lhs[1].id2_l) {
+
+            if (picreps.get(id) != null) continue;
+
+            Picture p = PictureDao.getPictureById(conn, id);
+            if (p.nnl_7 == null) {
+                errors++;
+                continue;
+            }
+            picreps.put(id, p.nnl_7);
+        }
+
+        // run the model
+
+        int SZ =  5;
+        double[] data = new double[SZ];
+
+        // 1st pair, dot, db data are constant
+
+        // run the model over the NxM cases
+
+        for (int i=0; i<lhs[0].size(); i++) {
+
+            String lpic = lhs[0].id2_l.get(i);
+            float[] larr = picreps.get(lpic);
+
+            for (int j=0; j<lhs[1].size(); j++) {
+
+                String rpic = lhs[1].id2_l.get(j);
+                float[] rarr = picreps.get(rpic);
+
+                // add pair i,j rep to data
+
+                //double prediction = flowModel.output(data).getDouble(0);
+            }
+        }
+return null;
+    }
+
     /*
     **  handleVectorsInParallel - return null or valid pair.
     */
@@ -5265,6 +5365,17 @@ personal-pair ml
 
         log.info("matchVectors: " + lhs[0].size() + "  " + lhs[1].size());
 
+        if (flowModel != null) {
+
+            List<Screen> scl = modelMatch(conn, up, viewNum, orient, session, ids, lhs);
+            if (scl != null) {
+                return scl;
+            }
+
+        }
+
+        log.info("Model is null or no good, using old methods");
+
         String[] funcDims = new String[] { firstFunc, firstFunc };
 
         if (up.skew < 0.5) {
@@ -5283,14 +5394,14 @@ personal-pair ml
             }
 
             List<Screen> scl = minVectorMatch(conn,
-                                viewNum, orient, session,
-                                lhs, funcDims, vec);
+                                    viewNum, orient, session,
+                                    lhs, funcDims, vec);
             if (scl != null) {
                 return scl;
             }
         }
 
-        //SeenIds seenIds = getSeen(conn, session);
+        // fallthru
 
         List<Screen> scl = null;
         if (twoStageFunc == null) {
@@ -6797,7 +6908,108 @@ personal-pair ml
     }
 
     /*
-    **  gestureStroke - project vectors left, right according
+    **  gestureCircle - TODO use radius? 
+    **                  ndots if needed for now.
+    **      Make avg vec for the pics, get long lh
+    */
+    private List<Screen> gestureCircle(Connection conn,
+                                        int viewNum, String orient,
+                                        Session session, UserProfile up,
+                                        List<String> ids) // ids diff/'last'? might be in draw order?
+            throws SQLException {
+
+        FeelingPair last = up.last;
+
+        Set<String> picSet = data.getPicSet(viewNum, orient);
+        SeenIds seenIds = getSeen(conn, session);
+
+        // get pics for vecs
+
+        Picture pp1 = PictureDao.getPictureById(conn, last.id1);
+        Picture pp2 = PictureDao.getPictureById(conn, last.id2);
+
+        final int vec_n = 7;
+        final String column = "nnl_7";
+        final String func = "poi";
+
+        // make diff vec for pp1,pp2
+
+        float[] diff = new float[vec_n];
+        for (int i=0;i<vec_n;i++) {
+
+            diff[i] = pp2.nnl_7[i] - pp1.nnl_7[i];
+
+            // naive diff vector range truncation
+
+            if (diff[i] < 0.0f) {
+                //negs++;
+                diff[i] *= -1.0f;
+            }
+            while (diff[i] > 0.2f) {
+                //gt++;
+                diff[i] *= 0.5f;
+            }
+        }
+
+        // get lots
+
+        ListHolder lh = PictureDao.matchVector(conn, orient, diff,
+                                                    null, // archives TODO per-view
+                                                    func, column, 100, picSet, seenIds);
+        if (lh == null) {
+            return null;
+        }
+
+        String id1 = null;
+        String id2 = null;
+        PictureResponse pr1 = null;
+        PictureResponse pr2 = null;
+
+        while (lh.size() > 0) {
+
+            final int ix = lh.size() / 2;
+            String tId = lh.id2_l.get(ix);
+            lh.remove(ix);
+
+            if (pr1 == null) {
+                pr1 = tryId(conn, orient, session,
+                                  picSet, seenIds, tId);
+                if (pr1 != null) {
+                    id1 = tId;
+                }
+                continue;
+            }
+            if (pr2 == null) {
+                pr2 = tryId(conn, orient, session,
+                                  picSet, seenIds, tId);
+                if (pr2 != null) {
+                    id2 = tId;
+                    break;
+                }
+            }
+        }
+        if (pr1 == null  ||  pr2 == null) {
+            log.info("ran out of lh");
+            return null;
+        }
+
+        // pr1, pr2 decided
+
+        pr1.method = "girc";
+        pr2.method = "girc";
+
+        log.info("gestureCircle: " + id1 + " " + id2);
+
+        List<Screen> ret = new ArrayList<>();
+        //log.info("dotsOnOnePic: " + func + " -> " + id1 + " " + id2);
+        ret.add(new Screen(session.browserID, 1, "v", id1, pr1));
+        ret.add(new Screen(session.browserID, 2, "v", id2, pr2));
+
+        return ret;
+    }
+
+    /*
+    **  gestureStrokeProjection - project vectors left, right according
     **          to direction of stroke.
     **      If it's a horizontal stroke within the two centers,
     **          scale from each pic inward (can be parallel)
@@ -6806,7 +7018,7 @@ personal-pair ml
     **  TODO: stacked pics - only thinking side-by-side here
     */
 
-    private List<Screen> gestureStroke(Connection conn,
+    private List<Screen> gestureStrokeProjection(Connection conn,
                                         int viewNum, String orient,
                                         Session session, UserProfile up,
                                         List<String> ids)
@@ -6908,7 +7120,7 @@ personal-pair ml
 
         if (last.dotStartScreen == 1  &&  last.dotEndScreen == 2) {
 
-            log.info("gestureStroke l->r");
+            log.info("gestureStrokeProjection l->r");
             func = "cos";
             //func = "poi";
 
@@ -6919,7 +7131,7 @@ personal-pair ml
 
         } else if (last.dotStartScreen == 2  &&  last.dotEndScreen == 1) {
 
-            log.info("gestureStroke r->l");
+            log.info("gestureStrokeProjection r->l");
             func = "poi";
             //func = "cos";
 
@@ -6929,7 +7141,7 @@ personal-pair ml
             end = p1;
 
         } else {
-            log.error("gestureStroke: unexpected start/end screens: " +
+            log.error("gestureStrokeProjection: unexpected start/end screens: " +
                         last.dotStartScreen + "/" + last.dotEndScreen);
             return null;
         }
@@ -7173,7 +7385,7 @@ personal-pair ml
                                         int viewNum, String orient,
                                         Session session, UserProfile up,
                                         String idDrawnOn, int screen,
-                                        boolean stroke)
+                                        boolean stroke, boolean circle)
             throws SQLException {
 
         FeelingPair last = up.last;  // should match w/ ids
@@ -7187,57 +7399,68 @@ personal-pair ml
 
         String func = null;
 
-        if (ndots % 2 == 0) {
+        if (stroke) {
             func = "cos";
-        } else {
-            func = "poi"; // distance, orig poincare
-        }
-
-        //  using number of angles in histogram
-        //  as a measure of intricacy
-
-        int angles = 0;
-        if (dh != null) {
-
-            if (dh.d3angleHist != null) {
-                for (int i : dh.d3angleHist) {
-                    if (i > 0) {
-                        angles++;
-                    }
-                }
-            }
-            if (dh.d2angleHist != null) {
-                for (int i : dh.d2angleHist) {
-                    if (i > 0) {
-                        angles++;
-                    }
-                }
-            }
-            
-        } else {
-            log.error("dotsOnOnePic: missing angleHists");
-        }
-        if (angles == 0) {
-            log.error("dotsOnOnePic: no angles, so setting=1");
-            angles = 1;
-        } else {
-            log.info("dotsOnOnePic: angles=" + angles);
-        }
-        if (angles == 1) {
-
-            //if (stroke) {
-            //log.error("DUPE lost possible on stroke");
-            //}
             func += nDotsToVectorColumn(ndots);
-        } else if (angles < 5) {
-            // 2 is shortest/fastest
-            func += chooseVector2(ndots);
-        } else if (angles < 10) {
-            func += ".2.nnl_7"; // avg/fold - indexed
+        } else if (circle) {
+            func = "poi"; // distance, orig poincare
+            func += nDotsToVectorColumn(ndots);
         } else {
-            func += ".2.mob_10"; // avg/fold - indexed
-            log.info("TODO angles >= 10, if many: GREPME " + angles);
+            if (ndots % 2 == 0) {
+                func = "cos";
+            } else {
+                func = "poi"; // distance, orig poincare
+            }
+
+            //  using number of angles
+            //  as a measure of intricacy
+
+            int angles = 0;
+            if (dh != null) {
+
+                // count both hists and pray
+
+                if (dh.d3angleHist != null) {
+                    for (int i : dh.d3angleHist) {
+                        if (i > 0) {
+                            angles++;
+                        }
+                    }
+                }
+                if (dh.d2angleHist != null) {
+                    for (int i : dh.d2angleHist) {
+                        if (i > 0) {
+                            angles++;
+                        }
+                    }
+                }
+            } else {
+                log.error("dotsOnOnePic: missing angleHists");
+            }
+            if (angles == 0) {
+                log.error("dotsOnOnePic: no angles, so setting=1");
+                angles = 1;
+            } else {
+                log.info("dotsOnOnePic: angles=" + angles);
+            }
+            if (angles == 1) {
+
+                //if (stroke) {
+                //log.error("DUPE lost possible on stroke");
+                //}
+                func += nDotsToVectorColumn(ndots);
+            } else if (angles < 5) {
+                // 2 is shortest/fastest
+                func += chooseVector2(ndots);
+            } else if (angles < 10) {
+                func += ".2.nnl_7"; // avg/fold - indexed
+            } else {
+                func += ".2.mob_10"; // avg/fold - indexed
+                log.info("TODO angles >= 10, if many: GREPME " + angles);
+            }
+
         }
+        // got a func
 
         // double the usual limit since picking two pics
         //      note: no dupes in lh
@@ -7270,6 +7493,10 @@ personal-pair ml
         if (stroke) {
 
             log.info("dotsOnOnePic: 'stk[AB]' ndots=" + ndots);
+
+            // 2025_02_27 - wtf is this? keeping for now :-)
+            //              all this for drawing a stroke on one pic?
+            //              TODO - figure what is being drawn on
 
             // pick two from the sorted list of 100
             // for each screen (drawn, undrawn)
@@ -7399,17 +7626,62 @@ personal-pair ml
                 return null;
             }
 
-        } else if (ndots < SMALL) {   // quick circle?
+        } else if (circle) {
+
+            // always pick from middle of lh
+
+            while (lh.size() > 1) {
+
+                final int ix = lh.size() / 2;
+                String tId = lh.id2_l.get(ix);
+                lh.remove(ix);
+
+                pr1 = tryId(conn, orient, session,
+                                  picSet, seenIds, tId);
+
+                if (pr1 == null) {  // error maybe no longer seen?
+                    log.info("No version for unseen seq " + tId);
+                    continue;
+                }
+                pr1.method = "ccl" + how + "A" + lh.size();
+                id1 = tId;
+                break;
+            }
+            if (pr1 == null) {
+                log.warn("dotsOnOnePic: not enough lh on pr1");
+                return null;
+            }
+            while (lh.size() > 0) {
+
+                final int ix = lh.size() / 2;
+
+                String tId = lh.id2_l.get(ix);
+                lh.remove(ix);
+
+                pr2 = tryId(conn, orient, session,
+                                  picSet, seenIds, tId);
+
+                if (pr2 == null) {  // error maybe no longer seen?
+                    log.info("No version for unseen seq " + tId);
+                    continue;
+                }
+                pr2.method = "ccl" + how + "B" + ix;
+                id2 = tId;
+                break;
+            }
+
+        } else if (ndots < SMALL) {
 
             // first/last - swap ends for criss-cross try
 
             log.info("dotsOnOnePic: 'ends[AB]' ndots=" + ndots);
 
+            // pick first starting at end of lh
 
             while (lh.size() > 1) {
 
-                int ix = lh.size() - 1;
-
+                // peel off last in list
+                int ix = lh.size() - 1;  
                 String tId = lh.id2_l.get(ix);
                 lh.remove(ix);
 
@@ -7430,9 +7702,13 @@ personal-pair ml
                 return null;
             }
 
+            // pick pr2 starting at beginning of what's left of lh
+
+            log.info("Choosing pr2 from " + lh.size());
+
             while (lh.size() > 0) {
 
-                int ix = 0;
+                final int ix = 0;
 
                 String tId = lh.id2_l.get(ix);
                 lh.remove(ix);
@@ -7453,7 +7729,7 @@ personal-pair ml
                 return null;
             }
 
-        } else {  // ndots >= SMALL
+        } else {  // ndots >= SMALL, calling it 'wiggle'
 
             log.info("dotsOnOnePic: 'wig[AB]' ndots=" + ndots);
 
@@ -7477,6 +7753,8 @@ personal-pair ml
                 lh.remove(0);
                 skip--;
             }
+
+            // pr1 from 'new beginning' of lh
 
             while (lh.size() > 1) {
 
@@ -7503,7 +7781,7 @@ personal-pair ml
 
             // pr2 - use vector length of 1st-last dot
 
-            // fraction to skip
+            // consider fraction to skip
 
             double dlr = 0.0;
             if (last.dotDist > 0  &&  last.dotVecLen > 0) {
@@ -7532,6 +7810,8 @@ personal-pair ml
                     ix++;
                 }
             }
+
+            // pick pr2 continuing in remainder of lh
 
             while (lh.size() > 0) {
 
@@ -7652,57 +7932,53 @@ personal-pair ml
 
         FeelingPair last = up.last;
 
+        if (last == null) {
+            log.error("drawVectors w/ no up.last");
+            return null;
+        }
+
         // if line is straight, might
         //      treat it as a gesture for projection
-        //      ... gestureStroke()
+        //      ... gestureStrokeProjection()
 
         boolean stroke = false;
+        boolean circle = false;
 
-        if (up.lastCrossings <= 1  &&  last != null) {
+        if (up.lastCrossings <= 1) {
 
-            double dotVecLen = Math.sqrt(last.dotVecLen);
-            double diff =  Math.abs(last.dotDist - dotVecLen);
+            double diff =  Math.abs(last.dotDist - last.dotVecLen);
             double pctDiff = 100.0 * diff / last.dotDist;
-            //log.info("DDDDD " + last.dotDist + " vec " + dotVecLen +
+            //log.info("DDDDD " + last.dotDist + " vec " + last.dotVecLen +
             //                " diff " + diff + " pct " + pctDiff);
             if (pctDiff < 5.0) { // close to straight line
-
                 stroke = true;
             }
         }
-
-        // TODO other dot geom
-
-        try {
-
-            if (up.lastCrossings == 0  &&  last != null) {
-
-                String id = idsDrawnOn.get(last.dotEndScreen-1);
-
-                return dotsOnOnePic(conn, viewNum, orient,
-                                        session, up, id,
-                                        last.dotEndScreen, stroke);
-
-            } else if (stroke) {
-
-                List<Screen> ret = gestureStroke(conn, viewNum, orient, session, up, idsDrawnOn);
-                if (ret != null) {
-                    return ret;
-                }
-
-            }
-
-            return dotsOnBothPics(conn, viewNum, orient,
-                                        session, up, idsDrawnOn, stroke);
-
-        } catch (Exception e) {
-
-            log.error("drawVectors: unexpected", e);
+        if (!stroke) {
+            circle = last.dotHistory.roundish();
         }
 
-        log.warn("drawVectors: returning null");
+        log.info("lastCrossings " + up.lastCrossings + "  Stroke " + stroke + "  Circle " + circle);
 
-        return null;
+        if (up.lastCrossings == 0) {
+
+            // which pic was most important
+
+            String id = idsDrawnOn.get(last.dotEndScreen-1);
+
+            return dotsOnOnePic(conn, viewNum, orient,
+                                        session, up, id,
+                                        last.dotEndScreen, 
+                                        stroke, circle);
+        }
+        if (stroke) {
+            return gestureStrokeProjection(conn, viewNum, orient, session, up, idsDrawnOn);
+        }
+        if (circle) {
+            return gestureCircle(conn, viewNum, orient, session, up, idsDrawnOn);
+        }
+        return dotsOnBothPics(conn, viewNum, orient,
+                                        session, up, idsDrawnOn, stroke);
     }
 
     private List<Screen> oldDrawDots(Connection conn, int viewNum, String orient,
@@ -8192,11 +8468,12 @@ personal-pair ml
                                         Session session, UserProfile up,
                                         List<String> ids)
             throws SQLException {
-
+/*
             List<Screen> ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 0);
             if (ret != null) {
                 return ret;
             }
+*/
             return handlePrPosScreens(conn,
                                         viewNum, orient, session, up,
                                         "a_d0", ids, -1);
@@ -8327,7 +8604,7 @@ personal-pair ml
     private List<Screen> biasedNNScreens(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            List<String> ids, double bias)
+                                            FeelingPair last, List<String> ids, double bias)
             throws SQLException {
 
         // For counting:
@@ -9113,6 +9390,5 @@ personal-pair ml
         }
         return ret;
     }
-
 
 }

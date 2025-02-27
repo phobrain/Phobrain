@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
+import org.doube.geometry.FitCircle;
+
 import org.phobrain.util.MiscUtil;
 import org.phobrain.util.HashCount;
 
@@ -98,7 +100,7 @@ public class DotHistory {
     /**
      **  DotHistory - leave ints[] null if it didn't work.
      */
-    public DotHistory(HistoryPair hp, String dotHistory) {
+    public DotHistory(HistoryPair hp, String dotHistory, String remoteHost) {
 
         this.hp = hp;
         this.inputString = dotHistory;
@@ -112,11 +114,11 @@ public class DotHistory {
             // seems smaller as comma'd ascii ints
             ints = MiscUtil.parseIntList(dotHistory);
         } catch (NumberFormatException nfe) {
-            log.error("DotHistory: not ints: " + dotHistory);
+            log.error("DotHistory: not ints: " + dotHistory + " from " + remoteHost);
             ints = null;
             return;
         } catch (IllegalArgumentException iae) {
-            log.error("DotHistory: unparseable"); // exception will carry dotHistory
+            log.error("DotHistory: unparseable from " + remoteHost); // exception will carry dotHistory
             ints = null;
             return;
         }
@@ -207,7 +209,7 @@ public class DotHistory {
         //  dh.push(-8);
 
         if (ints[ix] != -8) {
-            log.error("Expected -8! " + ix + "->" + ints[ix]);
+            log.error("Expected -8! " + ix + "->" + ints[ix] + " from " + remoteHost);
             ints = null;
             return;
         }
@@ -219,7 +221,7 @@ public class DotHistory {
         //  dh.push(Math.round(rect2.top)); dh.push(Math.round(rect2.bottom));
 
         if (ix + 8 > ints.length - 1) {
-            log.error("ran out of ints for dims");
+            log.error("ran out of ints for dims from " + remoteHost);
             ints = null;
             return;
         }
@@ -332,13 +334,17 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
     }
 
     private double dotMapFrac = -1.0;
+    //private float[][] dfPoints = null;
+    private double[][] dfPoints = null;
+    private double distRatio = 1.0;
+
 
     /*
     **  analyzeDots - the web client provided histograms,
     **      here we do more, not sure where to do what.
     **
     **      analyzeDots() isn't done at construction
-    **          (on receipt of every request) since 
+    **          (on receipt of every request) since
     **          it may not be needed.
     */
 
@@ -348,6 +354,12 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
             log.info("analyzeDots - nope");
             return;
         }
+
+        // copy the dot coords to { {x1,y1}, {x2,y2},...}
+        //       of float for analysis
+
+        //dfPoints = new float[hp.dotCount][];
+        dfPoints = new double[hp.dotCount][];
 
         // come up with a well-distributed fraction
         // using dot info
@@ -368,6 +380,13 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
             int dotX = ints[ix++];
             int dotY = ints[ix++];
             int dt   = ints[ix++];
+
+            dfPoints[i] = new double[2];
+            dfPoints[i][0] = dotX;
+            dfPoints[i][1] = dotY;
+            //dfPoints[i] = new float[2];
+            //dfPoints[i][0] = (float) dotX;
+            //dfPoints[i][1] = (float) dotY;
 
             if (dt < 0) {
                 mouseUps++;
@@ -420,11 +439,11 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
                 pRat /= mouseUps;
             }
         }
-        log.info("analyzeDots: " + 
+        log.info("analyzeDots: " +
                         "\n|\t  dots: " + hp.dotCount +
                         "\n|\t    p1: " + dots1 + " p2: " + dots2 +
                         "\n|\t    UPs " + mouseUps +
-                            " CROSS " + lastCrossings + 
+                            " CROSS " + lastCrossings +
                         // "\n|\t    pRat " + pRat +
                         "\n|\t  box1: " + Arrays.toString(rect1) +
                         "\n|\t  box2: " + Arrays.toString(rect2) +
@@ -753,9 +772,8 @@ log.error("analyzeDots: HUH2");
         // 1 - net distance / full distance
 
         // 0.0000x .. 1
-        double distRatio = 1.0;
         if (hp.dotDist > 0) {
-            distRatio = Math.sqrt((double) hp.dotVecLen) /
+            distRatio = (double) hp.dotVecLen /   //Math.sqrt((double) hp.dotVecLen) /
                                                hp.dotDist;
         }
         //double dRat2 = Math.sqrt(dRat);// for fun?
@@ -939,8 +957,160 @@ log.error("analyzeDots: HUH2");
         }
     }
 
+    public boolean roundish() {
+
+        //log.info("Circle: dots " + hp.dotVecLen + " cum.dist " + hp.dotDist);
+
+        double[] fit = FitCircle.taubinSVD(dfPoints);
+
+        double a = fit[0];
+        double b = fit[1];
+        double r = fit[2];
+
+        if (r > hp.dotDist) {
+            log.info("\nCircle false r>dist " + (int)r + "  " + hp.dotDist);
+            return false;
+        }
+        double circumference = 6.28 * r; // 2pi * r
+        if (hp.dotDist < 0.9 * circumference  ||
+            hp.dotDist > 1.1 * circumference) {
+            log.info("\nCircle false circumference~dist " + (int)circumference + "  " + hp.dotDist);
+            return false;
+        }
+        log.info("\nCircle true [r, circumference, dist  " + (int)r + "  " + (int)circumference + "  " + hp.dotDist);
+        return true;
+/*
+        double negV = 0.0;
+        double posV = 0.0;
+        double max = 0.0;
+
+        for (double[] p : dfPoints ) {
+
+            double da = a - (double) p[0];
+            double db = b - (double) p[1];
+            double dr = Math.sqrt(da*da + db*db) - r;
+            if (dr < 0) negV += dr;
+            else posV += dr;
+            double ad = Math.abs(dr);
+            if (ad > max) max = ad;
+
+            // if (negVar + posVar > r) log.info("Circle Quit it? " + negVar + " + " + posVar + " > " + r);
+        }
+
+        double c1 = (posV + -1.0 * negV) / dfPoints.length;
+        double c2 = Math.abs(negV + posV) / dfPoints.length;
+        double c3 = Math.abs(negV * posV) / dfPoints.length;
+
+        //double criterion = Math.abs(negV + posV) / dfPoints.length;
+        //double rfac = r / 4;
+
+        if (c1 < r * 0.3) {
+            log.info("\nCircle true c1, r: " + (int)c1 + " " + (int)r);
+            return true;
+        }
+
+        log.info("\nCircle false r/max/dist " + r + "/" + max + "/" + hp.dotDist + "   c's:  " + c1 + "  " + c2 + "  " + c3);
+        return false;
+*/
+    }
+
     public String toString() {
         return "DotHistory: input [" + inputString + "]";
     }
 
+/*
+     *  tried for fun, likely my bad test, but tested ugly
+     *  (e.g. straight line gave differing results); unanalyzed generative AI.
+     *
+     *      google search: "java" taubin circle, comments:
+     *
+     *      The Taubin method is an algorithm used to fit a circle to a set of
+     *      2D points. It is considered an algebraic fit method and is known
+     *      for its accuracy and speed, particularly with small arcs. It is
+     *      often preferred over other methods like the Kasa fit, especially
+     *      when dealing with noisy or incomplete data.
+     *      Here's a basic outline of how the Taubin method can be implemented
+     *      in Java:
+     *      Data Input:
+     *          The method takes an array of 2D points (x, y) as input.
+     *          These points represent the data to which the circle will be fitted.
+     *      Calculate Sums:
+     *          Calculate the sums of various powers and products of the x and y
+     *          coordinates of the input points. These sums are used in subsequent calculations.
+     *      Form the Scatter Matrix:
+     *          Construct a scatter matrix using the calculated sums. This matrix
+     *          represents the distribution of the data points.
+     *      Solve the Eigenvalue Problem:
+     *          Find the eigenvector corresponding to the smallest eigenvalue of
+     *          the scatter matrix. This eigenvector is related to the circle's parameters.
+     *      Calculate Circle Parameters:
+     *          Extract the circle's center coordinates (a, b) and radius (r) from
+     *          the eigenvector. These parameters define the fitted circle.
+     *      Output:
+     *          The method returns the calculated circle parameters (a, b, r).
+     *      Java
+
+    public boolean taubinFit() { //
+
+        if (isRound != null) return isRound;
+
+        if (floatPoints == null) {
+            analyzeDots();
+        }
+
+        //float[][] points = floatPoints;
+        double[][] points = dfPoints;
+
+        int n = points.length;
+        double sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0, sumX3 = 0, sumY3 = 0, sumXY = 0, sumX1Y2 = 0, sumX2Y1 = 0;
+
+        for (int i = 0; i < n; i++) {
+            double x = (double) points[i][0];
+            double y = (double) points[i][1];
+            sumX += x;
+            sumY += y;
+            sumX2 += x * x;
+            sumY2 += y * y;
+            sumX3 += x * x * x;
+            sumY3 += y * y * y;
+            sumXY += x * y;
+            sumX1Y2 += x * y * y;
+            sumX2Y1 += x * x * y;
+        }
+
+        double Mxx = sumX2 / n - Math.pow(sumX / n, 2);
+        double Myy = sumY2 / n - Math.pow(sumY / n, 2);
+        double Mxy = sumXY / n - (sumX / n) * (sumY / n);
+        double Mxxx = sumX3 / n - 3 * sumX2 / n * sumX / n + 2 * Math.pow(sumX / n, 3);
+        double Myyy = sumY3 / n - 3 * sumY2 / n * sumY / n + 2 * Math.pow(sumY / n, 3);
+        double Mxxy = sumX2Y1 / n - 2 * sumX / n * sumXY / n - sumX2 / n * sumY / n + 2 * Math.pow(sumX / n, 2) * sumY / n;
+        double Myxx = sumX1Y2 / n - 2 * sumY / n * sumXY / n - sumY2 / n * sumX / n + 2 * Math.pow(sumY / n, 2) * sumX / n;
+
+        final double a = (Myyy + Mxx * sumY / n + Mxxy + Myy * sumY / n) / (2 * (Mxx + Myy));
+        final double b = (Mxxx + Myy * sumX / n + Myxx + Mxx * sumX / n) / (2 * (Mxx + Myy));
+        final double r = Math.sqrt(Mxx + Myy + a * a + b * b);
+
+        // was: return new float[] { a, b, r };
+
+        double negVar = 0;
+        double posVar = 0;
+
+        for (double[] p : dfPoints ) {
+
+            double da = a - (double) p[0];
+            double db = b - (double) p[1];
+            double dr = Math.sqrt(da*da + db*db) - r;
+            if (dr < 0) negVar += dr;
+            else posVar += dr;
+
+            // if (negVar + posVar > r) log.info("Circle Quit it? " + negVar + " + " + posVar + " > " + r);
+        }
+
+        double criterion = Math.abs(negVar + posVar) / floatPoints.length;
+        double rfac = r / 4;
+
+        log.info("Circle crit " + criterion + " rfac " + rfac + " (a,b,r) " + a + "," + b + "," + r);
+        return criterion < rfac;
+    }
+*/
 }

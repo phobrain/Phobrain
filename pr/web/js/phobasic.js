@@ -301,28 +301,89 @@ function mdown() {
   mdown_time = new Date();
 }
 
-var mouseDownNextToPlus = false;
+function getMD(e)
+{
 
-function hideKwds() {
-  mouseDownNextToPlus = false;
-  var td = document.getElementById("kwdTd");
+console.log("getMD retry " + retry0Ct);
+
+  //e.preventDefault();
+
+  var xmlHttp;
+  try {
+     xmlHttp = getHTTP();
+  } catch (e) {
+     alert(e);
+     return false;
+  }
+  xmlHttp.onreadystatechange=function() {
+    if(xmlHttp.readyState==4) {
+      if (xmlHttp.status == 200) {
+         md = JSON.parse(xmlHttp.responseText);
+         console.log("md.credit rcvd: " + md.credit);
+         console.log("md.kw rcvd: " + md.kw);
+         showMD();
+      } else if (xmlHttp.status == 401) {
+        console.log("401: " + xmlHttp.responseText);
+        callAlertTooMuch("Unknown user");
+      } else if (xmlHttp.status == 500) {
+        wipeSession();
+        callAlertTooMuch("Server error, try reloading page.");
+      }
+    }
+  };
+  try {
+    var params = "sess=" + sessionID;
+    switch (tileId) {
+      case 0:
+        params += "&p1=x&p2=x\n"; break;
+      case 1:
+      case 2:
+        params += "&p1=1." + vDepth[1] +
+                  "&p2=2." + vDepth[2] + "\n";
+        break;
+      case 3:
+        params += "&p1=1." + vDepth[3] +
+                  "&p2=2." + vDepth[4] + "\n";
+        break;
+      default:
+        alert("unexp tileId: " + tileId);
+        break;
+    }
+
+console.log("md params for getkext: " + params);
+    var url = servletRoot + "/getkext";
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-type",
+                               "application/x-www-form-urlencoded");
+    xmlHttp.send(params);
+  } catch (e) {
+    alert(e);
+    return false;
+  }
+  return true;
+}
+
+var mouseDownNextToOptions = false;
+var mouseDownOnCredit = false;
+
+// hides field for MD/Credit/methods
+function hideMDCredit() {
+  mouseDownNextToOptions = false;
+  mouseDownOnCredit = false;
+  var td = document.getElementById("showId");
   td.innerHTML = "&nbsp;";
 }
 
-var mouseDownOnCredit = false;
-
-function hideCredit() {
-  mouseDownOnCredit = false;
-  var td = document.getElementById("kwdTd");
-  if (td != null) td.innerHTML = "&nbsp;";
-}
-
 var mdK = null;
+var md = null;
+
 var retry0Ct = 0;
 
 function showMD() {
 
-  if (!mouseDownNextToPlus  &&  !mouseDownOnCredit) return;
+  console.log("showMD");
+  if (!mouseDownNextToOptions &&  !mouseDownOnCredit) return;
+  console.log("showMD 4real");
 
   if (tileId == 0) {
     if (md == null) {
@@ -355,14 +416,22 @@ console.log("md is null retry " + retry0Ct);
   } else {
     content = md.kw;
   }
-  //console.log("content [" + content.trim() + "]");
-  var fsize = 15;
-  if (hasTouch) fsize = 40;
-  var td = document.getElementById("kwdTd");
-  td.innerHTML = "<span style=\"text-align:right;" +
-		" color:rgba(255,255,255,0.4);" +
-		"font-size: " + fsize + "pt;" +
-		" font-family:'Courier New',Courier,monospace;\">" +
+  console.log("content [" + content.trim() + "]");
+  var td = document.getElementById("showId");
+  if (td == null) {
+    alert("Bad element id: showId");
+  } else {
+    var fsize = 20;
+    //if (hasTouch) fsize = 80;
+    var spanx = "<span style=\"" +
+		"color:rgba(255,255,255,0.4);" +
+        "font-family:'Courier New',Courier,monospace;" +
+		"font-size:" + fsize + "pt;" +
+        "text-align:right;" +
+        "\">" +
 			content.trim() +
 		"</span>";
+console.log("spanx |" + spanx + "|");
+    td.innerHTML = spanx;
+  }
 }

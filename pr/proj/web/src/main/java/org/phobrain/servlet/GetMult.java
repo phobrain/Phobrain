@@ -802,7 +802,7 @@ toggleTStr = null;
                 last.toggleTStr = toggleTStr;
 
                 last.locSpec = locspec; // not saved
-                last.dotHistory = new DotHistory(last, dotHistory); // not saved
+                last.dotHistory = new DotHistory(last, dotHistory, remoteHost); // not saved
 //log.info("LDH " + last.dotHistory);
             }
 

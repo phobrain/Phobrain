@@ -171,12 +171,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
         final File file = ftmp;
         final String finalName = name;
 
-        boolean cache = false;
-        //if ((name.endsWith(".jpg")  ||  name.endsWith(".JPG"))  &&
-        if (name.startsWith("gallery/")) {
-            cache = true;
-//log.info("--CACHE");
-        }
+        boolean cache = name.startsWith("gallery/");
         final boolean cacheit = cache;
 
         return new StaticResource() {
