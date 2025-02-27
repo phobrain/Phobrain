@@ -37,5 +37,16 @@ apply plugin: 'war'
 war {
     archiveFileName = 'pr.war'
     webXml = file('src/web.xml')
+    classpath = classpath.filter { file ->
+        //println file.name
+        (
+            !file.name.contains('windows') &&
+            !file.name.contains('android') &&
+            !file.name.contains('macosx') &&
+            !file.name.contains('ios') &&
+            !file.name.contains('arm') &&
+            !file.name.contains('ppc')
+        )
+    }
 }
 

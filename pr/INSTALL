@@ -334,6 +334,7 @@
 12. Build and run
 
     % cd pr/proj/web
+    [edit build.gradle to exclude unneeded platform binaries]
     % ./mk.sh
 
 13. Run
