@@ -21,6 +21,7 @@ import org.phobrain.util.ConfigUtil;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.net.URLDecoder;
 
@@ -52,6 +53,8 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
     private File folder;
     private String imgDir;
 
+    private String[] cacheDirs = null;
+
     @Override
     public void init() throws ServletException {
         String webHomeDir = ConfigUtil.runtimeProperty("web.home.dir");
@@ -68,7 +71,15 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
                                        "] IS NOT A DIRECTORY, EXITING: path=" + imgFolder.getPath());
             System.exit(1);
         }
-
+        cacheDirs = ConfigUtil.runtimeProperty("cache.dirs").split(",");
+        if (cacheDirs == null) {
+            log.info("No cache dirs configged");
+        } else {
+            for (int i=0; i<cacheDirs.length; i++) {
+                cacheDirs[i] = cacheDirs[i].trim();
+            }
+            log.info("cache dirs: " + cacheDirs.length + ": " + Arrays.toString(cacheDirs));
+        }
     }
 
     @Override
@@ -125,6 +136,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
         boolean tgzip = false;
 
         if (!ftmp.exists()) {
+
             File tf = new File(ftmp.getPath() + ".gz");
             if (tf.exists()) {
                 log.info("Found .gz: " + name);
@@ -165,14 +177,22 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
                 }
             }
         }
-        log.info("Mapping " + name + " to " + ftmp.getAbsolutePath() + 
-                       " " + request.getRemoteAddr());
-
         final File file = ftmp;
         final String finalName = name;
 
-        boolean cache = name.startsWith("gallery/");
+        boolean cache = false;
+        if (cacheDirs != null) {
+            for (String d : cacheDirs) {
+                if (name.startsWith(d)) {
+                    cache = true;
+                    break;
+                }
+            }
+        }
         final boolean cacheit = cache;
+
+        log.info("Mapping" + (cache ? "/cache " : " ") + name + " to " + ftmp.getAbsolutePath() + 
+                       " " + request.getRemoteAddr());
 
         return new StaticResource() {
             @Override

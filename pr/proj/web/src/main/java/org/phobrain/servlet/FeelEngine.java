@@ -6915,7 +6915,7 @@ return null;
     private List<Screen> gestureCircle(Connection conn,
                                         int viewNum, String orient,
                                         Session session, UserProfile up,
-                                        List<String> ids) // ids diff/'last'? might be in draw order?
+                                        List<String> ids) // ids diff/'last'? i.e. might be in draw order?
             throws SQLException {
 
         FeelingPair last = up.last;
@@ -6934,26 +6934,14 @@ return null;
 
         // make diff vec for pp1,pp2
 
-        float[] diff = new float[vec_n];
+        float[] avg = new float[vec_n];
         for (int i=0;i<vec_n;i++) {
-
-            diff[i] = pp2.nnl_7[i] - pp1.nnl_7[i];
-
-            // naive diff vector range truncation
-
-            if (diff[i] < 0.0f) {
-                //negs++;
-                diff[i] *= -1.0f;
-            }
-            while (diff[i] > 0.2f) {
-                //gt++;
-                diff[i] *= 0.5f;
-            }
+            avg[i] = (float) 0.5 * (pp2.nnl_7[i] + pp1.nnl_7[i]);
         }
 
         // get lots
 
-        ListHolder lh = PictureDao.matchVector(conn, orient, diff,
+        ListHolder lh = PictureDao.matchVector(conn, orient, avg,
                                                     null, // archives TODO per-view
                                                     func, column, 100, picSet, seenIds);
         if (lh == null) {
