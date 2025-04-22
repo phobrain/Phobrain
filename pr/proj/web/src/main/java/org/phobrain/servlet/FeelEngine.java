@@ -90,7 +90,15 @@ public class FeelEngine {
 
     private long DEBUG_SLEEP_O_KINGLY_BUG = 0;
 
-    private MultiLayerNetwork flowModel;
+    private MultiLayerNetwork flowModel_vgg16_4;
+    private MultiLayerNetwork flowModel_nnl_7;
+
+    private boolean haveFlow() {
+        if (flowModel_vgg16_4 == null  &&  flowModel_nnl_7 == null) {
+            return false;
+        }
+        return true;
+    }
 
     private int modMillis(int n) {
         return (int) (System.currentTimeMillis() % n);
@@ -793,13 +801,53 @@ public class FeelEngine {
             // TODO - use same algo as other apps??
             PHOBRAIN_LOCAL = ConfigUtil.runtimeProperty("local.dir");
 
-final String MODEL = PHOBRAIN_LOCAL + "models2/qiktry_val_63_roc_66_dim_7_softsign.keras";
+// w/ ois
+//final String MODEL = "/home/epqe/new/models2/qiktry_val_63_roc_66_dim_7_softsign.keras";
+// no db
+//final String MODEL = "/home/epqe/new/models_no_db/qiktry_val_64_roc_70_dim_7_softsign.keras";
+            final String MODEL_vgg16_4 = "/home/epqe/new/models_no_db/qiktry_val_66_roc_71_dim_4_tanh.keras";
+            final String MODEL_nnl_7 = "/home/epqe/new/models_no_db/qiktry_val_66_roc_70_dim_7_tanh.keras";
 
-            log.info("Loading model " + MODEL);
+            log.info("Loading models " + MODEL_vgg16_4 + " " + MODEL_nnl_7);
             try {
-                flowModel = KerasModelImport.
-                    importKerasSequentialModelAndWeights(MODEL);
-                log.info("Loaded model " + MODEL);
+                flowModel_vgg16_4 = KerasModelImport.
+                    importKerasSequentialModelAndWeights(MODEL_vgg16_4, false);
+                log.info("Loaded MODEL " + MODEL_vgg16_4 + ":   " + flowModel_vgg16_4.summary());
+                flowModel_nnl_7 = KerasModelImport.
+                    importKerasSequentialModelAndWeights(MODEL_nnl_7, false);
+                log.info("Loaded MODEL " + MODEL_nnl_7 + ":   " + flowModel_nnl_7.summary());
+
+                if (false) {
+                    BufferedReader in = new BufferedReader(new FileReader("/home/epqe/new/pypreds"));
+                    String line;
+                    double[] data = new double[202];
+                    double data2d[][] = new double[1][];
+                    data2d[0] = data;
+                    while ((line = in.readLine()) != null) {
+
+                        if (line.startsWith("#")) {
+                            continue;
+                        }
+
+                        String ss[] = line.split("\\|");
+                        if (ss.length != 2) {
+                            log.error("LEN mismatch " + ss.length + " != 2");
+                            System.exit(1);
+                        }
+
+                        String sss[] = ss[0].split(",");
+                        if (sss.length != data.length) {
+                            log.error("LEN mismatch " + sss.length + ", " + data.length);
+                            System.exit(1);
+                        }
+                        for (int i=0; i<sss.length; i++) {
+                            data[i] = Double.parseDouble(sss[i]);
+                        }
+                        INDArray aaa = Nd4j.create(data2d);
+                        double prediction = flowModel_nnl_7.output(aaa).getDouble(0);
+                        log.info("WWW " + prediction + " " + ss[1]);
+                    }
+                }
             } catch (Exception e) {
                 log.error("Model load: " + e);
             }
@@ -1753,7 +1801,7 @@ assume list is sorted.. couldn't go too wrong
     }
 
     private ListHolder filterList(StringBuilder pref, FeelingPair last,
-                                  int viewNum, 
+                                  int viewNum,
                                   ListHolder lh, ListHolder altLh,
                                   ListHolder bakLh, boolean copyIf)
             throws SQLException {
@@ -5005,6 +5053,242 @@ personal-pair ml
         return null;
     }
 
+    private void setTmpVec(Picture p, String vector) {
+
+        if ("nnl_7".equals(vector)) {
+            p.tmp_vec = p.nnl_7;
+/*
+        } else if ("vgg16_2".equals(vector)) {
+            p.tmp_vec = p.vgg16_2;
+*/
+        } else if ("vgg16_4".equals(vector)) {
+            p.tmp_vec = p.vgg16_4;
+        } else if ("dense_4".equals(vector)) {
+            p.tmp_vec = p.dense_4;
+        } else {
+            log.warn("Unknown vector: " + vector + " using vgg16_4");
+            p.tmp_vec = p.vgg16_4;
+        }
+    }
+
+    final boolean doRev = false;
+
+    private double reverseByteOrder(double value) {
+        if (!doRev) return value;
+        long longBits = Double.doubleToLongBits(value);
+        long reversedBits = Long.reverseBytes(longBits);
+        return Double.longBitsToDouble(reversedBits);
+    }
+
+    final int PAIRVEC_SZ = 60;
+
+    /*
+     *  modelMatch() - MxN on lhs[2] using flowModel
+     */
+    private List<Screen> modelMatch(Connection conn,
+                                    UserProfile up, int viewNum, String orient,
+                                    Session session, List<String> ids, ListHolder lhs[])
+            throws Exception {
+
+        FeelingPair last = up.last;
+        if (last == null) {
+            log.info("modelMatch: no prev");
+            return null;
+        }
+        if (last.dotCount < 3) {
+            log.info("modelMatch: ndots<3: " + last.dotCount);
+            return null;
+        }
+
+        // dot histograms from drawing on pics1_1,_2
+        DotHistory dh = last.dotHistory;
+        int[] hist1 = dh.distHist;
+        int[] hist2 = dh.velocityHist;
+        int[] hist3 = dh.d3angleHist;
+        int[] hist4 = dh.d2angleHist;
+
+        String vector = ((dh.dots1 + dh.dots2) % 2 == 0 ? "nnl_7" : "vgg16_4");
+
+        // gather the pic reps: previous pair for every case
+        //   leave pics handy for now
+        Picture p_1_1 = PictureDao.getPictureById(conn, ids.get(0));
+        Picture p_1_2 = PictureDao.getPictureById(conn, ids.get(1));
+        setTmpVec(p_1_1, vector);
+        setTmpVec(p_1_2, vector);
+
+        MultiLayerNetwork flowModel;
+        if ("vgg16_4".equals(vector)) {
+            flowModel = flowModel_vgg16_4;
+        } else if ("nnl_7".equals(vector)) {
+            flowModel = flowModel_nnl_7;
+        } else {
+            flowModel = flowModel_nnl_7;
+        }
+
+        // gather picreps for candidates on left and right
+
+        Map<String, float[]> picreps = new HashMap<>();
+
+        int errors = 0;
+
+        for (String id : lhs[0].id2_l) {
+            Picture p = PictureDao.getPictureById(conn, id);
+            setTmpVec(p, vector);
+            if (p.tmp_vec == null) {
+                errors++;
+                continue;
+            }
+            picreps.put(id, p.tmp_vec);
+        }
+        for (String id : lhs[1].id2_l) {
+
+            if (picreps.get(id) != null) continue;
+
+            Picture p = PictureDao.getPictureById(conn, id);
+            setTmpVec(p, vector);
+            if (p.tmp_vec == null) {
+                errors++;
+                continue;
+            }
+            picreps.put(id, p.tmp_vec);
+        }
+
+        // pack the constants into data:
+        //      i.e. all data but the vectors of new pair
+        //          1st pair, histograms, 'db' data are constant
+
+        int DATA_SZ = hist1.length + hist2.length + hist3.length + hist4.length +
+                      4 * p_1_1.tmp_vec.length;
+
+        double[] data = new double[DATA_SZ];
+
+        double data2d[][] = new double[1][];
+        data2d[0] = data;
+
+        int dix = 0;
+        for (int i=0; i<p_1_1.tmp_vec.length; i++) {
+            data[dix++] = reverseByteOrder( (double) p_1_1.tmp_vec[i] );
+        }
+        for (int i=0; i<p_1_2.tmp_vec.length; i++) {
+            data[dix++] = reverseByteOrder( (double) p_1_2.tmp_vec[i] );
+        }
+        for (int i=0; i<hist1.length; i++) {
+            data[dix++] = reverseByteOrder( (double) hist1[i] );
+        }
+        for (int i=0; i<hist2.length; i++) {
+            data[dix++] = reverseByteOrder( (double) hist2[i] );
+        }
+        for (int i=0; i<hist3.length; i++) {
+            data[dix++] = reverseByteOrder( (double) hist3[i] );
+        }
+        for (int i=0; i<hist4.length; i++) {
+            data[dix++] = reverseByteOrder( (double) hist4[i] );
+        }
+
+        // run the model over the NxM cases
+
+        try {
+
+            List<SortDoubleStrings> preds = new ArrayList<>();
+
+            for (int i=0; i<lhs[0].size(); i++) {
+
+                String lpic = lhs[0].id2_l.get(i);
+                float[] larr = picreps.get(lpic);
+                int dix2 = dix;
+                for (int c=0; c<larr.length; c++) {
+                    data[dix2++] = reverseByteOrder( (double) larr[c] );
+                }
+
+                for (int j=0; j<lhs[1].size(); j++) {
+
+                    String rpic = lhs[1].id2_l.get(j);
+                    float[] rarr = picreps.get(rpic);
+                    int dix3 = dix2;
+                    for (int c=0; c<rarr.length; c++) {
+                        data[dix3++] = reverseByteOrder( (double) rarr[c] );
+                    }
+
+                    INDArray aaa = Nd4j.create(data2d);
+                    double prediction = flowModel.output(aaa).getDouble(0);
+
+                    preds.add( new SortDoubleStrings(prediction, new String[] {lpic, rpic} ) );
+
+                    //if (true) { log.info("WWWX flow pred " + prediction + " from " + Arrays.toString(data)); }
+
+                }
+            }
+            Collections.sort(preds);
+
+            SortDoubleStrings sds0 = preds.get(0);
+            SortDoubleStrings sdsN = preds.get(preds.size()-1);
+
+            SortDoubleStrings sds;
+            String method = Integer.toString(p_1_1.tmp_vec.length);
+            if (dh.dots2 < dh.dots1) {
+                sds = sds0;
+                method += "min";
+            } else {
+                sds = sdsN;
+                method += "max";
+            }
+            if (lhs[0].size() == lhs[1].size()) {
+                method += lhs[0].size() + "|";
+            } else {
+                method += lhs[0].size() + "x" + lhs[1].size();
+            }
+            log.info("PRED " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
+            log.info("PREDrev " + method + " spread " + (reverseByteOrder(sdsN.value) - reverseByteOrder(sds0.value)) + " on " + preds.size());
+
+            PictureResponse pr1 = new PictureResponse();
+            pr1.p = PictureDao.getPictureById(conn, sds.strings[0]);
+            PictureResponse pr2 = new PictureResponse();
+            pr2.p = PictureDao.getPictureById(conn, sds.strings[1]);
+
+            pr1.method = method;
+            pr2.method = method;
+
+{
+Picture p1 = PictureDao.getPictureById(conn, sds0.strings[0]);
+Picture p2 = PictureDao.getPictureById(conn, sds0.strings[1]);
+log.info(
+"\nPRZ min " + p1.archive + "/" + p1.fileName + "  |  " +
+    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sds0.value) +
+    " rev " + String.format("%.5f", reverseByteOrder(sds0.value)));
+p1 = PictureDao.getPictureById(conn, sdsN.strings[0]);
+p2 = PictureDao.getPictureById(conn, sdsN.strings[1]);
+log.info(
+"\nPRZ max " + p1.archive + "/" + p1.fileName + "  |  " +
+    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sdsN.value) +
+    " rev " + String.format("%.5f", reverseByteOrder(sdsN.value)));
+double diff = sdsN.value-sds0.value;
+log.info(
+"\nPRZ     " + String.format("%.0e", diff) + " / " + preds.size() +
+    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
+    vector + " " + (sds == sds0 ? " min" : " max") );
+diff=reverseByteOrder(sdsN.value) - reverseByteOrder(sds0.value);
+log.info(
+"\nPRZ2     " + String.format("%.0e", diff) + " / " + preds.size() +
+    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
+    vector + " " + (sds == sds0 ? " min" : " max") );
+}
+
+            List<Screen> scl = new ArrayList<>();
+
+            scl.add(new Screen(session.browserID,
+                                   1, "v", sds.strings[0],
+                                   pr1));
+            scl.add(new Screen(session.browserID,
+                                   2, "v", sds.strings[1],
+                                   pr2));
+            return scl;
+
+        } catch (Exception e) {
+            log.error("PREDICT " + e, e);
+        }
+        return null;
+    }
+
     /*
     **  handleVectorsInParallel2 - w/ dots
     */
@@ -5129,10 +5413,18 @@ personal-pair ml
         ListHolder lhs[] =
             PictureDao.matchVectors(conn, orient, ids, funcDims,
                                     data.getViewArchives(viewNum),
-                                    50, picSet, seenIds);
+                                    PAIRVEC_SZ, picSet, seenIds);
 
         if (lhs == null) {
             return null;
+        }
+
+        if (haveFlow()) {
+            log.info("Trying model 1st");
+            List<Screen> scl = modelMatch(conn, up, viewNum, orient, session, ids, lhs);
+            if (scl != null) {
+                return scl;
+            }
         }
 
         //log.info("lhs: " + lhs[0].size() + " " + lhs[1].size());
@@ -5204,87 +5496,6 @@ personal-pair ml
         return null;
     }
 
-    private List<Screen> modelMatch(Connection conn, 
-                                    UserProfile up, int viewNum, String orient,
-                                    Session session, List<String> ids, ListHolder lhs[])
-            throws Exception {
-
-        FeelingPair last = up.last;
-        if (last == null) {
-            log.info("modelMatch: no prev");
-            return null;
-        }
-        if (last.dotCount < 3) {
-            log.info("modelMatch: ndots<3: " + last.dotCount);
-            return null;
-        }
-
-        // dot histograms from drawing on pics1_1,_2
-        DotHistory dh = last.dotHistory;
-        int[] histo1 = dh.distHist;
-        int[] histo2 = dh.velocityHist;
-        int[] histo3 = dh.d3angleHist;
-        int[] histo4 = dh.d2angleHist;
-
-        // gather the pic reps: previous pair for every case
-        //   leave pics handy for now
-        Picture p_1_1 = PictureDao.getPictureById(conn, ids.get(0));
-        Picture p_1_2 = PictureDao.getPictureById(conn, ids.get(1));
-        float v_1_1[] = p_1_1.nnl_7;
-        float v_1_2[] = p_1_2.nnl_7;
-
-        // gather picreps for candidates on left and right
-
-        Map<String, float[]> picreps = new HashMap<>();
-
-        int errors = 0;
-
-        for (String id : lhs[0].id2_l) {
-            Picture p = PictureDao.getPictureById(conn, id);
-            if (p.nnl_7 == null) {
-                errors++;
-                continue;
-            }
-            picreps.put(id, p.nnl_7);
-        }
-        for (String id : lhs[1].id2_l) {
-
-            if (picreps.get(id) != null) continue;
-
-            Picture p = PictureDao.getPictureById(conn, id);
-            if (p.nnl_7 == null) {
-                errors++;
-                continue;
-            }
-            picreps.put(id, p.nnl_7);
-        }
-
-        // run the model
-
-        int SZ =  5;
-        double[] data = new double[SZ];
-
-        // 1st pair, dot, db data are constant
-
-        // run the model over the NxM cases
-
-        for (int i=0; i<lhs[0].size(); i++) {
-
-            String lpic = lhs[0].id2_l.get(i);
-            float[] larr = picreps.get(lpic);
-
-            for (int j=0; j<lhs[1].size(); j++) {
-
-                String rpic = lhs[1].id2_l.get(j);
-                float[] rarr = picreps.get(rpic);
-
-                // add pair i,j rep to data
-
-                //double prediction = flowModel.output(data).getDouble(0);
-            }
-        }
-return null;
-    }
 
     /*
     **  handleVectorsInParallel - return null or valid pair.
@@ -5355,7 +5566,7 @@ return null;
 
         lhs = PictureDao.matchVectors(conn, orient, ids, func, type, dim,
                                     data.getViewArchives(viewNum),
-                                    50, picSet, seenIds);
+                                    PAIRVEC_SZ, picSet, seenIds);
 
         if (lhs == null) {
 
@@ -5365,13 +5576,12 @@ return null;
 
         log.info("matchVectors: " + lhs[0].size() + "  " + lhs[1].size());
 
-        if (flowModel != null) {
+        if (haveFlow()) {
 
             List<Screen> scl = modelMatch(conn, up, viewNum, orient, session, ids, lhs);
             if (scl != null) {
                 return scl;
             }
-
         }
 
         log.info("Model is null or no good, using old methods");
@@ -6908,7 +7118,7 @@ return null;
     }
 
     /*
-    **  gestureCircle - TODO use radius? 
+    **  gestureCircle - TODO use radius?
     **                  ndots if needed for now.
     **      Make avg vec for the pics, get long lh
     */
@@ -7669,7 +7879,7 @@ return null;
             while (lh.size() > 1) {
 
                 // peel off last in list
-                int ix = lh.size() - 1;  
+                int ix = lh.size() - 1;
                 String tId = lh.id2_l.get(ix);
                 lh.remove(ix);
 
@@ -7956,7 +8166,7 @@ return null;
 
             return dotsOnOnePic(conn, viewNum, orient,
                                         session, up, id,
-                                        last.dotEndScreen, 
+                                        last.dotEndScreen,
                                         stroke, circle);
         }
         if (stroke) {
@@ -8196,7 +8406,7 @@ return null;
                   " screenIds " + screenId1 + "|" + screenId2 +
                   " total picSet " + picSet.size() +
                   " last " + (up.last == null ? "null" : up.last);
- 
+
         if (ids == null) {
             // start of session
             log.info("START (ids null) " + bigScream);
@@ -8466,66 +8676,6 @@ return null;
                                         viewNum, orient, session, up,
                                         "a_d0", ids, -1);
         }
-    }
-
-
-    private final int LEN_PHI_MERGE = 200;
-
-
-    private ListHolder mergePairTopAsym(Connection conn, String orient,
-                                         String id,
-                                         String cols[], boolean lr,
-                                         SeenIds seenIds,
-                                         Set<String> picSet)
-            throws SQLException {
-
-        ListHolder[] lhs = new ListHolder[cols.length];
-        int max = 0;
-        for (int i=0;i<cols.length;i++) {
-            lhs[i] = PairTopDao.getPairtopAsym(conn,
-                                        orient, id, lr, // left->right match
-                                        cols[i], false, "DESC", // DESC/best
-                                        LEN_PHI_MERGE, picSet);
-            max += lhs[i].size();
-        }
-        log.info("mergePairTopAsym(" + id + "): tot: " + max);
-
-        ListHolder ret = new ListHolder();
-        Set<String> got = new HashSet<>();
-        long val = max * 2;
-        int skip = 0;
-        for (int level=0;level<LEN_PHI_MERGE && val > 0;level++) {
-            for (int i=0;i<lhs.length;i++) {
-                ListHolder lh = lhs[i];
-                if (lh == null) {
-                    continue;
-                }
-                if (lh.size()-1 < level) {
-                    lhs[i] = null;
-                    continue;
-                }
-                String id2 = lh.id2_l.get(level);
-                if (got.contains(id2)  ||
-                    seenIds.contains(id2)) {
-                    skip++;
-                    continue;
-                }
-
-                got.add(id2);
-                ret.id2_l.add(id2);
-                ret.value_l.add(val);
-                if (ret.size() > LEN_PHI_MERGE) {
-                    log.info("finished quota at level " + level +
-                             " val " + val);
-                    val = -1;
-                    break;
-                }
-                val--;
-            }
-        }
-        log.info("mergePairTopAsym(" + id + "): got: " + ret.size());
-
-        return ret;
     }
 
 

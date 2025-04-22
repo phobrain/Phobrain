@@ -1200,7 +1200,7 @@ PGvector.addVectorType(conn);
                     break;
 
                 case 1024: // size of basic imagenet summed blocks
-                    column = "dense_1024";
+                    column = "dense_" + dim;
                     break;
 
                 case 1280: // size of basic imagenet summed blocks
@@ -2058,7 +2058,7 @@ log.info("arr2 " +v);
                 // DenseNet121, block size 1024
 
                 case 1024:
-                    columns = new String[] { "dense_" + dim, "dense_1024" + dim };
+                    columns = new String[] { "dense_" + dim, "dense_" + dim };
                     break;
 
                 default: break;

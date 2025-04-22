@@ -88,9 +88,10 @@ public class DotHistory {
 
         if (len + ix > ints.length-1) {
 
-            log.error("getArraySize: ints[] not big enough: " +
-                        "len=" + len + " ix=" + ix + " ints[]=" + ints.length);
-            return 0;
+            int diff = ix + len - (ints.length-1);
+            log.warn("getArraySize: ix=" + ix +
+                        ": resetting to length: ints[] not big enough by " + diff + "/" + ints.length);
+            len = ints.length-1-ix;
         }
 
         ix++;
@@ -960,6 +961,14 @@ log.error("analyzeDots: HUH2");
     public boolean roundish() {
 
         //log.info("Circle: dots " + hp.dotVecLen + " cum.dist " + hp.dotDist);
+
+        if (dfPoints == null) {
+            analyzeDots();
+            if (dfPoints == null) {
+                log.warn("roundish(): no dfPoints, default false");
+                return false;
+            }
+        }
 
         double[] fit = FitCircle.taubinSVD(dfPoints);
 

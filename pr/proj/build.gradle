@@ -24,6 +24,11 @@ subprojects {
         maven {
             url "https://mvnrepository.com/artifact/"
         }
+/*
+        tensorflow-snapshots {
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+*/
     }
 
     version = '1.0'
