@@ -79,7 +79,7 @@ if [ "$WIDTH" -gt 1000 ] || [ "$HEIGHT" -gt 1000 ] ; then
     RESIZE_OPTS="$SIZESPACE $RESIZE_SIZE $SHARP"
 fi
 
-TMP_JPG="x.jpg"
+TMP_JPG="x_$$.jpg"
 
 echo "== in `pwd`"
 CMD="convert $1 $RESIZE_OPTS $TMP_JPG"

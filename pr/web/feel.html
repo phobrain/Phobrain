@@ -91,9 +91,12 @@ function loadCount()
   console.log("LoadCt [" + loadCountCookieName + "]: " + loadCt);
 }
 
-// shared w/ phodots.js
-var inImage = 0;
-var dotSpeed = 0;
+// defined in phodots.js
+forceRating = true;
+
+// phodots.js inImage = 0;
+// phodots.js imageIn = -1;
+// phodots.js dotSpeed = 0;
 
 var lastAlert = new Date().getMilliseconds();
 var alertCt = 0;
@@ -787,7 +790,7 @@ $(document).ready(
     //alert('touchy!');
     $("#image0").on("touchenter", function() { inImage++; });
     $("#image0").on("touchleave", function() { inImage--; });
-    $("#image1").on("touchenter", function() { alert('te1');inImage++; });
+    $("#image1").on("touchenter", function() { alert('te1'); inImage++; });
     $("#image1").on("touchleave", function() { inImage--; });
     $("#image2").on("touchenter", function() { inImage++; });
     $("#image2").on("touchleave", function() { inImage--; });

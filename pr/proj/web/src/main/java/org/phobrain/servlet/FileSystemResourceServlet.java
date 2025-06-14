@@ -60,14 +60,14 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
         String webHomeDir = ConfigUtil.runtimeProperty("web.home.dir");
         folder = new File(webHomeDir);
         if (!folder.isDirectory()) {
-            log.error("CONFIG: EXITING: web.home.dir [" + webHomeDir + 
+            log.error("CONFIG: EXITING: web.home.dir [" + webHomeDir +
                                        "] IS NOT A DIRECTORY");
             System.exit(1);
         }
         imgDir = ConfigUtil.runtimeProperty("images.dir");
         File imgFolder = new File(imgDir);
         if (!imgFolder.isDirectory()) {
-            log.error("CONFIG: images.dir [" + imgDir + 
+            log.error("CONFIG: images.dir [" + imgDir +
                                        "] IS NOT A DIRECTORY, EXITING: path=" + imgFolder.getPath());
             System.exit(1);
         }
@@ -83,7 +83,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
     }
 
     @Override
-    protected StaticResource getStaticResource(HttpServletRequest request) 
+    protected StaticResource getStaticResource(HttpServletRequest request)
                throws IllegalArgumentException {
 
         String queryString = request.getQueryString();
@@ -109,7 +109,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
 
         String name = null;
         try {
-            name = URLDecoder.decode(pathInfo.substring(1), 
+            name = URLDecoder.decode(pathInfo.substring(1),
                                      StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException uee) {
             throw new RuntimeException("Encoding: " + uee, uee);
@@ -143,8 +143,8 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
                 tgzip = true;
                 ftmp = tf;
             } else {
-                log.error("Couldn't find: " + name + 
-                          " (" + ftmp.getAbsolutePath() + "): " + 
+                log.error("Couldn't find: " + name +
+                          " (" + ftmp.getAbsolutePath() + "): " +
                           request.getRemoteAddr());
                 return null;
             }
@@ -152,8 +152,8 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
         final boolean gzip = tgzip;
         if (ftmp.isDirectory()) {
             if (name.endsWith("/")) {
-                log.error("Dir, trying +/index.html: " + name + 
-                          " (" + ftmp.getAbsolutePath() + "): " + 
+                log.error("Dir, trying +/index.html: " + name +
+                          " (" + ftmp.getAbsolutePath() + "): " +
                           request.getRemoteAddr());
                 name += "index.html";
                 ftmp = new File(folder, name);
@@ -169,7 +169,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
 
                     ftmp = new File(folder, name + "/index.html");
                     if (ftmp.exists()) {
-                        log.warn("Is dir, no '/': " + name + 
+                        log.warn("Is dir, no '/': " + name +
                                  ", have '/index.html'");
                         throw new IllegalArgumentException(
                                       "Try adding '/' to URL: " + name + "/");
@@ -191,7 +191,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
         }
         final boolean cacheit = cache;
 
-        log.info("Mapping" + (cache ? "/cache " : " ") + name + " to " + ftmp.getAbsolutePath() + 
+        log.info("Mapping" + (cache ? " (cache=t) " : " (temp) ") + name + " to " + ftmp.getAbsolutePath() +
                        " " + request.getRemoteAddr());
 
         return new StaticResource() {

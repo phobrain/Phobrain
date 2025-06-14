@@ -3,11 +3,12 @@
 var logDots = false;
 var logGibber = false;
 
-// defined in .html
-// var inImage = 0;
-// var dotSpeed = 0;
 
+// set in html
+var forceRating = false;
+var inImage = 0;
 var imageIn = -1;
+var dotSpeed = 0;
 
 var dotColor = "white";
 var colorDraw = true;
@@ -1206,7 +1207,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
         return;
     }
 
-    if (dialogPairRating == null  &&  dialogFlowRating == null) {
+    if (forceRating  &&  dialogPairRating == null  &&  dialogFlowRating == null) {
 
         if (dialogDotsBlocked == 0) {
             console.log("placeDot: dialogPairRating and dialogFlowRating are null - must rate to dot");
