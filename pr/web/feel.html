@@ -532,48 +532,46 @@ function adjustPageElements()
   document.getElementById("wrapper").style.height = "800px";
   document.getElementById("home").innerHTML = "Home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
+  var h = 30;
   var heights = [
-	["phob_home", 50],
-	["drop_left", 50],
-	["home", 50],
+	["phob_home", h],
+	["drop_left", h],
+	["home", h],
 
-	["drop_groups", 50],
-	["viewAll", 50],
-	["viewPeep", 50],
-	["viewBill", 50],
-	["viewRS", 50],
-	["viewElle", 50],
-	["viewEd", 50],
-	["viewEllen", 50],
-	["viewRon", 50],
+	["drop_groups", h],
+	["viewAll", h],
+	["viewPeep", h],
+	["viewBill", h],
+	["viewRS", h],
+	["viewElle", h],
+	["viewEd", h],
+	["viewEllen", h],
+	["viewRon", h],
 
-	//["menu_square_span", 50],
-	["menu_twop_span", 50],
-	["menu_twol_span", 50],
-	["menu_twols_span", 50],
-	["menu_tog_repeats_style", 50],
-	//["menu_radio_color_draw", 50],
-	//["menu_radio_watch_dots", 50],
+	//["menu_square_span", h],
+	["menu_twop_span", h],
+	["menu_twol_span", h],
+	["menu_twols_span", h],
+	["menu_tog_repeats_style", h],
+	//["menu_radio_color_draw", h],
+	//["menu_radio_watch_dots", h],
 
-	["rain_about", 50],
-	["drop_right", 50],
-	["about", 50],
-	["desc_td1", 50],
-	["desc_td2", 50],
-	["desc_td3", 50],
-	["desc_td4", 50],
-	["desc_td5", 50],
-	["desc_td6", 50],
-	["desc_td7", 50],
-	["desc_td8", 50],
+	["rain_about", h],
+	["drop_right", h],
+	["about", h],
+	["desc_td1", h],
+	["desc_td2", h],
+	["desc_td3", h],
+	["desc_td4", h],
+	["desc_td5", h],
+	["desc_td6", h],
+	["desc_td7", h],
+	["desc_td8", h],
 
-    ["dialog_yes_pair", 80],
-    ["dialog_no_pair", 80],
-    ["dialog_no_flow", 80],
-    ["dialog_yes_flow", 80],
-    ["dialog_neutral", 80],
+    ["dialog_no_flow", 100],
+    ["dialog_yes_flow", 100],
 
-	["foot_credit", 50]
+	["foot_credit", h]
   ];
   for (var i=0; i<heights.length; i++) {
     var x = document.getElementById(heights[i][0]);
@@ -1613,7 +1611,7 @@ By easy stages through green atmosphere,<br/>
 Imagination's bright balloon is late, like the blue whale,<br/>
 In coming up for air.<br/><br/>
 -- Mervyn Peake
- </div>
+ </div> <!-- class h4 -->
 </noscript>
 
 <div id="wrapper">
@@ -1722,7 +1720,7 @@ Phob <span class="caret"></span> </button>
 	</span></button></li> <!-- &#x25aa black -->
 
  </ul>
-</div>
+</div> <!-- dropdown/left -->
 </td>
 <td>
 </td>
@@ -1787,13 +1785,15 @@ Phob <span class="caret"></span> </button>
 </tr></tbody></table>
         </li>
  </ul>
-</div>
+</div> <!-- dropdown/right -->
 </td>
 </tr>
 </table>
-</div>
+
+</div> <!-- header -->
 
 <div id="content">
+
 <div id="thepreview">
   <img id="imageP" src="noimage" alt="preview?">
 </div>
@@ -1881,9 +1881,10 @@ Phob <span class="caret"></span> </button>
 </tbody></table>
 </center>
 
+
 <table id="cmds" style="width:100%; text-align:center;"><tbody>
 
-<tr><td id="spaceIt" style="width:1%; height:1%"> &nbsp; </td> </tr>
+<!-- tr><td id="spaceIt" style="width:1%; height:1%"> &nbsp; </td> </tr -->
 
 <tr>
 
@@ -1898,45 +1899,13 @@ Phob <span class="caret"></span> </button>
 
  <td id="cmdTd" style="width:50%; text-align:center;">
 
+
   <button class="buttonA" id="dialog_no_flow" title="dialog_no_flow"
    class="cmdFont"
    style="color:rgba(255,255,255,0.6);"
    onmousedown="mdown();"
    onmouseup="dialogFlowApproval(2);">
-&#xA7FB;
-  </button>
-
-&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;
-
-  <button class="buttonA" id="dialog_no_pair" title="dialog_no_pair"
-   class="cmdFont"
-   style="color:rgba(255,255,255,0.6);"
-   onmousedown="mdown();"
-   onmouseup="dialogPairApproval(2);">
 q
-  </button>
-
-&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;
-
-  <button class="buttonA" id="dialog_neutral" title="dialog_neutral"
-   class="cmdFont"
-   style="color:rgba(255,255,255,0.3);"
-   onmousedown="mdown();"
-   onmouseup="dialogPairAndFlowNeutral();">
-n
-  </button>
-
-&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;
-
-  <button class="buttonA" id="dialog_yes_pair" title="dialog_yes_pair"
-   class="cmdFont"
-   style="color:green;"
-   onmousedown="mdown();"
-   onmouseup="dialogPairApproval(1);">
-p
   </button>
 
 &nbsp;&nbsp;&nbsp;
@@ -1947,8 +1916,10 @@ p
    style="color:green;"
    onmousedown="mdown();"
    onmouseup="dialogFlowApproval(1);">
-F
+p
   </button>
+
+
  </td>
  <td 
    id="showTdR"
@@ -1957,17 +1928,18 @@ F
     onmousedown="mouseDownNextToOptions=true; showMD(event);"
     onmouseup="hideMDCredit();"
     onmouseleave="hideMDCredit();"> 
-  <span id="showId" style="width:100%; text-align:left;"> &nbsp;</span>
+    &nbsp;
+   <!-- span id="showId" style="width:100%; text-align:left;"> &nbsp;</span -->
  </td>
 </tr>
 </tbody></table>
 
-</div>
-</div>
+</div> <!-- theshow -->
+</div> <!-- content -->
 
 <div id="footer">
 
-<br>
+<br/>
 <p id="foot_credit"
 	class="infoFont unselectable"
     style="color:rgba(255,255,255,0.4); text-align:right;"
@@ -1994,9 +1966,8 @@ try {
 // -->
 </script>
 
-</div>
+</div> <!-- footer -->
 
-</div>
-</div>
+</div>  <!-- wrapper -->
 </body>
 </html>

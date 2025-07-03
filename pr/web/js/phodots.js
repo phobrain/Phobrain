@@ -1669,7 +1669,7 @@ var drawTouch = function(img, scrn)
 
 		if (e.touches.length > 1) {
 
-alert('touches>1');
+//alert('touches>1: ' + e.touches.length + ' dotlist ' + dotList.length);
 			if (dotList.length == 0) return;
 if (dotList.length > 3) console.log('tch>1: ' + e.touches.length + ' dots: ' + dotList.length);
 
