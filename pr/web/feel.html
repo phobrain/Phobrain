@@ -8,22 +8,22 @@
 
 <head>
 
- <link rel="canonical" href="http://phobrain.com"/>
- <link rel="icon" href="favicon.ico"/>
+ <link rel="canonical" href="http://phobrain.com">
+ <link rel="icon" href="favicon.ico">
  <!-- base href="http://phobrain.com" target="_top"/-->
- <meta name="Description" content="Photo association with neural nets." />
- <meta name="robots" content="noindex" />
- <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+ <meta name="Description" content="Photo association with neural nets.">
+ <meta name="robots" content="noindex">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
  <title>Phobrain Slideshow</title>
 
   <link rel="stylesheet" type="text/css"
-         href="js/bootstrap/bootstrap.min.css" />
+         href="js/bootstrap/bootstrap.min.css">
 
   <link rel="stylesheet" type="text/css"
-         href="css/footer.css" />
+         href="css/footer.css">
   <link rel="stylesheet" type="text/css"
-         href="css/phobasic.css" />
+         href="css/phobasic.css">
 
  <!-- script src="js/jquery/jquery-1.11.3.min.js"></script -->
   <script
@@ -49,7 +49,7 @@
 }
 
 .infoFont {
-  font-size: 25pt;
+  font-size: 15pt;
   font-family:'Courier New',Courier,monospace;
   white-space:nowrap;
 }
@@ -123,8 +123,9 @@ function callAlertTooMuch(msg)
 var inPic = -1;
 
 
-var ADMIN_PIX = 180; // for selector/footer plus 20px
-if (hasTouch) ADMIN_PIX = 100;
+var ADMIN_PIX = 20; // for selector/footer plus 20px
+if (hasTouch) ADMIN_PIX = 20;
+// Only use: var avail_height = tot_height - ADMIN_PIX;
 
 var view = null;
 
@@ -1012,8 +1013,7 @@ function decrementDisplayCountdown()
   }
 
   drawTwo();
-console.log("[Pair|Flow]Rating = null! RATE IT");
-  dialogPairRating = null; // TODO directly after display?
+console.log("[Flow Rating = null! RATE IT");
   dialogFlowRating = null; // TODO directly after display?
 }
 
@@ -1591,7 +1591,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <style>
 .buttonA {
     font-family: 'Dejavu Sans', sans-serif;
-    font-size: 58pt;
+    font-size: 50pt;
+    white-space:nowrap;
 }
 </style>
 
@@ -1605,11 +1606,11 @@ document.addEventListener('DOMContentLoaded', function () {
   .wrapper {display:none;}
  </style -->
  <div class="h4">
-You don't have javascript enabled.  This page will not work.<br/><br/>
-Lost in the venal void our dreams deflate<br/>
-By easy stages through green atmosphere,<br/>
-Imagination's bright balloon is late, like the blue whale,<br/>
-In coming up for air.<br/><br/>
+You don't have javascript enabled.  This page will not work.<br><br>
+Lost in the venal void our dreams deflate<br>
+By easy stages through green atmosphere,<br>
+Imagination's bright balloon is late, like the blue whale,<br>
+In coming up for air.<br><br>
 -- Mervyn Peake
  </div> <!-- class h4 -->
 </noscript>
@@ -1712,7 +1713,7 @@ Phob <span class="caret"></span> </button>
   <li class="divider" style="background-color: rgba(255,255,255,0.4);"></li>
 
   <li> <button id="repeat_but" class="blackBut"
-	onclick="toggleRepeats('value')" >
+	onclick="toggleRepeats('value')">
 	<span id="menu_tog_repeats_style"
 		style="font-size:14pt;white-space:nowrap;">
 	  <span id="menu_tog_repeats" style="color:#404040;">&#x25ab;</span>
@@ -1743,13 +1744,13 @@ Phob <span class="caret"></span> </button>
  </td>
  <td id="desc_td2" style="padding:5px;text-align:left; color:black;font-size:10pt; font-family:'Courier New',Courier,monospace">
 	Draw on the photos to see another pair.
-	<br />
+	<br>
 	See 'Phob' options:
-	<br />
+	<br>
 	&nbsp; &nbsp; &nbsp; Worst pairs
-	<br />
+	<br>
 	&nbsp; &nbsp; &nbsp; Draw: use colors
-	<br />
+	<br>
 	For pure random choice, click in the grey strip just above the pairs.
  </td>
 </tr> <tr>
@@ -1850,7 +1851,7 @@ Phob <span class="caret"></span> </button>
    <table style="width:100%;"><tbody>
     <tr><td><table style="width:100%;"><tbody><tr>
      <td style="width:100px;" onclick="toggleLast(3, 'l');"> </td>
-     <td id="td3" style="text-align:center;padding:2px;" >
+     <td id="td3" style="text-align:center;padding:2px;">
       <img id="image3"
 	onmousedown="mdown();"
 	onmouseup="imgClick(3, event);"
@@ -1862,7 +1863,7 @@ Phob <span class="caret"></span> </button>
     </tr></tbody></table></td></tr>
     <tr><td><table style="width:100%;"><tbody><tr>
      <td style="width:100px;" onclick="toggleLast(4, 'l');"> </td>
-     <td id="td4" style="text-align:center;padding:2px;" >
+     <td id="td4" style="text-align:center;padding:2px;">
       <img id="image4"
 	onmousedown="mdown();"
 	onmouseup="imgClick(4, event);"
@@ -1901,7 +1902,6 @@ Phob <span class="caret"></span> </button>
 
 
   <button class="buttonA" id="dialog_no_flow" title="dialog_no_flow"
-   class="cmdFont"
    style="color:rgba(255,255,255,0.6);"
    onmousedown="mdown();"
    onmouseup="dialogFlowApproval(2);">
@@ -1912,7 +1912,6 @@ q
 &nbsp;&nbsp;&nbsp;
 
   <button class="buttonA" id="dialog_yes_flow" title="dialog_yes_flow"
-   class="cmdFont"
    style="color:green;"
    onmousedown="mdown();"
    onmouseup="dialogFlowApproval(1);">
@@ -1928,8 +1927,7 @@ p
     onmousedown="mouseDownNextToOptions=true; showMD(event);"
     onmouseup="hideMDCredit();"
     onmouseleave="hideMDCredit();"> 
-    &nbsp;
-   <!-- span id="showId" style="width:100%; text-align:left;"> &nbsp;</span -->
+   <span id="showId" style="width:100%; text-align:left;"> &nbsp;</span>
  </td>
 </tr>
 </tbody></table>
@@ -1939,7 +1937,7 @@ p
 
 <div id="footer">
 
-<br/>
+<br>
 <p id="foot_credit"
 	class="infoFont unselectable"
     style="color:rgba(255,255,255,0.4); text-align:right;"

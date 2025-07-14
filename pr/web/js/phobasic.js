@@ -371,7 +371,7 @@ function hideMDCredit() {
   mouseDownNextToOptions = false;
   mouseDownOnCredit = false;
   var td = document.getElementById("showId");
-  td.innerHTML = "&nbsp;";
+  if (td != null) td.innerHTML = "&nbsp;";
 }
 
 var mdK = null;

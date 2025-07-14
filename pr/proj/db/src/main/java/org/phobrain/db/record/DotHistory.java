@@ -211,6 +211,44 @@ public class DotHistory {
 
         if (ints[ix] != -8) {
             log.error("Expected -8! " + ix + "->" + ints[ix] + " from " + remoteHost);
+/* DEBUG note
+     17 151->-171
+     17 151->-24
+     17 151->-63
+     18 151->-105
+     18 151->-39
+     18 151->-66
+     19 151->-27
+     19 151->-81
+     20 151->-108
+     20 151->-45
+     20 151->-57
+     20 151->-84
+     21 151->-30
+     21 151->-48
+     21 151->-51
+     21 151->-60
+     21 151->-75
+     22 151->-111
+     22 151->-21
+     23 151->-54
+     24 151->-72
+     26 151->-42
+     27 151->-33
+     31 151->-36
+     35 151->-6
+     66 151->-3
+*/
+            for (int i=ix-1; i>-1; i--) {
+                if (ints[i] == -8) {
+                    log.error("Found -8 earlier, at " + i);
+                }
+            }
+            for (int i=ix+1; i<ints.length; i++) {
+                if (ints[i] == -8) {
+                    log.error("Found -8 later, at " + i + "/" + ints.length);
+                }
+            }
             ints = null;
             return;
         }
@@ -966,6 +1004,10 @@ log.error("analyzeDots: HUH2");
             analyzeDots();
             if (dfPoints == null) {
                 log.warn("roundish(): no dfPoints, default false");
+                return false;
+            }
+            if (dfPoints.length < 3) {
+                log.warn("roundish(): <3 dfPoints, default false");
                 return false;
             }
         }
