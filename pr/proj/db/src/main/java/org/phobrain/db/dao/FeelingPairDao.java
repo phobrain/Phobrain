@@ -614,8 +614,13 @@ public class FeelingPairDao extends DaoBase {
     public static void updateFeelingPair(Connection conn, FeelingPair fp)
               throws SQLException {
 
-        log.info("updateFeelingPair " + fp);
 
+        if (fp.flowRating <= 0) {
+            log.error("updateFeelingPair: flowRating is " + fp.flowRating +
+                        " (still updating to save other info): " + fp);
+        } else {
+            log.info("updateFeelingPair to " + fp);
+        }
         // clean up
 
         if ("na".equals(fp.togSides)) {
@@ -720,7 +725,7 @@ public class FeelingPairDao extends DaoBase {
         } finally {
             closeSQL(ps);
         }
-        log.info("updateFeelingPair UPDATED " + fp.id);
+        log.info("updateFeelingPair UPDATED " + fp.id + "  -> flowRating " + fp.flowRating);
     }
 }
 

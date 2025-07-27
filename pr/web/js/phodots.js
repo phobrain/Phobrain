@@ -1,4 +1,7 @@
 
+// phodots.js is about feeling/flow in feel.html
+// vs. pairs as in curate.html.
+
 // noisy debug
 var logDots = false;
 var logGibber = false;
@@ -1150,48 +1153,36 @@ function colorBase(dot, prMeta, day, hour, millis)
 var dialogDotsBlocked = 0;
 var ratingAlerts = 0;
 
-var dialogPairRating = null;
-
-function dialogPairApproval(status)
-{
-    console.log("pairApproval  " + dialogPairRating + " -> " + status +
-            "\n\t(dotsblocked " + dialogDotsBlocked +
-            " ratingAlerts " + ratingAlerts + ")");
-
-    dialogPairRating = status;
-}
-
 var dialogFlowRating = null;
 
-function dialogFlowApproval(status)
+function rateFlow(status)
 {
-    console.log("flowApproval  " + dialogFlowRating + " -> " + status +
+    console.log("rateFlow " + dialogFlowRating + " -> " + status +
             "\n\t(dotsblocked " + dialogDotsBlocked +
             " ratingAlerts " + ratingAlerts + ")");
 
     dialogFlowRating = status;
 }
 
-function dialogPairAndFlowNeutral()
+function dialogFlowNeutral()
 {
-    console.log("pair/flow  " + dialogPairRating + "/" + dialogFlowRating + " -> 0/0" +
+    console.log("flow  " + dialogFlowRating + " -> 0" +
             "\n\t(dotsblocked " + dialogDotsBlocked +
             " ratingAlerts " + ratingAlerts + ")");
-    dialogPairRating = 0;
     dialogFlowRating = 0;
 }
 
 // return null if error
-function getRatings()
+function getFeeling()
 {
-  if (dialogPairRating == null  &&  dialogFlowRating == null) {
-    alert('both ratings are null');
+  if (dialogFlowRating == null) {
+    alert('Rating is null');
     return null;
   }
-  if (dialogPairRating == null) dialogPairRating = 0;
-  if (dialogFlowRating == null) dialogFlowRating = 0;
 
-  return dialogPairRating + '_' + dialogFlowRating;
+  console.log("getFeeling: " + dialogFlowRating);
+
+  return dialogFlowRating;
 }
 
 // mouseDown is defined in-page
@@ -1207,10 +1198,10 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
         return;
     }
 
-    if (forceRating  &&  dialogPairRating == null  &&  dialogFlowRating == null) {
+    if (forceRating  &&  dialogFlowRating == null) {
 
         if (dialogDotsBlocked == 0) {
-            console.log("placeDot: dialogPairRating and dialogFlowRating are null - must rate to dot");
+            console.log("placeDot: dialogFlowRating is null - must rate to dot");
         }
 
         dialogDotsBlocked++;

@@ -309,6 +309,7 @@ public class SessionDao extends DaoBase {
             throws SQLException {
 
         PreparedStatement ps = null;
+        ResultSet generatedKeys = null;
         try {
             ps = conn.prepareStatement(SQL_INSERT_SESSION,
                                        Statement.RETURN_GENERATED_KEYS);
@@ -326,7 +327,7 @@ public class SessionDao extends DaoBase {
                 throw new SQLException("Insert returned 0");
             }
 
-            ResultSet generatedKeys = ps.getGeneratedKeys();
+            generatedKeys = ps.getGeneratedKeys();
             long id = -1;
             if (generatedKeys.next()) {
                 id = generatedKeys.getLong(1);
@@ -336,6 +337,7 @@ public class SessionDao extends DaoBase {
             log.info("Inserted id " + id);
 
             if (screens != null) {
+                closeSQL(generatedKeys);
                 closeSQL(ps);
 
                 ps = conn.prepareStatement(SQL_INSERT_SESSION_SCREEN);
@@ -375,6 +377,7 @@ System.exit(1);
             }
 
         } finally {
+            closeSQL(generatedKeys);
             closeSQL(ps);
         }
     }

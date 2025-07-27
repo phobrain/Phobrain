@@ -174,7 +174,10 @@ public class GetFext extends HttpServlet {
             IMAGE_DIR = ConfigUtil.runtimeProperty("images.dir");
 
             if (IMAGE_DIR.endsWith("_webp")) {
+                log.info("IMAGE_DIR WEBP is true");
                 WEBP = true;
+            } else {
+                log.info("IMAGE_DIR WEBP is false");
             }
 
         } catch (Exception e) {
@@ -200,6 +203,9 @@ public class GetFext extends HttpServlet {
 
         processRequest(request, response, true);
     }
+
+    final static String[] jpeg_xs = { ".jpg", ".jpeg" };
+    final static List<String> jpegs = Arrays.asList(jpeg_xs);
 
     private void sendFile(final HttpServletRequest request,
                           final HttpServletResponse response,
@@ -227,10 +233,21 @@ public class GetFext extends HttpServlet {
 
         // content
 
-        if (WEBP) {
+        String path = file.getPath();
+        if (path.endsWith(".webp")) {
             response.setHeader("Content-Type", "image/webp");
-        } else { // TODO check all?
-            response.setHeader("Content-Type", "image/jpeg");
+        } else {
+            int ix = path.lastIndexOf(".");
+            if (ix != -1) {
+                String extension = path.substring(ix).toLowerCase();
+                if (jpegs.contains(extension)) {
+                    response.setHeader("Content-Type", "image/jpeg");
+                } else {
+                    // TODO it right
+                    log.error("Unknown extension, calling it jpg? Do better: " + extension);
+                    response.setHeader("Content-Type", "image/jpeg");
+                }
+            }
         }
         response.setHeader("Content-Disposition",
                       String.format(CONTENT_DISPOSITION_HEADER, fakefname));
@@ -539,40 +556,20 @@ String toggleTStr = "tmp";
             return;
         }
 
-        // one or the other form
         int r = -1;
-        int[] ri = { -1, -1 };
 
         if (str.contains("_")) {
+            log.error("OLD DUAL RATING: " + str);
+            response.sendError(500, "Failed to generate session tag");
+            return;
+        }
 
-            String[] ss = str.split("_");
-            if (ss.length != 2) {
-                log.error("Unexpected rating split: " + str);
-                response.sendError(400, "Failed to generate session tag - please refresh page");
-                return;
-            }
-            try {
-                ri[0] = Integer.parseInt(ss[0]);
-                ri[1] = Integer.parseInt(ss[1]);
-            } catch (Exception e) {
-                log.error("parsing ratings: [" + str + "]");
-                response.sendError(500, "Failed to generate session tag");
-                return;
-            }
-            if (ri[0] < 0  ||  ri[1] > 2  ||
-                ri[1] < 0  ||  ri[1] > 2) {
-                log.error("rating out of range: " + str);
-                response.sendError(500, "Failed to generate session tag");
-                return;
-            }
-        } else {
-            try {
-                r = Integer.parseInt(str);
-            } catch (NumberFormatException nfe) {
-                log.error("parsing rating: " + str);
-                response.sendError(500, "Failed to generate session tag");
-                return;
-            }
+        try {
+            r = Integer.parseInt(str);
+        } catch (NumberFormatException nfe) {
+            log.error("parsing rating: " + str);
+            response.sendError(500, "Failed to generate session tag");
+            return;
         }
         if (r == 4) {
             log.error("engine.getNeuralMatch  DISABLED - fix it yourself");
@@ -804,8 +801,7 @@ String toggleTStr = "tmp";
             if (last != null) {
 
                 last.rateTime = rateTime;
-                last.pairRating = ri[0];
-                last.flowRating = ri[1];
+                last.flowRating = r;
                 last.ratingScheme = RATING_SCHEME;
 
                 last.userTime = viewTime;
@@ -942,6 +938,10 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                         log.error("l: NO PREV FeelingPair: " + browserID + " " +
                                    remoteHost);
                     } else {
+                        if (last.flowRating <= 0) {
+                            log.error("Dang browser sent update w/o rating, letting db handle for now: " +
+                                        browserID + " " + remoteHost);
+                        }
                         FeelingPairDao.updateFeelingPair(conn, last);
                     }
 
@@ -1308,8 +1308,7 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                            " pct: " + engine.getPctSeen(conn, session,
                                                         viewNum, orient) +
                            " count: " + callCount +
-                        " rating: " + 
-                            (ri == null ? "none" : ri[0] + "," + ri[1]) +
+                        " rating: " + r +
                         " nextDraw " + nextDrawStyle +
                            " time " + t1);
 
