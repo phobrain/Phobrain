@@ -850,7 +850,9 @@ String toggleTStr = "tmp";
                         writeDotHistoryFile(last, dotHistory);
                     }
                 }
-log.info("LDH cmd/" + cmd + (last.dotHistory == null ? " null/txt " + dotHistory : " actual " + last.dotHistory) );
+if (!"l".equals(cmd)) {
+log.info("LDH cmd/" + cmd + (last.dotHistory == null ? ": null/txt " + dotHistory : " actual " + last.dotHistory) );
+}
             }
 
             if ("l".equals(cmd)) {

@@ -2,13 +2,17 @@
 // phodots.js is about feeling/flow in feel.html
 // vs. pairs as in curate.html.
 
-// noisy debug
-var logDots = false;
+// noisy debug on console
+var logDots = true;
+var logSkips = false;
+var logColor = false;
+var logUpdateXY = false;
 var logGibber = false;
+var logHist = false;
 
 
 // set in html
-var forceRating = false;
+var requireRating = false;
 var inImage = 0;
 var imageIn = -1;
 var dotSpeed = 0;
@@ -340,9 +344,11 @@ function createLine(x1, y1, x2, y2) {
 
 
 // plain movement, return time
-function updateXY(x, y)
+function updateXY(x, y, caller)
 {
 	var now = new Date();
+
+    if (logUpdateXY &&  dialogFlowRating != null  &&  mouseDown) console.log('updateXY/' + caller + ': ' + x + ',' + y + ' flowRating ' + dialogFlowRating);
 
 	if (inImage) {
 		pixInPic++;
@@ -482,7 +488,7 @@ function colorBaseArr(rgbarr, vel)
 	//return colorBaseGoldenRatio(rgbarr);
 	var x = Math.trunc(vel);
 
-	if (logDots) console.log("colorBaseArr " + x);
+	if (logColor) console.log("colorBaseArr " + x);
 
 	if (x < 3) return colorBaseCompl(rgbarr);
 	if (x > 70) return colorBaseRand(rgbarr);
@@ -518,7 +524,7 @@ function colorBaseGoldenRatio(rgbarr)
 	hsv.hue %= 1;
 	rgb = HSV2RGB(hsv);
 
-	if (logDots) console.log("colorBaseGolden: " + rgb.r + " " + rgb.g + " " + rgb.b);
+	if (logColor) console.log("colorBaseGolden: " + rgb.r + " " + rgb.g + " " + rgb.b);
 
 	return [rgb.r, rgb.g, rgb.b ];
 }
@@ -540,7 +546,7 @@ function colorBaseRand(rgbarr)
 	b = (b + rgbarr[2]) / 2;
 	b = Math.trunc(b);
 
-	if (logDots) console.log("colorBaseRand: Color rand mix " + r + " " + g + " " + b);
+	if (logColor) console.log("colorBaseRand: Color rand mix " + r + " " + g + " " + b);
 
 	return [ r, g, b ];
 }
@@ -639,7 +645,7 @@ function colorBaseCompl(rgbarr)
 						Math.floor((gap * rgb.b)/255);
 		}
 	}
-	if (logDots) console.log("colorBaseCompl: " + rgb.r + " " + rgb.g + " " + rgb.b);
+	if (logColor) console.log("colorBaseCompl: " + rgb.r + " " + rgb.g + " " + rgb.b);
 
 	return [rgb.r, rgb.g, rgb.b ];
 
@@ -1047,9 +1053,9 @@ function colorSpiralBase(dot, prMeta, day, hour, millis)
 	}
 
 //console.log('SPIRAL ' + (new Date()-t0));
-	if (dot.accel > 2) {
+	if (dot.accel > 0) {
 		var fac = 0.5;
-		if (dot.accel > 3) {
+		if (dot.accel > 30) {
 			fac = 0.33;
 		}
 		r = 255 - fac * r;
@@ -1118,17 +1124,17 @@ function colorBase(dot, prMeta, day, hour, millis)
 {
 	var res = null;
 
-	if (dot.accel > 1) {
+	if (dot.accel > 0) {
 		if (dot.vel > 90) {
 			res = blueBase(dot, prMeta, day, hour, millis);
 		} else {
 			res = grnyelBase(dot, prMeta, day, hour, millis);
 		}
-	} else if (dot.vel > 15  &&  dot.accel > 0) {
+	} else if (dot.vel > 50) {
 		res = redBase(dot, prMeta, day, hour, millis);
 	} else if (dot.vel < dot.size) {
 		res = grnyelBase(dot, prMeta, day, hour, millis);
-	} else if (dot.vel > 15) {
+	} else if (dot.vel > 25) {
 		res = blueBase(dot, prMeta, day, hour, millis);
 	} else {
 
@@ -1189,16 +1195,15 @@ function getFeeling()
 
 function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 {
-    if (logDots) console.log("placeDot, mouseDown is " + mouseDown + " mobile is " + mobile);
-
     if (!mouseDown  &&  !hasTouch) {
         // startsize == cutdistsq == -1, why even call?
         //  -- seems a broken carryover from multiple draws
-        if (logDots) console.log("placeDot - mouse down: " + mouseDown + " hasTouch: " + hasTouch);
+        if (logDots) console.log("placeDot - skip on mouse down: " + mouseDown + " hasTouch: " + hasTouch);
         return;
     }
 
-    if (forceRating  &&  dialogFlowRating == null) {
+    // requireRating set true in html
+    if (requireRating  &&  dialogFlowRating == null) {
 
         if (dialogDotsBlocked == 0) {
             console.log("placeDot: dialogFlowRating is null - must rate to dot");
@@ -1214,6 +1219,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
         return;
     }
+
 	var t0 = new Date();
 
 	if (dotList.length == 0) {
@@ -1223,6 +1229,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 	var dot = document.createElement('div');
 	dot.className = "dot";
 	dot.time = now;
+    dot.dt = 0;
 	dot.x = x;
 	dot.y = y;
 	dot.style.left = x + "px";
@@ -1238,7 +1245,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
 	if (cacheDots) {
 		dotList.push(dot);
-		if (logDots) console.log('N ' + dotList.length);
+		if (logDots) console.log('cacheDots: N ' + dotList.length);
 		return;
 	}
 
@@ -1254,16 +1261,24 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 	var msg = "";
 	var facmsg = "";
 
-	var sizeFac = null;
 	if (dotList.length > 0) {
-
 		prevDot = dotList[dotList.length-1];
+        while (prevDot != null  &&  prevDot.size == 0) {
+            console.log("prevDot.size is 0??? popping, dots: " + dotList.length);
+            dotList.pop();
+            if (dotList.length == 0) {
+                prevDot = null;
+            }
+        }
+    }
+	if (prevDot != null) {
 
 		var dt = dot.time - prevDot.time;
-		if (dt == 0) {
-			if (logDots) console.log('SKIP dt 0');
+		if (dt < 10) {
+			if (logSkips) console.log('SKIP dt ' + dt);
 			return;
 		}
+        dot.dt = dt;
 
 		var dx = dot.x - prevDot.x;
 		var dy = dot.y - prevDot.y;
@@ -1271,8 +1286,8 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		var distsq = dx*dx + dy*dy;
 
 		if (distsq < cutdistsq) {
-			if (logDots) console.log('d2='+distsq+' < cut=' + cutdistsq +
-				' / skip dot');
+			if (logSkips) console.log('d2='+distsq+' < cut=' + cutdistsq +
+				' / skip dot, dt=' + dt);
 			return;
 		}
 
@@ -1280,7 +1295,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
 		if (dot.dist < startsize) {
 			if (dotList.length % 2) {
-				if (logDots) console.log('d < ss + even: skip dot');
+				if (logSkips) console.log('d < ss + even: skip dot, dt=' + dt);
 				return;
 			}
 			msg += '[d<ss]|';
@@ -1290,30 +1305,6 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		dot.accel = dot.vel - prevDot.vel;
         dot.jerk = Math.abs(dot.accel) - Math.abs(prevDot.accel);
 
-		if (dot.vel > prevDot.vel) {
-
-			facmsg += 'vel>prev|';
-			sizeFac = 1 + Math.log(1.5 + dot.vel / prevDot.vel);
-//console.log('FAC v/v ' + dot.vel + ' / ' + prevDot.vel + ' -> ' + sizeFac);
-		} else {
-			var dd = dot.dist - prevDot.dist;
-			var a = Math.abs(dd / (dot.dist + prevDot.dist));
-//console.log('FAC dd/a ' + dd + ' , ' + a);
-			facmsg += 'a=' + (Math.floor(100*a)/100) + '|';
-			if (a > 0.2) {
-				facmsg += 'a>.2|';
-				sizeFac = 2 + 1.0 / (1.0 + Math.abs(5-a));
-			} else if (a > 0.1) {
-				facmsg += 'a>.1|';
-				sizeFac = 1 + a;
-			} else if (a > 0.01) {
-				facmsg += 'a>.01|';
-				sizeFac = 0.8 + 20 * a;
-			} else {
-				facmsg += 'a/else|';
-				sizeFac = 0.5;
-			}
-		}
         var d2angle = vecAngle( dy, dx );
 		var histBin = Math.abs(Math.floor(d2angle/10.0));
         //console.log('d2a ' + d2angle + ' bin ' + histBin);
@@ -1333,55 +1324,61 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		}
 	}
 
-	// display
+	// dot size mumbo jumbo
 
-	var size = null;
-	if (dot.dist < startsize) {
-//console.log('DIST ' + dot.dist + ' < ss ' + startsize);
+	var size = startsize;
+
+	if (size > dot.dist) {
+
 		msg += 'sz:d<ss|';
-		sizeFac = null;
 		facmsg = null;
 		if (millis % 2 == 0) {
-			size = Math.ceil(0.8 * dot.dist);
+			size = 0.8 * dot.dist;
 		} else if (millis % 3 == 0) {
-			size = Math.ceil(0.7 * dot.dist);
+			size = 0.7 * dot.dist;
 		} else if (millis % 5 == 0) {
-			size = Math.ceil(0.6 * dot.dist);
+			size = 0.6 * dot.dist;
 		} else {
-			size = Math.ceil(0.5 * dot.dist);
+			size = 0.5 * dot.dist;
 		}
-	} else if (sizeFac != null) {
-//console.log('FAC ' + sizeFac + ' * ss ' + startsize);
-		msg += 'sz:sf[' + facmsg + '=>' + (Math.floor(100*sizeFac)/100);
-		size = Math.ceil(startsize * sizeFac);
-		if (dot.dist > size * 3) {
-			msg += 'dist>sz*3';
-			size *= 2.5;
-		}
-		msg += ']';
-	} else if (dot.vel > 2.0) {
-		msg += 'sz:dv>2|';
-		size = startsize * 4;
-	} else if (dot.vel > 1.0) {
-		msg += 'sz:dv>1|';
-		size = startsize * 3;
-	} else if (dot.vel > 0.5) {
-		msg += 'sz:dv>.5|';
-		size = startsize * 2;
-	} else if (dot.vel > 0.2) {
-		msg += 'sz:dv>.2|';
-		size = Math.ceil(1.5 * startsize);
+	}
+
+    // velocity effect
+    //  25/7/28 vel in ~100-300
+    var vel_fac = 1.0;
+    if (dot.vel > 300) {
+	    msg += 'v>300|';
+	    vel_fac = 3;
+	} else if (dot.vel > 200) {
+		msg += 'v>200|';
+		vel_fac = 2;
+	} else if (dot.vel > 100) {
+		msg += 'v>100|';
+		vel_fac = 1.5;
+	} else if (dot.vel > 50) {
+		msg += 'v>50|';
+		vel_fac = 3;
 	} else  {
-		msg += 'sz:dv/else|';
-		size = Math.ceil(0.5 * startsize);
-	}
+		msg += 'v<=50|';
+		vel_fac = 5;
+    }
+    if (dot.accel > 0  &&  dot.jerk > 0) vel_fac *= 1.5;
+    else if (dot.accel > 0  &&  dot.jerk <= 0) vel_fac *= 0.75;
+    else if (dot.accel <= 0  &&  dot.jerk > 0) vel_fac *= 0.25;
+    else /* if (dot.accel <= 0  &&  dot.jerk <= 0) */ vel_fac *= 1.75;
+
+    size *= vel_fac;
+
+    // adjust
+
 	if (size > dot.dist) {
-		msg += 'sz->dist|';
-		size = dot.dist;
+		msg += 'sz'+Math.ceil(size)+'>dist';
+        size = Math.ceil((dot.dist * dot.dist)/size);
+        msg += '=>' + size + '|';
 	}
-	if (size < 2) {
-		size = 2;
-		msg += 'sz=>2';
+	if (size < 3) {
+		size = 3;
+		msg += 'sz=>3';
 	} else if (hasTouch) {
 		if (size > 45) {
 			if (size > 60  &&  Math.random() < 0.3) {
@@ -1392,25 +1389,34 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 				size = 45;
 			}
 		}
-	} else if (size > 22  ||  size > dot.dist) {
-		msg += '>22,>dist|';
-		var limit = Math.min(22, dot.dist);
-		size %= limit;
 	}
 
 	if (prevDot != null  &&  size > 3 * prevDot.size) {
-		msg += '=>3*prev|';
+		msg += '>3*prev|';
 		size = 2.8 * prevDot.size;
 	}
-	dot.size = Math.ceil(size);
 
+	dot.size = Math.ceil(size);
 	var dim = dot.size + 'px';
 	msg += '=>' + dim + '|\n';
+
+    if (logDots) console.log("placeDot @" + x + "," + y + 
+                                " startsize " + startsize + " cutsq " + cutdistsq +
+                                " dotlist sz " + dotList.length +
+                                // " mouseDown is " + mouseDown + " mobile is " + mobile +
+                                ( requireRating ? " rating " + dialogFlowRating : "") +
+                                "\n  size " + dot.size + ": " + msg +
+                                "  dt " + dot.dt +
+                                " dist " + Math.ceil(dot.dist) + 
+                                " vel " + Math.ceil(dot.vel) + 
+                                " accel " + Math.ceil(dot.accel) +
+                                " jerk " + Math.ceil(dot.jerk) +
+                                " vel_fac " + vel_fac);
 
 	dot.style.width = dim;
 	dot.style.height = dim;
 
-//console.log('DIM ' + dim + ' dist ' + dot.dist + ' vel ' + dot.vel + ' sizeFac ' + sizeFac + ' t ' + (new Date()-t0));
+//console.log('DIM ' + dim + ' dist ' + dot.dist + ' vel ' + dot.vel + ' t ' + (new Date()-t0));
 //dot.style.backgroundColor = "red";
 //document.body.appendChild(dot);
 //dotList.push(dot);
@@ -1432,7 +1438,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		res = greyBase(dot, prMeta, day, hour, millis);
 
 	} else {
-        if (logDots) console.log('============ colorBase, prm ');// + prMeta);
+        //if (logDots) console.log('============ colorBase, prm ');// + prMeta);
 		var dotStyle = prMeta[6];
 		switch(dotStyle) {
 			case 0:
@@ -1676,7 +1682,7 @@ if (dotList.length > 3) console.log('tch>1: ' + e.touches.length + ' dots: ' + d
 		mousedownX = x;
 		mousedownY = y;
 		//ctx.moveTo(x,y);
-		var now = updateXY(x, y);
+		var now = updateXY(x, y, 'start');
 		dot(x, y, now);
 	};
 
@@ -1699,7 +1705,7 @@ if (dotList.length > 3) console.log('tch>1: ' + e.touches.length + ' dots: ' + d
 		var x = e.changedTouches[0].pageX;
 		var y = e.changedTouches[0].pageY;//-44;
 
-		var now = updateXY(x, y);
+		var now = updateXY(x, y, 'move');
 		dot(x, y, now);
 
 		//ctx.lineTo(x,y);
@@ -1714,7 +1720,7 @@ if (dotList.length > 3) console.log('tch>1: ' + e.touches.length + ' dots: ' + d
 
 		//if (!inPic) return;
 		// TODO calc if in a pic
-		var size = 11 + Math.round((img.offsetWidth * img.offsetHeight)/ 80000);
+		var size = 16 + Math.round((img.offsetWidth * img.offsetHeight)/ 80000);
 		placeDot(scrn, size, size*size, x, y, now, true);
 	};
 
@@ -1750,12 +1756,12 @@ if (dotList.length > 3) console.log('tch>1: ' + e.touches.length + ' dots: ' + d
     }
     // Use event.pageX / event.pageY here
     //var rate = 0;
-    var now = updateXY(event.pageX, event.pageY);
+    var now = updateXY(event.pageX, event.pageY, 'move.event');
     if (inImage) {
 //console.log('IN ' + mouseDown);
 
       if (mouseDown) {
-        var dotSize = Math.ceil(3 +
+        var dotSize = Math.ceil(30 +
             (window.innerHeight * window.innerWidth) / 800000);
 	    placeDot(imageIn, dotSize, dotSize*dotSize, lastX, lastY, now, false);
       }
@@ -1854,11 +1860,11 @@ function summarizeDots(logit)
       //if (d > dmax) dmax = d;
       if (d > 0 && d < H_SZ) distHist[d]++;
       else if (d != 0  &&  !Number.isNaN(d)) {
-        if (logDots) console.log('outlier ' + d);
+        if (logHist) console.log('distHist outlier ' + d);
         distHist[0]++;
       }
     }
-    if (distHist[0] > 0) console.log('dot.dist outliers ' + distHist[0]);
+    if (distHist[0] > 0) console.log('distHist outliers ' + distHist[0]);
 	dh.push(-1 * distHist.length);
     Array.prototype.push.apply(dh, distHist);
 

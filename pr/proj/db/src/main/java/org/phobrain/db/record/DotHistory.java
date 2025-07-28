@@ -1002,17 +1002,25 @@ log.error("analyzeDots: HUH2");
 
         if (dfPoints == null) {
             analyzeDots();
-            if (dfPoints == null) {
-                log.warn("roundish(): no dfPoints, default false");
-                return false;
-            }
-            if (dfPoints.length < 3) {
-                log.warn("roundish(): <3 dfPoints, default false");
-                return false;
-            }
+        }
+        if (dfPoints == null) {
+            log.warn("roundish(): no dfPoints, default false");
+            return false;
+        }
+        if (dfPoints.length < 5) {
+            log.warn("roundish(): <5 dfPoints, default false");
+            return false;
         }
 
-        double[] fit = FitCircle.taubinSVD(dfPoints);
+        double[] fit = null;
+
+        try {
+            fit = FitCircle.taubinSVD(dfPoints);
+        } catch (IllegalArgumentException iae) {
+            log.error("FitCircle.taubinSVD: false w/points=" + dfPoints.length +
+                        ": " + iae);
+            return false;
+        }
 
         double a = fit[0];
         double b = fit[1];

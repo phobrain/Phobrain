@@ -32,7 +32,7 @@
   crossorigin="anonymous"></script>
 
  <script src="js/bootstrap/bootstrap.min.js"></script>
-  <script src="js/phobasic.js"></script>
+ <script src="js/phobasic.js"></script>
  <script src="js/phodots.js"></script>
 
 <style>
@@ -91,8 +91,8 @@ function loadCount()
   console.log("LoadCt [" + loadCountCookieName + "]: " + loadCt);
 }
 
-// defined in phodots.js
-forceRating = true;
+// defined in phodots.js, enabled by page
+requireRating = true;
 
 // phodots.js inImage = 0;
 // phodots.js imageIn = -1;
@@ -1014,6 +1014,7 @@ function decrementDisplayCountdown()
 
   drawTwo();
 console.log("[Flow Rating = null! RATE IT");
+  // dialogflowRating in phodots.js
   dialogFlowRating = null; // TODO directly after display?
 }
 
@@ -1355,16 +1356,16 @@ alert('big 204/legacy');
     orient = "h";
   }
 
-  var ratings = getRatings();
-  if (ratings == null) return;
+  var rating = getFeeling();
+  if (rating == null) return;
 
   var dots = summarizeDots(true);
-  var params = "sess=" + sessionID +
+  var p_hdr = "sess=" + sessionID +
 		"&sc1=" + scrn1 +
 		"&sc2=" + scrn2 +
         "&c=m" +
         "&o="  + orient +
-		"&r=" + ratings +
+		"&r=" + rating +
 		"&ct=" + picCount +
 		"&pp=" + pixInPic +
 		"&po=" + pixOutPic +
@@ -1385,8 +1386,11 @@ alert('big 204/legacy');
 		"&loc=" + lox[0] +
 		"&locspec=" + lox[1] +
 		"&btm=" + bigTime +
-		"&ltm=" + imageLoaded +
-		dots;
+		"&ltm=" + imageLoaded;
+
+  console.log('params w/o dots ' + p_hdr);
+
+  var params = p_hdr + dots;
 
   //console.log('params\n' + params);
   params = limitURIDots(params);
@@ -1524,7 +1528,7 @@ function launchOrWaitDotty(src)
   var lastDot = dotList[i]; // made an effort
   var side2 = dotSide(lastDot);
 
-  var cmd = getRatings();
+  var cmd = getFeeling();
   if (cmd == null) return;
 
   if (watchDots) {
@@ -1593,6 +1597,11 @@ document.addEventListener('DOMContentLoaded', function () {
     font-family: 'Dejavu Sans', sans-serif;
     font-size: 50pt;
     white-space:nowrap;
+}
+.buttonA:active {
+    background-color: #a0a0a0;
+    border-color: #888;
+    transform: translateY(1px);
 }
 </style>
 
@@ -1904,7 +1913,7 @@ Phob <span class="caret"></span> </button>
   <button class="buttonA" id="dialog_no_flow" title="dialog_no_flow"
    style="color:rgba(255,255,255,0.6);"
    onmousedown="mdown();"
-   onmouseup="dialogFlowApproval(2);">
+   onmouseup="rateFlow(2);">
 q
   </button>
 
@@ -1914,7 +1923,7 @@ q
   <button class="buttonA" id="dialog_yes_flow" title="dialog_yes_flow"
    style="color:green;"
    onmousedown="mdown();"
-   onmouseup="dialogFlowApproval(1);">
+   onmouseup="rateFlow(1);">
 p
   </button>
 
