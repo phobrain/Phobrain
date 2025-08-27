@@ -34,6 +34,7 @@ button {
 
 .invisBut {
   color: #909090;
+  background-color:#909090;
   font-size: 18pt;
   font-family:'Courier New',Courier,monospace;
 }
@@ -41,6 +42,7 @@ button {
 .invisBut2 {
   width: 100%;
   color: #909090;
+  background-color:#909090;
   font-size: 8pt;
   font-family:'Courier New',Courier,monospace;
 }

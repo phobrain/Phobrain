@@ -1193,6 +1193,9 @@ function getFeeling()
 
 // mouseDown is defined in-page
 
+var skipped_dt = 0;
+var skipped_dist = 0;
+
 function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 {
     if (!mouseDown  &&  !hasTouch) {
@@ -1275,6 +1278,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
 		var dt = dot.time - prevDot.time;
 		if (dt < 10) {
+            skipped_dt++;
 			if (logSkips) console.log('SKIP dt ' + dt);
 			return;
 		}
@@ -1286,6 +1290,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		var distsq = dx*dx + dy*dy;
 
 		if (distsq < cutdistsq) {
+            skipped_dist++;
 			if (logSkips) console.log('d2='+distsq+' < cut=' + cutdistsq +
 				' / skip dot, dt=' + dt);
 			return;
@@ -1332,15 +1337,20 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
 		msg += 'sz:d<ss|';
 		facmsg = null;
-		if (millis % 2 == 0) {
-			size = 0.8 * dot.dist;
-		} else if (millis % 3 == 0) {
-			size = 0.7 * dot.dist;
-		} else if (millis % 5 == 0) {
-			size = 0.6 * dot.dist;
-		} else {
-			size = 0.5 * dot.dist;
-		}
+
+        size = Math.floor( (dot.dist * dot.dist) / size);
+
+        if (size > dot.dist) {
+		    if (millis % 2 == 0) {
+			    size = 0.8 * dot.dist;
+		    } else if (millis % 3 == 0) {
+			    size = 0.7 * dot.dist;
+		    } else if (millis % 5 == 0) {
+			    size = 0.6 * dot.dist;
+		    } else {
+			    size = 0.5 * dot.dist;
+		    }
+        }
 	}
 
     // velocity effect
@@ -1362,10 +1372,19 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		msg += 'v<=50|';
 		vel_fac = 5;
     }
-    if (dot.accel > 0  &&  dot.jerk > 0) vel_fac *= 1.5;
-    else if (dot.accel > 0  &&  dot.jerk <= 0) vel_fac *= 0.75;
-    else if (dot.accel <= 0  &&  dot.jerk > 0) vel_fac *= 0.25;
-    else /* if (dot.accel <= 0  &&  dot.jerk <= 0) */ vel_fac *= 1.75;
+    if (dot.accel > 0  &&  dot.jerk > 0) {
+        msg += 'a>j>|';
+        vel_fac *= 1.5;
+    } else if (dot.accel > 0  &&  dot.jerk <= 0) {
+        msg += 'a>j<|';
+        vel_fac *= 0.75;
+    } else if (dot.accel <= 0  &&  dot.jerk > 0) {
+        msg += 'a<j>|';
+        vel_fac *= 0.25;
+    } else /* if (dot.accel <= 0  &&  dot.jerk <= 0) */ {
+        msg += 'a<j<|';
+        vel_fac *= 1.75;
+    }
 
     size *= vel_fac;
 
@@ -1398,17 +1417,23 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
 	dot.size = Math.ceil(size);
 	var dim = dot.size + 'px';
-	msg += '=>' + dim + '|\n';
+	msg += '=>' + dim +
+            '| skipped dt/d ' +
+            skipped_dt + '/' +
+            skipped_dist + '\n';
 
-    if (logDots) console.log("placeDot @" + x + "," + y + 
+    skipped_dt = 0;
+    skipped_dist = 0;
+
+    if (logDots) console.log("placeDot @" + x + "," + y +
                                 " startsize " + startsize + " cutsq " + cutdistsq +
                                 " dotlist sz " + dotList.length +
                                 // " mouseDown is " + mouseDown + " mobile is " + mobile +
                                 ( requireRating ? " rating " + dialogFlowRating : "") +
                                 "\n  size " + dot.size + ": " + msg +
                                 "  dt " + dot.dt +
-                                " dist " + Math.ceil(dot.dist) + 
-                                " vel " + Math.ceil(dot.vel) + 
+                                " dist " + Math.ceil(dot.dist) +
+                                " vel " + Math.ceil(dot.vel) +
                                 " accel " + Math.ceil(dot.accel) +
                                 " jerk " + Math.ceil(dot.jerk) +
                                 " vel_fac " + vel_fac);
@@ -1806,7 +1831,7 @@ function resetDrawCounts()
 function summarizeDots(logit)
 {
 	if (!logit) {
-		if (logDots) console.log("DOTS=don't care"); // as it happens
+		if (logDots) console.log("DOTS n/a");
 		return "&dc=0&dd=0&dv=0&da=0&dmv=0&dma=0&dmj=0&dh=0&ctm=-1" +
                 "&ddb=" + dialogDotsBlocked +
                 "&raa=" + ratingAlerts;

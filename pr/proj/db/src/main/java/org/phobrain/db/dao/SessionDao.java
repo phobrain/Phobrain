@@ -334,10 +334,11 @@ public class SessionDao extends DaoBase {
             } else {
                 throw new SQLException("Insert session failed, no ID obtained.");
             }
-            log.info("Inserted id " + id);
+            log.info("Inserted id " + id + " tag " + tag + "  " + remoteAddr);
+
+            closeSQL(generatedKeys);
 
             if (screens != null) {
-                closeSQL(generatedKeys);
                 closeSQL(ps);
 
                 ps = conn.prepareStatement(SQL_INSERT_SESSION_SCREEN);
@@ -347,7 +348,8 @@ public class SessionDao extends DaoBase {
                 for (Screen screen : screens) {
                     if (screen.id != 1  &&  screen.id != 2) {
                         log.error("BAD SCREENID " + screen.id);
-System.exit(1);
+                        continue;
+//System.exit(1);
                     }
                     ps.setInt(2, screen.id);
                     ps.setInt(3, 0);

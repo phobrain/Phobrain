@@ -47,26 +47,6 @@
 <script>
 <!--
 
-var lastAlert = new Date().getMilliseconds();
-var alertCt = 0;
-
-function callAlert(msg)
-{
-	var now = new Date().getMilliseconds();
-	if (now - lastAlert > 1500) {
-		alertCt = 0;
-		lastAlert = now;
-		alert(msg);
-		return;
-	}
-	lastAlert = now;
-	alertCt++;
-	if (alertCt > 4) {
-		return;
-	}
-	alert(msg);
-}
-
 //%%%%%%%% start photoriot
 
 var loadCt = null;
@@ -182,7 +162,7 @@ console.log("getSessionId: load: " + load);
   var sessionKey = getSessionKey();
   var k2 = getCookie(sessionKey);
   if (k2 != null  &&  k2.length > 0) {
-      sessionID = k2;
+      sessionID = k2.trim();
   }
 
   var d = new Date();
@@ -239,7 +219,7 @@ console.log("sessionID: " + sessionID);
     xmlHttp.onreadystatechange=function() {
       if(xmlHttp.readyState==4) {
         if (xmlHttp.status == 200) {
-          sessionID = xmlHttp.responseText;
+          sessionID = xmlHttp.responseText.trim();
           //setCookie("session", sessionID);
           var k = getSessionKey();
           setCookie(k, sessionID);
@@ -714,6 +694,7 @@ console.log("getMD retry " + retry0Ct);
      alert(e);
      return false;
   }
+
   xmlHttp.onreadystatechange=function() {
     if(xmlHttp.readyState==4) {
       if (xmlHttp.status == 200) {
@@ -734,7 +715,8 @@ console.log("getMD retry " + retry0Ct);
     var params = "sess=" + sessionID;
     switch (tileId) {
       case 0:
-        params += "&p1=x&p2=x\n"; break;
+        params += "&p1=x&p2=x\n"; 
+        break;
       case 1:
       case 2:
         params += "&p1=1." + vDepth[1] +
@@ -1031,6 +1013,10 @@ alert('touchy!');
 
 var servletRoot = "/pr";  // set in proj/web/build.gradle
 
+var minHeightTile2 = 99999999;
+
+var useLastTileId2Height = false;
+var lastTileId2Height = null;
 
 function drawTwo()
 {
@@ -1071,6 +1057,10 @@ console.log("drawTwo");
     var tot_height = window.innerHeight;
 
     var avail_height = tot_height - ADMIN_PIX;
+    if (avail_height < 10) {
+        console.log('avail_height upped to 10');
+        avail_height = 10;
+    }
     if (tileId != 2) {
       avail_height += 60;
     }
@@ -1116,16 +1106,9 @@ console.log("widths " + imgRcvd1.width + " " + imgRcvd2.width +
             var ws = avail_width / tot_width;
             avail_height *= ws;
             avail_height = Math.floor(avail_height);
-console.log("avail_height " + avail_height);
+console.log("avail_heigh*ws " + avail_height);
           }
         }
-/*
-        if (avail_height < minHeightTile2) {
-          minHeightTile2 = avail_height;
-        } else {
-          avail_height = minHeightTile2;
-        }
-*/
         lastTileId2Height = avail_height;
       }
     } else if (tileId == 3) {
@@ -1265,6 +1248,7 @@ function nextImage(screen, rating, caller) // screen in 1,2 or 3,4
     decrementDisplayCountdown();
   }
   newimg.onload=function() {
+
     if (newimg.height == 1  &&  newimg.width == 1) {
       console.log('empty image');
       decrementDisplayCountdown();
@@ -1651,48 +1635,7 @@ console.log(params);
   return true;
 }
 
-
-function resizeImg0() {
-
-console.log("resizeImg0");
-
-  var tot_height = window.innerHeight;
-  var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
-
-  var td = document.getElementById("td0");
-  td.setAttribute("height", avail_height);
-
-  var img = document.getElementById("image0");
-
-  if (isAndroid || isIphone) {
-    img.style.opacity = "1.0";
-    return;
-  }
-
-  if (img.height > avail_height) {
-
-    console.log("resize height " + img.height + " to " + avail_height +
-                " tot_height " + window.innerHeight);
-
-    var scaled_width = (avail_height / img.height) * img.width;
-
-    var canvas = document.createElement( 'canvas' );
-    canvas.width = scaled_width;
-    canvas.height = avail_height;
-    var tmp = new Image();
-    tmp.src = img.src;
-    context = canvas.getContext( '2d' );
-    context.drawImage( tmp, 0, 0, scaled_width, avail_height);
-    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
-    drawTouch(img, 0);
-
-  }
-  img.onmousedown = disableDragging; // for FF
-  img.style.opacity = "1.0";
-}
-
-
-
+// nextImage0 - vestigial from single-image version
 function nextImage0(rating)
 {
 
@@ -1765,7 +1708,7 @@ console.log("loaded");
     togSide = 'na';
   }
   var dots = summarizeDots(true);
-  var params = "?sess=" + sessionID +
+  var params = "sess=" + sessionID +
 		"&ct=" + picCount +
 		"&r=" + rating +
 		"&pp=" + pixInPic +
@@ -1792,7 +1735,7 @@ console.log("loaded");
 		dots;
   params = limitURIDots(params);
   // start load of image into memory
-  newimg.src = url + params;
+  newimg.src = url + "?" + params;
   drawTouch(newimg, 0);
 
   // while waiting, have a good time
@@ -1826,45 +1769,6 @@ console.log("loaded");
   accumCount = 1;
 }
 
-var ctxt = null;
-
-function setImg(imgsrc, img, avail_height)
-{
-  if (img == null) {
-    callAlert("NO image");
-    return;
-  }
-  if (imgsrc.height == avail_height) {
-    console.log("no resize");
-    var canvas = document.createElement( 'canvas' );
-    canvas.width = imgsrc.width;
-    canvas.height = avail_height;
-    var context = canvas.getContext( '2d' );
-    context.drawImage( imgsrc, 0, 0, imgsrc.width, imgsrc.height);
-    img.src = canvas.toDataURL( 'image/jpeg', 0.92 );;
-    return;
-  }
-
-  console.log("resize height " + imgsrc.height +
-            " to " + avail_height +
-            " tot_height " + window.innerHeight);
-
-  var scaled_width = (avail_height / imgsrc.height) * imgsrc.width;
-
-  var canvas = document.createElement( 'canvas' );
-  canvas.width = scaled_width;
-  canvas.height = avail_height;
-  var context = canvas.getContext( '2d' );
-  context.drawImage( imgsrc, 0, 0, scaled_width, avail_height);
-  context.lineWidth = 150;
-  ctxt = context;
-  var tmp = canvas.toDataURL( 'image/jpeg', 0.92 );
-  img.src = tmp;
-  img.onmousedown = disableDragging; // for FF
-  img.style.opacity = "1.0";
-  console.log("resized");
-}
-
 function drawOne()
 {
 
@@ -1886,22 +1790,20 @@ function drawOne()
   if (isAndroid || isIphone) {
     img.src = newimg.src;
     drawTouch(img, 0);
-    //var canvas = document.createElement( 'canvas' );
-    //canvas.width = newimg.width;
-    //canvas.height = newimg.height;
-    //context = canvas.getContext( '2d' );
-    //context.drawImage( newimg, 0, 0, newimg.width, newimg.height);
-    //img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
   } else {
 console.log("maybe resize");
     // resizeImage() inline for newimg use TODO consolidate
     var tot_height = window.innerHeight;
     var avail_height = tot_height - ADMIN_PIX; // for selector/footer plus 10px
+    if (avail_height < 10) {
+        console.log('bummping avail_height to 10');
+        avail_height = 10;
+    }
     avail_height += 60; // inverse logic
     var td = document.getElementById("td0");
     td.setAttribute("height", avail_height);
 
-    if (newimg.height <= avail_height) {
+    if (newimg.height == avail_height) {
 console.log("use as-is");
       img.src = newimg.src;
       drawTouch(img, 0);
@@ -1916,10 +1818,11 @@ console.log("use as-is");
       canvas.width = scaled_width;
       canvas.height = avail_height;
       context = canvas.getContext( '2d' );
-      context.drawImage( newimg, 0, 0, scaled_width, avail_height);
-context.lineWidth = 15;
+      context.drawImage( newimg, 0, 0, canvas.width, canvas.height);
+      context.lineWidth = 15;
       img.src = canvas.toDataURL( 'image/jpeg', 0.92 );
       drawTouch(img, 0);
+
     }
   }
   img.onmousedown = disableDragging; // for FF
@@ -1932,14 +1835,6 @@ context.lineWidth = 15;
   prevTime = new Date();
   picCount++;
 }
-
-
-var minHeightTile2 = 99999999;
-
-var useLastTileId2Height = false;
-var lastTileId2Height = null;
-
-
 
 var bigStartPost = null;
 var bigTime = -1;

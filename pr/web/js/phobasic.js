@@ -9,86 +9,33 @@
 //      web searches. No ownership is claimed or
 //      responsibility assumed for correctness.
 
-function getPlatform() {
-    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    if (userAgent.includes("Android")) {
-        return "Android";
-    }
-    if (navigator.platform.includes("armv")) {
-        return "Android";
-    }
-    if (userAgent.includes("iPhone")) {
-        return "iOS";
-    }
-    if (userAgent.includes("iPad")) {
-        return "iOS";
-    }
-    //alert("ua " + userAgent + " platf " + navigator.platform);
-    return "desktop";
-}
+// --- generic js
 
-var platform = getPlatform();
-
-var isAndroid = platform == "Android";
-var isIOS = platform == "iOS";
-var hasTouch = ('ontouchstart' in window) ||
-        (window.DocumentTouch &&
-            window.document instanceof DocumentTouch) ||
-        window.navigator.maxTouchPoints ||
-        window.navigator.msMaxTouchPoints ? true : false;
-
-console.log("phobasic.platform " + platform + " .hasTouch " + hasTouch);
-
-// crossbrowser version
-function getCoords(elem)
+function base64Str(arr)
 {
-  var box = elem.getBoundingClientRect();
-
-  var body = document.body;
-  var docEl = document.documentElement;
-
-  var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
-  var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
-
-  var clientTop = docEl.clientTop || body.clientTop || 0;
-  var clientLeft = docEl.clientLeft || body.clientLeft || 0;
-
-  var top  = box.top +  scrollTop - clientTop;
-  var left = box.left + scrollLeft - clientLeft;
-
-  return { top: Math.round(top), left: Math.round(left) };
-}
-
-function getUrlVars()
-{
-  var vars = {};
-  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-    vars[key] = value;
-  });
-  return vars;
-}
-
-function setCookie(cname, cvalue)
-{
-  console.log("setCookie " + cname + " " + cvalue);
-  var d = new Date();
-  var exdays = 5000;
-  d.setTime(d.getTime() + (exdays*24*60*60*1000));
-  var expires = "expires="+d.toUTCString();
-  document.cookie = cname + "=" + cvalue + "; " + expires +
-        "; sameSite=Strict";
-}
-
-function getCookie(cname)
-{
-  var name = cname + "=";
-  var ca = document.cookie.split(';');
-  for(var i=0; i<ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0)==' ') c = c.substring(1);
-    if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+  if (arr.length == 0) {
+    return "";
   }
-  return "";
+  var str = "";
+  for (var i=0; i<arr.length; i++) {
+    str += Base64.fromInt(arr[i]);
+    str += ",";
+  }
+  return str;
+}
+
+// decStr() 0'th elt is size
+function decStr(arr)
+{
+    if (arr.length == 0) return "0";
+
+    var str = "" + (-1 * arr.length) + ",";
+    for (var i=0; i<arr.length; i++) {
+        str += arr[i];
+        str += ",";
+    }
+//console.log('decStr ' + str);
+    return str;
 }
 
 Base64 = (function () {
@@ -123,52 +70,90 @@ Base64 = (function () {
     };
 })();
 
-function getHTTP()
+// --- browser
+
+function getUrlVars()
 {
-  var xmlHttp;
-  try {
-    // Firefox, Opera 8.0+, Safari
-    xmlHttp = new XMLHttpRequest();
-  } catch (e) {
-    // Internet Explorer
-    try {
-      xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-    } catch (e) {
-      try {
-        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
-      } catch (e) {
-        throw("Your browser does not support AJAX!");
-      }
-    }
-  }
-  return xmlHttp;
+  var vars = {};
+  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+    vars[key] = value;
+  });
+  return vars;
 }
 
-function base64Str(arr)
+function getPlatform() 
 {
-  if (arr.length == 0) {
-    return "";
-  }
-  var str = "";
-  for (var i=0; i<arr.length; i++) {
-    str += Base64.fromInt(arr[i]);
-    str += ",";
-  }
-  return str;
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    if (userAgent.includes("Android")) {
+        return "Android";
+    }
+    if (navigator.platform.includes("armv")) {
+        return "Android";
+    }
+    if (userAgent.includes("iPhone")) {
+        return "iOS";
+    }
+    if (userAgent.includes("iPad")) {
+        return "iOS";
+    }
+    //alert("ua " + userAgent + " platf " + navigator.platform);
+    return "desktop";
 }
 
-// decStr() 0'th elt is size
-function decStr(arr)
-{
-    if (arr.length == 0) return "0";
+var platform = getPlatform();
 
-    var str = "" + (-1 * arr.length) + ",";
-    for (var i=0; i<arr.length; i++) {
-        str += arr[i];
-        str += ",";
-    }
-//console.log('decStr ' + str);
-    return str;
+var isAndroid = platform == "Android";
+var isIOS = platform == "iOS";
+var hasTouch = ('ontouchstart' in window) ||
+        (window.DocumentTouch &&
+            window.document instanceof DocumentTouch) ||
+        window.navigator.maxTouchPoints ||
+        window.navigator.msMaxTouchPoints ? true : false;
+
+console.log("phobasic.platform " + platform + " .hasTouch " + hasTouch);
+
+// --- dynamic
+
+function setCookie(cname, cvalue)
+{
+  console.log("setCookie " + cname + " " + cvalue);
+  var d = new Date();
+  var exdays = 5000;
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  var expires = "expires="+d.toUTCString();
+  document.cookie = cname + "=" + cvalue + "; " + expires +
+        "; sameSite=Strict";
+}
+
+function getCookie(cname)
+{
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0; i<ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1);
+    if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+  }
+  return "";
+}
+
+function getCoords(elem)
+{
+  var box = elem.getBoundingClientRect();
+
+  var body = document.body;
+  var docEl = document.documentElement;
+
+  var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+  var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+  var clientTop = docEl.clientTop || body.clientTop || 0;
+  var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+  var top  = box.top +  scrollTop - clientTop;
+  var left = box.left + scrollLeft - clientLeft;
+
+  return { top: Math.round(top), left: Math.round(left) };
 }
 
 var lastX = 0;
@@ -206,6 +191,13 @@ function setLastXY(event)
     mousedownX = lastX;
     mousedownY = lastY;
   }
+}
+
+var mdown_time = null;
+
+function mdown() {
+//alert('mdown');
+  mdown_time = new Date();
 }
 
 // getLox - return array of [ loc, locspec ]
@@ -272,6 +264,52 @@ function getLox(img)
 	return [loc, locspec];
 }
 
+// modulate alerts
+
+var lastAlert = new Date().getMilliseconds();
+var alertCt = 0;
+
+function callAlert(msg)
+{
+	var now = new Date().getMilliseconds();
+	if (now - lastAlert > 1500) {
+		alertCt = 0;
+		lastAlert = now;
+		alert(msg);
+		return;
+	}
+	lastAlert = now;
+	alertCt++;
+	if (alertCt > 4) {
+		return;
+	}
+	alert(msg);
+}
+
+// apparently this is the old way
+
+function getHTTP()
+{
+  var xmlHttp;
+  try {
+    // Firefox, Opera 8.0+, Safari
+    xmlHttp = new XMLHttpRequest();
+  } catch (e) {
+    // Internet Explorer
+    try {
+      xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (e) {
+        throw("Your browser does not support AJAX!");
+      }
+    }
+  }
+  return xmlHttp;
+}
+
+
 navigator.browserSpecs = (function(){
     var ua= navigator.userAgent, tem, 
     M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
@@ -294,17 +332,14 @@ navigator.browserSpecs = (function(){
     }
 })(jQuery)
 
-var mdown_time = null;
+// --- phobrain-specific
 
-function mdown() {
-//alert('mdown');
-  mdown_time = new Date();
-}
+var retry0Ct = 0;
 
 function getMD(e)
 {
 
-console.log("getMD retry " + retry0Ct);
+  console.log("getMD retry " + retry0Ct);
 
   //e.preventDefault();
 
@@ -324,10 +359,10 @@ console.log("getMD retry " + retry0Ct);
          showMD();
       } else if (xmlHttp.status == 401) {
         console.log("401: " + xmlHttp.responseText);
-        callAlertTooMuch("Unknown user");
+        callAlert("Unknown user");
       } else if (xmlHttp.status == 500) {
         wipeSession();
-        callAlertTooMuch("Server error, try reloading page.");
+        callAlert("Server error, try reloading page.");
       }
     }
   };
@@ -367,7 +402,8 @@ var mouseDownNextToOptions = false;
 var mouseDownOnCredit = false;
 
 // hides field for MD/Credit/methods
-function hideMDCredit() {
+function hideMDCredit() 
+{
   mouseDownNextToOptions = false;
   mouseDownOnCredit = false;
   var td = document.getElementById("showId");
@@ -377,9 +413,8 @@ function hideMDCredit() {
 var mdK = null;
 var md = null;
 
-var retry0Ct = 0;
-
-function showMD() {
+function showMD()
+{
 
   console.log("showMD");
   if (!mouseDownNextToOptions &&  !mouseDownOnCredit) return;
@@ -434,4 +469,42 @@ console.log("md is null retry " + retry0Ct);
 console.log("spanx |" + spanx + "|");
     td.innerHTML = spanx;
   }
+}
+
+
+var ctxt = null; // debug?
+
+function setImg(imgsrc, img, avail_height)
+{
+  if (img == null) {
+    callAlert("NO image");
+    return;
+  }
+
+  var width = imgsrc.width;
+  var note = null;
+  if (imgsrc.height != avail_height) {
+    width = (avail_height / imgsrc.height) * imgsrc.width;
+    note = 'h ' + imgsrc.height +
+            '->' + avail_height +
+            ' win_h ' + window.innerHeight;
+
+  }
+
+  var canvas = document.createElement( 'canvas' );
+  canvas.width = width;
+  canvas.height = avail_height;
+  var context = canvas.getContext( '2d' );
+  ctxt = context; // debug? unused
+
+  context.drawImage( imgsrc, 0, 0, canvas.width, canvas.height);
+  context.lineWidth = 150; // ??
+
+  img.src = canvas.toDataURL('image/jpeg', 0.92);
+
+  img.onmousedown = disableDragging; // for FF
+  img.style.opacity = "1.0";
+
+  if (note == null) console.log('setImg ok');
+  else console.log('setImg ' + note);
 }

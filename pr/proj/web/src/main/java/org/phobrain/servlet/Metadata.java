@@ -993,16 +993,17 @@ log.info("MMMMMMMMMMM " +s1m + " " + s2m +"] MMMMMMMMMM");
                 method = "(crossed) " + method;
             }
 
-log.info("TTTTTTTTTTTTTTTTTTTTT " + sb + " -> " + method);
-
             MDExport ret = new MDExport();
             ret.credit = credit;
             ret.kw = method;
 
-            res.setContentType( "application/xml" );
+            String response = new Gson().toJson(ret);
 
+            //log.info("Translated? " + sb + " -> [ " + response + " ]");
+
+            res.setContentType( "application/json" );
             PrintWriter out = res.getWriter();
-            out.println(new Gson().toJson(ret));
+            out.println(response);
             out.close();
 
         } catch (NamingException ne) {

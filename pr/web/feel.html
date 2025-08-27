@@ -37,6 +37,12 @@
 
 <style>
 
+.center-fit {
+  max-width: 100%;
+  max-height: 86vh;
+  margin: auto;
+}
+
 .caret {
   color: rgba(255,255,255,0.4);
 }
@@ -58,6 +64,57 @@
   font-family:'Courier New',Courier,monospace;
   white-space:nowrap;
 }
+
+/*
+a.tooltip {
+	position: relative;
+	text-decoration: none;
+	color: blue;
+}
+
+a.tooltip span {
+	display: none;
+}
+
+a.tooltip:hover span {
+	position: absolute;
+	top: 40px;
+        font-size: 40px;
+	left: 0px;
+	display: block;
+	width: 250px;
+	color: black;
+	background-color: #FFFF40;
+	border: 1px solid black;
+	padding: 5px;
+}
+*/
+
+/*
+.tooltip {
+  position: relative;
+  display: inline-block;
+  max-width: 3000px;
+  font-size: 32px;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+*/
 
 </style>
 
@@ -81,7 +138,6 @@ function loadCount()
           "In landscape mode, drawing straight lines\ntries a vector projection method.\n" +
           "Stay in one photo for the fastest possible reply.\n" +
           "Cross the center 3 times or more to change the subject.\n" +
-          "Click just above the photos for a random pair.\n\n" +
           "Scribble your anger and see if you see a change.\n\n" +
           "'Phob' for options, 'rain' for more info.");
   }
@@ -98,34 +154,14 @@ requireRating = true;
 // phodots.js imageIn = -1;
 // phodots.js dotSpeed = 0;
 
-var lastAlert = new Date().getMilliseconds();
-var alertCt = 0;
-
-function callAlertTooMuch(msg)
-{
-	var now = new Date().getMilliseconds();
-	if (now - lastAlert > 1500) {
-		alertCt = 0;
-		lastAlert = now;
-		alert(msg);
-		return;
-	}
-	lastAlert = now;
-	alertCt++;
-	if (alertCt > 4) {
-		return;
-	}
-	alert(msg);
-}
-
 //%%%%%%%% start photoriot
 
 var inPic = -1;
 
 
-var ADMIN_PIX = 20; // for selector/footer plus 20px
+var ADMIN_PIX = 80; // for footer plus 20px.. why not header too?
 if (hasTouch) ADMIN_PIX = 20;
-// Only use: var avail_height = tot_height - ADMIN_PIX;
+// Only use is in avail_height: var avail_height = tot_height[=window.innerHeight] - ADMIN_PIX;
 
 var view = null;
 
@@ -239,7 +275,7 @@ if(rating>3) alert('nextImage screen ' + screen + ' rating ' + rating);
   var newimg = new Image();
   newimg.onerror=function(evt) {
     console.log("newimg.onerror: ", evt);
-    callAlertTooMuch("Image load problem: (Safari+MacOS<11: use Chrome) try refreshing page or choosing another view");
+    callAlert("Image load problem: (Safari+MacOS<11: use Chrome) try refreshing page or choosing another view");
     decrementDisplayCountdown();
   }
   newimg.onload=function() {
@@ -294,7 +330,7 @@ if (ss > 2 || ss < 1) alert ("ss " + ss + " tileId " + tileId);
   if (tileId == 1) o = "v";
   else if (tileId > 1) o = "h";
 
-  var params = "?sess=" + sessionID +
+  var params = "sess=" + sessionID +
 		"&sc1=" + ss +
 		"&sc2=" + ss +
 		"&d=" + vDepth[screen] +
@@ -324,7 +360,7 @@ if (ss > 2 || ss < 1) alert ("ss " + ss + " tileId " + tileId);
 
   // start load of image into memory
   console.log("GO/loadpic " + url + "\n" + params);
-  newimg.src = url + params;
+  newimg.src = url + "?" + params;
 
   // while waiting, have a good time
 
@@ -341,7 +377,7 @@ console.log("getSessionId: load: " + load);
   var sessionKey = getSessionKey();
   var k2 = getCookie(sessionKey);
   if (k2 != null  &&  k2.length > 0) {
-      sessionID = k2;
+      sessionID = k2.trim();
   }
 
   var d = new Date();
@@ -398,7 +434,7 @@ console.log("sessionID: " + sessionID);
     xmlHttp.onreadystatechange=function() {
       if(xmlHttp.readyState==4) {
         if (xmlHttp.status == 200) {
-          sessionID = xmlHttp.responseText;
+          sessionID = xmlHttp.responseText.trim();
           //setCookie("session", sessionID);
           var k = getSessionKey();
           setCookie(k, sessionID);
@@ -408,10 +444,10 @@ console.log("sessionID: " + sessionID);
           showDog();
         } else if (xmlHttp.status == 401) {
           console.log("401: " + xmlHttp.responseText);
-          callAlertTooMuch("Unknown user");
+          callAlert("Unknown user");
         } else if (xmlHttp.status == 500) {
           wipeSession();
-          callAlertTooMuch("Server error, try reloading page or returning to main page first.");
+          callAlert("Server error, try reloading page or returning to main page first.");
            } else {
             console.log("Error: " + xmlHttp.status + ": " +
                 xmlHttp.responseText);
@@ -420,9 +456,9 @@ console.log("sessionID: " + sessionID);
                 t1 += 7;
                 var t2 = xmlHttp.responseText.indexOf("</title>", t1);
                 var tt = xmlHttp.responseText.substring(t1, t2);
-                callAlertTooMuch("Oops! " + tt);
+                callAlert("Oops! " + tt);
             } else {
-                callAlertTooMuch(xmlHttp.responseText);
+                callAlert(xmlHttp.responseText);
             }
            }
 
@@ -577,7 +613,7 @@ function adjustPageElements()
   for (var i=0; i<heights.length; i++) {
     var x = document.getElementById(heights[i][0]);
     if (x == null) {
-      callAlertTooMuch("Internal error: no " + heights[i][0]);
+      callAlert("Internal error: no " + heights[i][0]);
     } else {
       var size = heights[i][1];
       if (isIOS) size = parseInt(size *= 0.6);
@@ -606,7 +642,7 @@ function adjustPageElements()
   for (var i=0; i<buttons.length; i++) {
     var b = document.getElementById(buttons[i][0]);
     if (b == null) {
-      callAlertTooMuch("Internal error: no " + buttons[i][0]);
+      callAlert("Internal error: no " + buttons[i][0]);
     } else {
       b.style.width = buttons[i][1] + "px";
       b.style.height = buttons[i][2] + "px";
@@ -654,10 +690,10 @@ function toggleRepeats(val)
         // console.log("md " + md);
       } else if (xmlHttp.status == 401) {
         console.log("401: " + xmlHttp.responseText);
-        callAlertTooMuch("Unknown user");
+        callAlert("Unknown user");
       } else if (xmlHttp.status == 500) {
         wipeSession();
-        callAlertTooMuch("Server error, try reloading page.");
+        callAlert("Server error, try reloading page.");
       }
     }
   };
@@ -851,7 +887,7 @@ function drawTwo()
         console.log("null 2draw");
       } else {
         var img = document.getElementById("image" + i);
-        if (img == null) callAlertTooMuch("NO image " + i);
+        if (img == null) callAlert("NO image " + i);
         setImg(img2draw, img, height);
         drawTouch(img, i);
         //img.src = img2draw.src;
@@ -1003,7 +1039,7 @@ function decrementDisplayCountdown()
 //console.log("decrementDisplayCountdown " + waitingDisplays + " tileId " + tileId);
 
   if (waitingDisplays == 0) {
-    callAlertTooMuch("Error, decrementing 0");
+    callAlert("Error, decrementing 0");
     return;
   }
   // not thread safe
@@ -1139,45 +1175,6 @@ function nextImage0(rating)
 {
     console.log("nextImage0: " + rating);
     alert("nextImage0 NEEDS REHAB");
-}
-
-var ctxt = null;
-
-function setImg(imgsrc, img, avail_height)
-{
-  if (img == null) {
-    callAlertTooMuch("NO image");
-    return;
-  }
-  if (imgsrc.height == avail_height) {
-    console.log("no resize");
-    var canvas = document.createElement( 'canvas' );
-    canvas.width = imgsrc.width;
-    canvas.height = avail_height;
-    var context = canvas.getContext( '2d' );
-    context.drawImage( imgsrc, 0, 0, imgsrc.width, imgsrc.height);
-    img.src = canvas.toDataURL( 'image/webp', 0.92 );;
-    return;
-  }
-
-  console.log("resize height " + imgsrc.height +
-            " to " + avail_height +
-            " tot_height " + window.innerHeight);
-
-  var scaled_width = (avail_height / imgsrc.height) * imgsrc.width;
-
-  var canvas = document.createElement( 'canvas' );
-  canvas.width = scaled_width;
-  canvas.height = avail_height;
-  var context = canvas.getContext( '2d' );
-  context.drawImage( imgsrc, 0, 0, scaled_width, avail_height);
-  context.lineWidth = 150;
-  ctxt = context;
-  var tmp = canvas.toDataURL( 'image/webp', 0.92 );
-  img.src = tmp;
-  img.onmousedown = disableDragging; // for FF
-  img.style.opacity = "1.0";
-  //console.log("resized");
 }
 
 var minHeightTile2 = 99999999;
@@ -1327,23 +1324,23 @@ console.log(signatoor);
             enterBig = null;
             return;
         } else {
-            callAlertTooMuch('Unexpected BIG200: ' + xmlHttp.responseText);
+            callAlert('Unexpected BIG200: ' + xmlHttp.responseText);
         }
       } else if (xmlHttp.status == 204) {
 alert('big 204/legacy');
       } else if (xmlHttp.status == 401) {
         console.log("401: " + xmlHttp.responseText);
-        callAlertTooMuch("Unknown user");
+        callAlert("Unknown user");
       } else if (xmlHttp.status == 500) {
         wipeSession();
-        callAlertTooMuch("Server error, try reloading page.");
+        callAlert("Server error, try reloading page.");
 
       } else if (xmlHttp.status == 0) {
-	    callAlertTooMuch('Unexpected Server response (0) - ' +
+	    callAlert('Unexpected Server response (0) - ' +
 		    'you may be disconnected from the net.');
         waitingDisplays = 0;
       } else {
-	    callAlertTooMuch('Unexpected Server response: ' + xmlHttp.status);
+	    callAlert('Unexpected Server response: ' + xmlHttp.status);
       }
       enterBig = null;
     }
@@ -1599,7 +1596,7 @@ document.addEventListener('DOMContentLoaded', function () {
     white-space:nowrap;
 }
 .buttonA:active {
-    background-color: #a0a0a0;
+    background-color: #80a0cf;
     border-color: #888;
     transform: translateY(1px);
 }
@@ -1810,7 +1807,8 @@ Phob <span class="caret"></span> </button>
 
 <div id="theshow"
  style="width:100%;display:none;text-align:center; margin-left:auto; margin-right:auto;">
-<center>
+
+<center class="center-fit">
 <table><tbody>
  <tr>
   <td id="spacer" colspan="4">
@@ -1889,7 +1887,6 @@ Phob <span class="caret"></span> </button>
   <td style="width:0%;"> </td>
  </tr>
 </tbody></table>
-</center>
 
 
 <table id="cmds" style="width:100%; text-align:center;"><tbody>
@@ -1909,13 +1906,15 @@ Phob <span class="caret"></span> </button>
 
  <td id="cmdTd" style="width:50%; text-align:center;">
 
-
   <button class="buttonA" id="dialog_no_flow" title="dialog_no_flow"
    style="color:rgba(255,255,255,0.6);"
    onmousedown="mdown();"
    onmouseup="rateFlow(2);">
 q
   </button>
+<!-- a class="tooltip" href="#" -->
+<!-- span>No.Flow!</span>
+</a -->
 
 &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;
@@ -1940,6 +1939,7 @@ p
  </td>
 </tr>
 </tbody></table>
+</center>
 
 </div> <!-- theshow -->
 </div> <!-- content -->
@@ -1955,6 +1955,10 @@ p
 	onmouseleave="hideMDCredit();"
     title="show photo credit">
   &copy; 2025 Photoriot.</p>
+
+</div> <!-- footer -->
+</div>  <!-- wrapper -->
+</body>
 
 <!-- INITIALIZE -->
 
@@ -1973,8 +1977,4 @@ try {
 // -->
 </script>
 
-</div> <!-- footer -->
-
-</div>  <!-- wrapper -->
-</body>
 </html>
