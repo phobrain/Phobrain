@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class HistoryPair {
+public class HistoryPair {
 
     private static final Logger log = LoggerFactory.getLogger(HistoryPair.class);
 
@@ -86,6 +86,11 @@ abstract class HistoryPair {
     public String       toggleTStr; // raw base64
     public int[]        togTimes; // parsed toggleTStr
 
+    // feel.html
+    public int          flowRating;
+    public int          dialogDotsBlocked = 0;
+    public int          ratingAlerts = 0;
+
     public int[]        locSpec; // not stored
     public DotHistory   dotHistory; // not stored TODO
 
@@ -112,6 +117,7 @@ abstract class HistoryPair {
         }
         return dotHistory.dotMap(n);
     }
+
 
     @Override
     public String toString() {

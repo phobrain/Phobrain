@@ -42,7 +42,7 @@ import org.phobrain.db.dao.TrainingPairsDao;
 import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Browser;
 import org.phobrain.db.record.User;
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.Keywords;
 import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureMap;
@@ -156,7 +156,7 @@ public class ReNext extends HttpServlet {
     // class for json and use by js in browser
 
     static class ShowingInfo {
-        ShowingPair showing;
+        HistoryPair showing;
         String kwd;
         String kwdMatch;
         String kwdNoMatch;
@@ -766,7 +766,7 @@ log.info("SU " + session.user + " " + apl.size());
                 int ix = br.version.indexOf("k=");
                 String kwdCoder = br.version.substring(ix+2, ix+3);
 
-                List<ShowingPair> sl = ShowingPairDao.getAllShowings(conn,
+                List<HistoryPair> sl = ShowingPairDao.getAll(conn,
                                                         browserID);
                 if (sl == null  ||  sl.size() == 0) {
                     log.error("NO pics for session tag " + sessionTag +
@@ -774,7 +774,7 @@ log.info("SU " + session.user + " " + apl.size());
                     res.sendError(500, "Internal Error. Call Help.");
                     return;
                 }
-                for (ShowingPair s : sl) {
+                for (HistoryPair s : sl) {
 log.info("S " + s.nTogs);
 //System.exit(1);
                     ShowingInfo si = new ShowingInfo();
@@ -805,7 +805,7 @@ log.info("S " + s.nTogs);
                 for (int i=0; i<shows.size(); i++) {
 
                     ShowingInfo si = shows.get(i);
-                    ShowingPair s = si.showing;
+                    HistoryPair s = si.showing;
 
                     if (s.rateTime == null) {
                         si.dbTime = 0;
@@ -927,7 +927,7 @@ log.info("S " + s.nTogs);
                         si.kwdMatch = "[no kwd]";
                     }
                     si.hash = pm.hash;
-                    si.showing = new ShowingPair();
+                    si.showing = new HistoryPair();
                     si.showing.id = -1;
                     si.showing.id1 = fr.p.id;
                     // FIXME - 2 screens
@@ -995,7 +995,7 @@ log.info("S " + s.nTogs);
                     PictureMap pm = PictureMapDao.insertPictureMap(conn,
                                     p.xid, p.archive, p.fileName);
                     si.hash = pm.hash;
-                    si.showing = new ShowingPair();
+                    si.showing = new HistoryPair();
                     si.showing.id = -1;
                     // FIX for screens > 1
                     si.showing.id1 = id;

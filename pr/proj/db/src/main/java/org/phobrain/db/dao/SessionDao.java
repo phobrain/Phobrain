@@ -294,7 +294,8 @@ public class SessionDao extends DaoBase {
         "INSERT INTO pr.session " +
         " (tag, host, browser_version, hour, tzoff, lang, " +
         "  platform, pr_user, kwd_choice)" +
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)" +
+        " RETURNING id";
 
     private final static String SQL_INSERT_SESSION_SCREEN =
         "INSERT INTO pr.session_screen " +

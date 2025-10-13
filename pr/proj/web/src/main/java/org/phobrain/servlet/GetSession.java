@@ -26,7 +26,7 @@ import org.phobrain.db.record.Browser;
 import org.phobrain.db.record.Screen;
 import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Picture;
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.PictureResponse;
 
 import java.util.List;
@@ -486,7 +486,7 @@ screenCode = "1";
 
                     PictureResponse pr1 = (PictureResponse) screens.get(0).pr;
                     PictureResponse pr2 = (PictureResponse) screens.get(1).pr;
-                    ShowingPair sp = new ShowingPair();
+                    HistoryPair sp = new HistoryPair();
                     sp.browserID = browser.id;
                     sp.callCount = -1;
                     sp.orderInSession = 1;
@@ -502,7 +502,7 @@ screenCode = "1";
                     sp.bigStime = (int) (System.currentTimeMillis() - t0);
                     sp.atomImpact = AtomSpec.NO_ATOM;
 
-                    ShowingPairDao.insertShowingPair(conn, sp);
+                    ShowingPairDao.insertPair(conn, sp);
                     screens.get(0).showingId = sp.id;
                     screens.get(1).showingId = sp.id;
 

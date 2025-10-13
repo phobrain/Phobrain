@@ -31,7 +31,7 @@ import org.phobrain.db.dao.PairDao;
 import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Screen;
 import org.phobrain.db.record.Browser;
-import org.phobrain.db.record.FeelingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureMap;
 import org.phobrain.db.record.PictureResponse;
@@ -363,7 +363,7 @@ public class GetFext extends HttpServlet {
 
     private final String DOT_DIR = System.getProperty("user.home") + "/dots/";
 
-    private void writeDotHistoryFile(FeelingPair fp, String dotHistory) {
+    private void writeDotHistoryFile(HistoryPair fp, String dotHistory) {
 
         if (fp == null  ||  dotHistory == null) {
             log.error("writeDotHistoryFile: null arg(s)");
@@ -795,7 +795,7 @@ String toggleTStr = "tmp";
                      " " + browserID + " " + remoteHost);
             }
 
-            FeelingPair last = FeelingPairDao.getLastFeelingToBrowser(
+            HistoryPair last = FeelingPairDao.getLastPair(
                                          conn, browserID);
 
             if (last != null) {
@@ -937,14 +937,14 @@ log.info("LDH cmd/" + cmd + (last.dotHistory == null ? ": null/txt " + dotHistor
 log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
 
                     if (last == null) {
-                        log.error("l: NO PREV FeelingPair: " + browserID + " " +
+                        log.error("l: NO PREV HistoryPair: " + browserID + " " +
                                    remoteHost);
                     } else {
                         if (last.flowRating <= 0) {
                             log.error("Dang browser sent update w/o rating, letting db handle for now: " +
                                         browserID + " " + remoteHost);
                         }
-                        FeelingPairDao.updateFeelingPair(conn, last);
+                        FeelingPairDao.updatePair(conn, last);
                     }
 
                     // match screen to left
@@ -990,9 +990,9 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                                "l: Last is null on single-pic " +
                                browserID + " " + remoteHost);
                     }
-                    FeelingPairDao.updateFeelingPair(conn, last);
+                    FeelingPairDao.updatePair(conn, last);
 
-                    FeelingPair fp = new FeelingPair();
+                    HistoryPair fp = new HistoryPair();
                     fp.browserID = browserID;
                     fp.callCount = callCount;
                     fp.orderInSession = engine.getOrderInSession(conn,
@@ -1023,7 +1023,7 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                     fp.vertical = pr.p.vertical;
                     fp.atomImpact = AtomSpec.NO_ATOM;
                     fp.bigStime = (int) (System.currentTimeMillis() - t1);
-                    FeelingPairDao.insertFeelingPair(conn, fp);
+                    FeelingPairDao.insertPair(conn, fp);
 
                     scr.showingId = fp.id;
                     scr.id_s = pr.p.id;
@@ -1137,11 +1137,11 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
 
                 //if (r != -2) { // past initial load
                     if (last == null) {
-                        log.error("NO PREV FeelingPair: " + browserID + " " +
+                        log.error("NO PREV HistoryPair: " + browserID + " " +
                                    remoteHost);
 
                     } else {
-                        FeelingPairDao.updateFeelingPair(conn, last);
+                        FeelingPairDao.updatePair(conn, last);
                     }
                 //}
                 List<String> ids = new ArrayList<>();
@@ -1219,14 +1219,14 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                 PictureResponse pr2 = (PictureResponse) screens.get(1).pr;
 
                 if (pr1 == null  &&  pr2 == null) {
-                    log.error("Inserting FeelingPair: both pr's null");
+                    log.error("Inserting HistoryPair: both pr's null");
                 } else if (pr1 == null  ||  pr2 == null) {
-                    log.error("Inserting FeelingPair: Null pr on screen: " +
+                    log.error("Inserting HistoryPair: Null pr on screen: " +
                                 (pr1 == null ? "1" : "") +
                                 (pr2 == null ? "2" : ""));
                 }
 
-                FeelingPair fp = new FeelingPair();
+                HistoryPair fp = new HistoryPair();
                 fp.browserID = browserID;
 
                 if (pr1 != null) {
@@ -1252,7 +1252,7 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                 fp.bigStime = (int) t1;
                 fp.atomImpact = AtomSpec.NO_ATOM;
 
-                FeelingPairDao.insertFeelingPair(conn, fp);
+                FeelingPairDao.insertPair(conn, fp);
                 screens.get(0).showingId = fp.id;
                 screens.get(1).showingId = fp.id;
 

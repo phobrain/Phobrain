@@ -14,7 +14,7 @@ package org.phobrain.servlet;
 import org.phobrain.util.ConfigUtil;
 
 import org.phobrain.db.record.Browser;
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.dao.DaoBase;
 import org.phobrain.db.dao.ShowingPairDao;
 import org.phobrain.db.dao.BrowserDao;
@@ -103,8 +103,7 @@ public class Status extends HttpServlet {
             List<Browser> browsers = BrowserDao.getBrowsers(conn);
 
             for (Browser b : browsers) {
-                List<ShowingPair> show = ShowingPairDao.getAllShowings(conn, 
-                                                                      b.id);
+                List<HistoryPair> show = ShowingPairDao.getAll(conn, b.id);
                 if (show.size() > 0) {
                     String lastIP = null;
                     try {
@@ -142,7 +141,7 @@ public class Status extends HttpServlet {
 
 
     private BrowserReport browserReport(Browser b, String lastIP,
-                                        List<ShowingPair> show) {
+                                        List<HistoryPair> show) {
 
         BrowserReport br = new BrowserReport();
 
@@ -175,9 +174,9 @@ public class Status extends HttpServlet {
 
         br.longestBreak = 0;
         br.breaks = 0;
-        ShowingPair prev = null;
+        HistoryPair prev = null;
         int cts[] = new int[20];
-        for (ShowingPair s : show) {
+        for (HistoryPair s : show) {
             if (s.pairRating == -1  || s.pairRating > cts.length-1) {
                 cts[0]++;
             } else {

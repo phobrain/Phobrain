@@ -1399,6 +1399,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 		size = 3;
 		msg += 'sz=>3';
 	} else if (hasTouch) {
+/*
 		if (size > 45) {
 			if (size > 60  &&  Math.random() < 0.3) {
 				msg += 'sz=>60';
@@ -1408,6 +1409,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 				size = 45;
 			}
 		}
+*/
 	}
 
 	if (prevDot != null  &&  size > 3 * prevDot.size) {

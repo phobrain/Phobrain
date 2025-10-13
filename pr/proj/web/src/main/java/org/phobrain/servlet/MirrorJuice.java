@@ -7,9 +7,9 @@ package org.phobrain.servlet;
  **/
 
 /**
- **  FeelEngine - main/live 'brain' of Phobrain.
- **     Serves photo pairs or single photos.
- **
+ **  MirrorJuice - common routines for 'mind mirroring' with photo pairs.
+ **             Starting as a merge of FeelEngine back into GetEngine.
+ **             'Silver' and 'MirrorSilver' not appealing.
  */
 
 import org.phobrain.util.ConfigUtil;
@@ -27,29 +27,27 @@ import org.phobrain.db.dao.DaoBase;
 import org.phobrain.db.dao.SessionDao;
 import org.phobrain.db.dao.BrowserDao;
 import org.phobrain.db.dao.UserDao;
-import org.phobrain.db.dao.FeelingPairDao;
 import org.phobrain.db.dao.PictureDao;
+import org.phobrain.db.dao.KeywordsDao;
 import org.phobrain.db.dao.PictureMapDao;
 import org.phobrain.db.dao.PairDao;
 import org.phobrain.db.dao.PairTopDao;
+import org.phobrain.db.dao.UniquePairDao;
+import org.phobrain.db.dao.ApprovalDao;
 
 import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Browser;
 import org.phobrain.db.record.Screen;
 import org.phobrain.db.record.User;
-import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.DotHistory;
 import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureResponse;
+import org.phobrain.db.record.Keywords;
 import org.phobrain.db.record.PictureMap;
-import org.phobrain.db.record.Pair;
 import org.phobrain.db.record.ApprovedPair;
+import org.phobrain.db.record.Pair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.util.DBUtil;
-
-import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
 
 import java.util.Random;
 import java.util.Collections;
@@ -82,35 +80,108 @@ import java.io.PrintWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FeelEngine {
+public abstract class MirrorJuice {
 
-    private static final Logger log = LoggerFactory.getLogger(FeelEngine.class);
+    private static final Logger log = LoggerFactory.getLogger(MirrorJuice.class);
 
     final boolean KEYWORDS = false;
 
+    // not used for a while - sleep before return
     private long DEBUG_SLEEP_O_KINGLY_BUG = 0;
 
-    private MultiLayerNetwork flowModel_vgg16_4;
-    private MultiLayerNetwork flowModel_nnl_7;
-
-    private boolean haveFlow() {
-        if (flowModel_vgg16_4 == null  &&  flowModel_nnl_7 == null) {
-            return false;
-        }
-        return true;
-    }
-
-    private int modMillis(int n) {
+    int modMillis(int n) {
         return (int) (System.currentTimeMillis() % n);
     }
 
-    private class UserProfile {
+    /*
+    **  abstract methods use different flavors of HistoryPairDao.
+    **      HistoryPairDao.getLastPairs(conn, browserID, 10);
+    **      FeelingPairDao.getLastFeelings(conn, browserID, 10);
+    **      getSeen(conn, browserID);
+    **      addSeen(Connection conn, long browserID, String orient, String... ids) 
+    **      getOrderInSession(Connection conn, long browserID)
+    **      HistoryPairDao.countPairs(conn, browserID);
+    **      HistoryPairDao.countPairs(conn, browserID, "v");
+    **      HistoryPairDao.countPairs(conn, browserID, "h");
+    */
+
+    int PAIRVEC_SZ = 60;  // implementors can change
+
+    abstract List<HistoryPair> getLastPairs(Connection conn, long browserID, int n) throws SQLException;
+    abstract Set<String> getSeen(Connection conn, long browserID) throws SQLException;
+    abstract void addSeen(Connection conn, long browserID, String orient, String... ids) throws SQLException;
+    abstract int countPairs(Connection conn, long browserID) throws SQLException;
+    abstract int countPairs(Connection conn, long browserID, String orient) throws SQLException;
+    abstract boolean checkSeen(Connection conn, long browserID, String id1, String id2) throws SQLException;
+    abstract int getOrderInSession(Connection conn, long browserID) throws SQLException;
+
+    // override if avail
+    boolean haveFlow() { return false; }
+    List<Screen> modelMatch(Connection conn, UserProfile up, int viewNum, String orient, 
+                                        Session session, List<String> ids, ListHolder[] lhs)
+            throws SQLException {
+        return null;
+    }
+
+    private void fillSeenIds(SeenIds set, Connection conn, long browserID) throws SQLException {
+
+        // TODO - roll into 1 query
+
+        set.seen = getSeen(conn, browserID);
+        set.vertical = countPairs(conn, browserID, "v");
+        set.horizontal = countPairs(conn, browserID, "h");
+    }
+
+    SeenIds getSeen(Connection conn, Session session)
+            throws SQLException {
+        return getSeen(conn, session, false);
+    }
+    private SeenIds getSeen(Connection conn, Session session, boolean force)
+            throws SQLException {
+
+        SeenIds ret = browserSeen.get(session.browserID);
+        if (ret != null) {
+            if (ret.seen != null) {
+                if (session.repeatPics  &&  !force) {
+                    ret.seen = null;// in case user changed repeat status
+                }
+            } else {
+                if (force  ||  !session.repeatPics) {
+                    fillSeenIds(ret, conn, session.browserID);
+                }
+            }
+            return ret;
+        }
+
+        // TODO - COLLISION network jitter may lead to collision here
+        //                  if user clicks a lot and things arrive all at once
+        // synchronized (anObject) would be a club
+
+        log.info("new SeenIds browserID " + session.browserID);
+
+        ret = new SeenIds();
+        if (force  ||  !session.repeatPics) {
+            fillSeenIds(ret, conn, session.browserID);
+        }
+        browserSeen.put(session.browserID, ret);
+
+        log.info("new SeenIds browserID " + session.browserID +
+                    " seen " +
+                            (ret.seen == null ? "null" :
+                                " size " + ret.seen.size()) +
+                    " v: " + ret.vertical + " h: " + ret.horizontal);
+
+        return ret;
+    }
+
+    class UserProfile {
 
         long create = System.currentTimeMillis();
 
         List<HistoryPair> history;  // most recent first
         HistoryPair last = null;
         HistoryPair lastPlus = null;
+        int prevRating = -1; // ShowingPair use only
         boolean recentNeg = false;
 
         int deltaUserTime = 0;
@@ -182,7 +253,7 @@ public class FeelEngine {
                                      HistoryPair lastLocal)
             throws SQLException {
 
-            history = FeelingPairDao.getLastPairs(conn, browserID, 10);
+            history = getLastPairs(conn, browserID, 10);
 
             if (history == null  ||  history.size() == 0) {
                 log.info("UserProfile: history 0");
@@ -198,6 +269,7 @@ public class FeelEngine {
             if (history.size() > 1) {
 
                 lastPlus = history.get(1);
+                prevRating = lastPlus.pairRating; // only relevant for ShowingPair
 
                 if (screens == 1) {
 
@@ -222,9 +294,13 @@ public class FeelEngine {
                 boolean stillGood = true;
                 int[] times = new int[SPEEDUP_COMPARE];
                 for (int i=0;i<SPEEDUP_COMPARE;i++) {
-                    HistoryPair fp = history.get(i);
-                    times[i] = fp.userTime;
-                    sum.append(fp.userTime).append(" ");
+                    HistoryPair hp = history.get(i);
+                    if (hp.pairRating != 3) { // need to compare apples/apples?
+                        stillGood = false;
+                        break;
+                    }
+                    times[i] = hp.userTime;
+                    sum.append(hp.userTime).append(" ");
                 }
 
                 if (stillGood) {
@@ -258,38 +334,45 @@ public class FeelEngine {
 
             for (int i=0;i<history.size();i++) {
 
-                HistoryPair fp = history.get(i);
+                HistoryPair hp = history.get(i);
 
-                // use fp.tmpInt to encode drawing begin/end
+                // use hp.tmpInt to encode drawing begin/end
 
-                fp.tmpInt = 0;
+                hp.tmpInt = 0;
 
-                fp.tmpInt = (10 * fp.dotStartScreen) +
-                                fp.dotEndScreen;
-                if (fp.tmpInt < 11  ||  fp.tmpInt > 22) {
-                    fp.tmpInt *= -1;
+                if (hp.pairRating == 10  &&  hp.dotStartScreen > 0) {
+
+                    hp.tmpInt = (10 * hp.dotStartScreen) +
+                                hp.dotEndScreen;
+                    if (hp.tmpInt < 11  ||  hp.tmpInt > 22) {
+                        hp.tmpInt *= -1;
+                    }
                 }
 
-                totCkAll += fp.clickTime;
-                totUserAll += fp.userTime;
-
-                scaleTime += (double) fp.userTime / (i+1);
-
-                if (fp.loadTime > 0  &&  fp.loadTime < minLoadTime) {
-                    minLoadTime = fp.loadTime;
+                if (i < 6  &&  hp.pairRating == 13) {
+                    recentNeg = true;
                 }
-                if (fp.clickTime > 40) {
-                    totCk += fp.clickTime;
+
+                totCkAll += hp.clickTime;
+                totUserAll += hp.userTime;
+
+                scaleTime += (double) hp.userTime / (i+1);
+
+                if (hp.loadTime > 0  &&  hp.loadTime < minLoadTime) {
+                    minLoadTime = hp.loadTime;
+                }
+                if (hp.clickTime > 40) {
+                    totCk += hp.clickTime;
                     nCk++;
-                    if (fp.clickTime > 1000) {
+                    if (hp.clickTime > 1000) {
                         big++;
                     }
                 }
-                if (fp.dotCount > 0) {
-                    tot_dot += fp.dotCount;
+                if (hp.dotCount > 0) {
+                    tot_dot += hp.dotCount;
                     n_dot++;
-                    if (fp.dotCount > maxDot) {
-                        maxDot = fp.dotCount;
+                    if (hp.dotCount > maxDot) {
+                        maxDot = hp.dotCount;
                     }
                 }
             }
@@ -301,8 +384,8 @@ public class FeelEngine {
             //}
 
             userTimeDev = 0.0;
-            for (HistoryPair fp : history) {
-                int t = Math.abs(fp.userTime - avgUserTime);
+            for (HistoryPair hp : history) {
+                int t = Math.abs(hp.userTime - avgUserTime);
                 userTimeDev += (double)t * (double)t;
 //log.info("\ngUseruserTimeDev " + userTimeDev + " tt " + tt + " t " + t);
                 if (t > maxDeltaUserTime) {
@@ -485,18 +568,18 @@ public class FeelEngine {
 
             for (int i=0;i<maxDepth;i++) {
 
-                HistoryPair fp = history.get(i);
+                HistoryPair hp = history.get(i);
 
-                totView += fp.userTime;
-                if (fp.userTime > maxView) maxView = fp.userTime;
-                if (fp.userTime < minView) minView = fp.userTime;
+                totView += hp.userTime;
+                if (hp.userTime > maxView) maxView = hp.userTime;
+                if (hp.userTime < minView) minView = hp.userTime;
 
-                if (fp.mouseMaxa > 300) {
+                if (hp.mouseMaxa > 300) {
                     maxA++;
                 }
-                if (fp.mouseDx > 0  &&  fp.mouseDy > 0) {
-                    float ratio = (float)fp.mouseDist /
-                                  (float)(fp.mouseDx * fp.mouseDy);
+                if (hp.mouseDx > 0  &&  hp.mouseDy > 0) {
+                    float ratio = (float)hp.mouseDist /
+                                  (float)(hp.mouseDx * hp.mouseDy);
                     if (ratio > 0.6) {
                         lenArea++;
                     }
@@ -604,7 +687,23 @@ public class FeelEngine {
                                                          .append("\n");
                 return true;
             }
+            if (last.pairRating == 4  &&  last.pixOutPic > 0) {
+                sum.append(" restlessMs pixOutPic ").append(last.mouseDist)
+                                                         .append("\n");
+                return true;
+            }
 
+            if (history.size() > 1) {
+
+                // check for mouse straying between clicks on the option
+
+                HistoryPair hp = history.get(1);
+                if (last.pairRating == hp.pairRating  &&  last.mouseDist > 25) {
+                    sum.append(" restlessMs dist ")
+                       .append(last.mouseDist).append("\n");
+                    return true;
+                }
+            }
             return false;
         }
 
@@ -710,11 +809,34 @@ public class FeelEngine {
         lh.dbl_l = lhx.dbl_l;
     }
 
-    private void dotHistMe(HistoryPair fp, ListHolder lh, StringBuilder sb) {
+    //  pick a histogram via histos % ndots
+
+    private int[] hpHisto(HistoryPair hp) {
+
+        if (hp.dotHistory == null) {
+            log.error("hpHisto: dotHistory is null");
+            return null;
+        }
+
+        switch (hp.dotCount % 4) {
+        case 0:
+            return hp.dotHistory.d3angleHist; // 36
+        case 1:
+            return hp.dotHistory.d2angleHist; // 36
+        case 2:
+            return hp.dotHistory.distHist; // 51
+        case 3:
+        default:
+            return hp.dotHistory.velocityHist; // 51
+        }
+    }
+
+    private void dotHistMe(HistoryPair hp, ListHolder lh, StringBuilder sb) {
 
         // choose a histogram
 
-        int[] hist = fp.dotHistory.histFromDotCount();
+        int[] hist = hpHisto(hp);
+
         dotHistMe(hist, lh, sb);
 
     }
@@ -776,18 +898,7 @@ public class FeelEngine {
 
     protected static final ServletData data = ServletData.get();
 
-    private static FeelEngine instance = null;
-
-    public static FeelEngine getEngine() {
-        synchronized(FeelEngine.class) {
-            if (instance == null) {
-                instance = new FeelEngine();
-            }
-        }
-        return instance;
-    }
-
-    private FeelEngine() {
+    protected MirrorJuice() {
 
         Connection conn = null;
         try {
@@ -800,57 +911,6 @@ public class FeelEngine {
 
             // TODO - use same algo as other apps??
             PHOBRAIN_LOCAL = ConfigUtil.runtimeProperty("local.dir");
-
-// w/ ois
-//final String MODEL = "/home/epqe/new/models2/qiktry_val_63_roc_66_dim_7_softsign.keras";
-// no db
-//final String MODEL = "/home/epqe/new/models_no_db/qiktry_val_64_roc_70_dim_7_softsign.keras";
-            final String MODEL_vgg16_4 = "/home/epqe/new/models_no_db/qiktry_val_66_roc_71_dim_4_tanh.keras";
-            final String MODEL_nnl_7 = "/home/epqe/new/models_no_db/qiktry_val_66_roc_70_dim_7_tanh.keras";
-
-            log.info("Loading models " + MODEL_vgg16_4 + " " + MODEL_nnl_7);
-            try {
-                flowModel_vgg16_4 = KerasModelImport.
-                    importKerasSequentialModelAndWeights(MODEL_vgg16_4, false);
-                log.info("Loaded MODEL " + MODEL_vgg16_4 + ":   " + flowModel_vgg16_4.summary());
-                flowModel_nnl_7 = KerasModelImport.
-                    importKerasSequentialModelAndWeights(MODEL_nnl_7, false);
-                log.info("Loaded MODEL " + MODEL_nnl_7 + ":   " + flowModel_nnl_7.summary());
-
-                if (false) {
-                    BufferedReader in = new BufferedReader(new FileReader("/home/epqe/new/pypreds"));
-                    String line;
-                    double[] data = new double[202];
-                    double data2d[][] = new double[1][];
-                    data2d[0] = data;
-                    while ((line = in.readLine()) != null) {
-
-                        if (line.startsWith("#")) {
-                            continue;
-                        }
-
-                        String ss[] = line.split("\\|");
-                        if (ss.length != 2) {
-                            log.error("LEN mismatch " + ss.length + " != 2");
-                            System.exit(1);
-                        }
-
-                        String sss[] = ss[0].split(",");
-                        if (sss.length != data.length) {
-                            log.error("LEN mismatch " + sss.length + ", " + data.length);
-                            System.exit(1);
-                        }
-                        for (int i=0; i<sss.length; i++) {
-                            data[i] = Double.parseDouble(sss[i]);
-                        }
-                        INDArray aaa = Nd4j.create(data2d);
-                        double prediction = flowModel_nnl_7.output(aaa).getDouble(0);
-                        log.info("WWW " + prediction + " " + ss[1]);
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Model load: " + e);
-            }
 
             statusDir = ConfigUtil.runtimeProperty("status.dir");
             if (statusDir == null) {
@@ -907,7 +967,7 @@ public class FeelEngine {
         } finally {
             DaoBase.closeSQL(conn);
         }
-        log.info("FeelEngine Init OK");
+        log.info("MirrorJuice Init OK");
     }
 
     private double click2Skew(int screen, String clickLoc) {
@@ -1021,11 +1081,11 @@ public class FeelEngine {
         */
     }
 
-    private static Map<Long, List<String>> browserLastList =
+    protected static Map<Long, List<String>> browserLastList =
                                             new ConcurrentHashMap<>();
                               //Collections.synchronizedMap(new HashMap<>());
 
-    private static Map<Long, SeenIds> browserSeen =
+    protected static Map<Long, SeenIds> browserSeen =
                                             new ConcurrentHashMap<>();
                               //Collections.synchronizedMap(new HashMap<>());
 
@@ -1081,56 +1141,6 @@ public class FeelEngine {
         // TODO: trim old nbr cache
     }
 
-    SeenIds getSeen(Connection conn, Session session)
-            throws SQLException {
-        return getSeen(conn, session, false);
-    }
-
-    private SeenIds getSeen(Connection conn, Session session, boolean force)
-            throws SQLException {
-
-        SeenIds ret = browserSeen.get(session.browserID);
-        if (ret != null) {
-            if (ret.seen != null) {
-                if (session.repeatPics  &&  !force) {
-                    ret.seen = null;// in case user changed repeat status
-                }
-            } else {
-                if (force  ||  !session.repeatPics) {
-                    ret.seen = FeelingPairDao.getSeen(conn, session.browserID);
-                    ret.vertical = FeelingPairDao.countPairs(conn,
-                                                  session.browserID, "v");
-                    ret.horizontal = FeelingPairDao.countPairs(conn,
-                                                  session.browserID, "h");
-                }
-            }
-            return ret;
-        }
-
-        // TODO - COLLISION network jitter may lead to collision here
-        //                  if user clicks a lot and things arrive all at once
-        // synchronized (anObject) would be a club
-
-        log.info("new SeenIds browserID " + session.browserID);
-
-        ret = new SeenIds();
-        if (force  ||  !session.repeatPics) {
-            ret.seen = FeelingPairDao.getSeen(conn, session.browserID);
-            ret.vertical = FeelingPairDao.countPairs(conn,
-                                                  session.browserID, "v");
-            ret.horizontal = FeelingPairDao.countPairs(conn,
-                                                  session.browserID, "h");
-        }
-        browserSeen.put(session.browserID, ret);
-
-        log.info("new SeenIds browserID " + session.browserID +
-                    " seen " +
-                            (ret.seen == null ? "null" :
-                                " size " + ret.seen.size()) +
-                    " v: " + ret.vertical + " h: " + ret.horizontal);
-
-        return ret;
-    }
 
 
 
@@ -1146,63 +1156,6 @@ public class FeelEngine {
             return -1;
         }
         return (100 * seenids.seen.size()) / picSet.size();
-    }
-
-    public void addSeen(Connection conn, long browserID, String orient,
-                        String... ids)
-            throws SQLException {
-
-        log.info("addSeen " + browserID + " " + Arrays.toString(ids));
-
-        if (ids.length == 0) {
-            log.error("NO IDS");
-            throw new IllegalArgumentException("NO IDS");
-        }
-        SeenIds set = browserSeen.get(browserID);
-        if (set == null) {
-            log.info("SET NULL " + browserID);
-            set = new SeenIds();
-            browserSeen.put(browserID, set);
-        }
-        if (set.seen == null) {
-            // TODO - roll into 1 query
-            set.seen = FeelingPairDao.getSeen(conn, browserID);
-            set.vertical = FeelingPairDao.countPairs(conn,
-                                                  browserID, "v");
-            set.horizontal = FeelingPairDao.countPairs(conn,
-                                                  browserID, "h");
-        }
-        for (String id : ids) {
-            set.seen.add(id);
-        }
-        if ("v".equals(orient)) {
-            set.vertical += ids.length;
-        } else {
-            set.horizontal += ids.length;
-        }
-
-        log.info("AddSeen: " + set.seen.size());
-
-        // by the time we are adding is a good time to
-        // purge any exclude
-        set.exclude.clear();
-    }
-
-    private static Map<Long, Integer> browserLastOrderInSession =
-                                                        new HashMap<>();
-
-    public synchronized static int getOrderInSession(Connection conn,
-                                                     long browserID)
-            throws SQLException {
-        Integer order = browserLastOrderInSession.get(browserID);
-        if (order == null) {
-            int n = FeelingPairDao.countPairs(conn, browserID);
-            order = n + 1;
-        } else {
-            order++;
-        }
-        browserLastOrderInSession.put(browserID, order);
-        return order;
     }
 
     public PictureResponse chooseRandomImage(Connection conn,
@@ -1365,11 +1318,11 @@ public class FeelEngine {
 
 
 
-    private void createDblL(HistoryPair fp, ListHolder lh, StringBuilder sb) {
+    private void createDblL(HistoryPair hp, ListHolder lh, StringBuilder sb) {
 
-        if (fp != null  &&  fp.dotCount > 0) {
+        if (hp != null  &&  hp.dotCount > 0) {
             // reflect user movement
-            dotHistMe(fp, lh, sb);
+            dotHistMe(hp, lh, sb);
             return;
         }
 
@@ -1459,11 +1412,12 @@ public class FeelEngine {
 
     private PictureResponse tryLhP(Connection conn,
                                     Session session, String orient,
-                                    HistoryPair fp,
+                                    HistoryPair hp,
                                     ListHolder lh)
             throws SQLException {
 
-        int[] hist = fp.dotHistory.histFromDotCount();
+        int[] hist = hpHisto(hp);
+
         return tryLhP(conn, session, orient, hist, lh);
     }
 
@@ -1801,7 +1755,7 @@ assume list is sorted.. couldn't go too wrong
     }
 
     private ListHolder filterList(StringBuilder pref, HistoryPair last,
-                                  int viewNum,
+                                  int viewNum, String kwdCoder,
                                   ListHolder lh, ListHolder altLh,
                                   ListHolder bakLh, boolean copyIf)
             throws SQLException {
@@ -1907,7 +1861,7 @@ assume list is sorted.. couldn't go too wrong
     // single screen - unit==1 on UserProfile
     private PictureResponse chooseFromList(Connection conn,
                                      Session session, UserProfile up,
-                                     int viewNum,
+                                     int viewNum, String kwdCoder,
                                      String lastId, ListHolder lh,
                                      String type, boolean copyIf)
             throws SQLException {
@@ -1932,7 +1886,7 @@ assume list is sorted.. couldn't go too wrong
         }
         ListHolder bakLh = new ListHolder();
         StringBuilder pref = new StringBuilder();
-        ListHolder lh2 = filterList(pref, up.last, viewNum,
+        ListHolder lh2 = filterList(pref, up.last, viewNum, kwdCoder,
                                     lh, null, bakLh, copyIf);
 
         PictureResponse pr = new PictureResponse();
@@ -2016,6 +1970,34 @@ assume list is sorted.. couldn't go too wrong
         }
         return pr;
         //throw new SQLException("chooseFromList [" + type + "]: OUT OF OPTIONS");
+    }
+
+    public PictureResponse chooseKwdImage(Connection conn, Session session,
+                                   String kwdCoder, String kwd)
+            throws SQLException {
+
+        // both orientations
+        log.info("chooseKwdImage: " + kwd);
+
+        browserLastList.remove(session.browserID);// clear Plus history
+
+        SeenIds seenIds = getSeen(conn, session);
+
+        List<String> l = KeywordsDao.getIdsCoderKwd(conn, kwdCoder, kwd);
+        while (l.size() > 0) {
+            int i = rand.nextInt(l.size());
+            String id = l.get(i);
+            if (seenIds.contains(id)) {
+                l.remove(i);
+                continue;
+            }
+            PictureResponse pr = new PictureResponse();
+            pr.p = PictureDao.getPictureById(conn, id);
+            pr.method = "kwd/random";
+            return pr;
+        }
+        log.info("Seen all for kwd [" + kwd + "]");
+        return null;
     }
 
     private PictureResponse chooseBestComboPairtop(Connection conn,
@@ -2577,6 +2559,13 @@ assume list is sorted.. couldn't go too wrong
                 continue;
             }
 
+            Set<String> seenPairsId1 = null;
+            Set<String> seenPairsId2 = null;
+            if (session.curator != null) {
+                seenPairsId1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+                seenPairsId2 = UniquePairDao.getPicsSeen(conn, id1, "id2");
+            }
+
             // work away
 
             for (int j=picList.size()-1;j>i;j--) {
@@ -2593,6 +2582,19 @@ assume list is sorted.. couldn't go too wrong
 
                 String scr1 = id1;
                 String scr2 = id2;
+
+                if (session.curator != null) {
+                    if (seenPairsId1.contains(id2)) {
+                        if (seenPairsId2.contains(id2)) {
+                            // won't fit in either slot
+                            skipped_seen++;
+                            continue;
+                        }
+                        // id2 fits in 0 slot
+                        scr1 = id2;
+                        scr2 = id1;
+                    }
+                }
 
                 PictureResponse pr1 = new PictureResponse();
                 pr1.p = PictureDao.getPictureById(conn, scr1);
@@ -2638,6 +2640,13 @@ assume list is sorted.. couldn't go too wrong
                 continue;
             }
 
+            Set<String> seenPairsId1 = null;
+            Set<String> seenPairsId2 = null;
+            if (session.curator != null) {
+                seenPairsId1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+                seenPairsId2 = UniquePairDao.getPicsSeen(conn, id1, "id2");
+            }
+
             for (int j=center-1;j>i;j--) {
 
                 String id2 = picList.get(j);
@@ -2652,6 +2661,19 @@ assume list is sorted.. couldn't go too wrong
 
                 String scr1 = id1;
                 String scr2 = id2;
+
+                if (session.curator != null) {
+                    if (seenPairsId1.contains(id2)) {
+                        if (seenPairsId2.contains(id2)) {
+                            // won't fit in either slot
+                            skipped_seen++;
+                            continue;
+                        }
+                        // id2 fits in 1 slot
+                        scr1 = id2;
+                        scr2 = id1;
+                    }
+                }
 
                 PictureResponse pr1 = new PictureResponse();
                 pr1.p = PictureDao.getPictureById(conn, scr1);
@@ -2714,6 +2736,16 @@ assume list is sorted.. couldn't go too wrong
         }
         SeenIds seenIds = getSeen(conn, session);
 
+        Set<String> seenPairs1 = null;
+        //Set<String> seenPairs2 = null;
+
+        if (session.curator != null) {
+            seenPairs1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+            log.info("got seen0 TODO - cache?");
+            // will need this if we add a swap rule:
+            //seenPairs2 = UniquePairDao.getPicsSeen(conn, id1, "id2");
+        }
+
         int limit = 200;
 
         ListHolder lh2 = null;
@@ -2749,7 +2781,9 @@ assume list is sorted.. couldn't go too wrong
         // got lh2.. some options
 
         if (up.last == null  ||
-            up.last.dotHistory == null) {
+            up.last.dotHistory == null  ||
+            up.last.dotHistory.d3angleHist == null  ||
+            up.last.dotHistory.d2angleHist == null) {
 
             // first idea, createDblL uses dots if avail
 
@@ -2782,6 +2816,11 @@ assume list is sorted.. couldn't go too wrong
             try2++;
 
             String id2 =  pr2.p.id;
+            if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                log.info("skipping curator-seenpair..");
+                skipped_seen++;
+                continue;
+            }
             if (id2.equals(id1)) {
                 continue;
             }
@@ -2831,7 +2870,15 @@ assume list is sorted.. couldn't go too wrong
 
         PictureResponse pr2 = new PictureResponse();
 
+        Set<String> seenPairs1 = null;
+        //Set<String> seenPairs2 = null;
+
         String id1 = initPr.p.id;
+        if (session.curator != null) {
+            seenPairs1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+            // will need this if we add a swap rule:
+            //seenPairs2 = UniquePairDao.getPicsSeen(conn, id1, "id2");
+        }
 
         String matchRightTo = id1;
         //initPr.method += "/P/";
@@ -2860,6 +2907,11 @@ assume list is sorted.. couldn't go too wrong
             }
             try2++;
             String id2 = pr2.p.id;
+            if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                log.info("skipping curator-seenpair..");
+                skipped_seen++;
+                continue;
+            }
             if (id2.equals(id1)) {
                 continue;
             }
@@ -2911,6 +2963,9 @@ assume list is sorted.. couldn't go too wrong
         PictureResponse initPr = new PictureResponse();
         PictureResponse pr2 = new PictureResponse();
 
+        Set<String> seenPairs1 = null;
+        //Set<String> seenPairs2 = null;
+
         while (lh.size() > 0) {
             int l1 = lh.size();
             initPr.p = chooseFromDistribution(conn, "PHop/"+tag, session, up,
@@ -2934,6 +2989,11 @@ assume list is sorted.. couldn't go too wrong
             int try2 = 0;
             int try2_net = 0;
             String id1 = initPr.p.id;
+            if (session.curator != null) {
+                seenPairs1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+                // will need this if we add a swap rule:
+                //seenPairs2 = UniquePairDao.getPicsSeen(conn, id1, "id2");
+            }
 
             String matchRightTo = id1;
             initPr.method = "P/";
@@ -2966,6 +3026,11 @@ assume list is sorted.. couldn't go too wrong
                 }
                 try2++;
                 String id2 = pr2.p.id;
+                if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                    log.info("skipping curator-seenpair..");
+                    skipped_seen++;
+                    continue;
+                }
                 if (id2.equals(id1)) {
                     continue;
                 }
@@ -3023,6 +3088,13 @@ assume list is sorted.. couldn't go too wrong
 
             String id1 = pr1.p.id;
 
+            Set<String> seenPairsId1 = null;
+            Set<String> seenPairsId2 = null;
+            if (session.curator != null) {
+                seenPairsId1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+                seenPairsId2 = UniquePairDao.getPicsSeen(conn, id1, "id2");
+            }
+
             for (int j=0;j<20;j++) {
                 PictureResponse pr2 = chooseRandomImage(conn, viewNum, orient,
                                                     session, false);
@@ -3042,6 +3114,58 @@ assume list is sorted.. couldn't go too wrong
                 PictureResponse p1 = pr1;
                 PictureResponse p2 = pr2;
 
+                if (session.curator != null) {
+
+                    // maybe flip or skip
+
+                    // biasing toward pairs in eval states in approved_pairs
+                    // in order to push to 1's faster
+
+                    ApprovedPair ap = ApprovalDao.getApprovedPair(conn,
+                                                             id1, id2);
+                    if (ap == null  ||  ap.status == 1  ||  ap.status == 2) {
+
+                        // try flip
+
+                        ap = ApprovalDao.getApprovedPair(conn, id2, id1);
+
+                        if (ap == null) {
+                            // no way for approved_pair,
+                            // screen out seen pairs
+                            if (seenPairsId1.contains(id2)) {
+                                if (seenPairsId2.contains(id2)) {
+                                    // won't fit in either slot
+                                    skipped_decided++;
+                                    continue;
+                                }
+                                // id2 fits in 0 slot - flip
+                                scr1 = id2;
+                                scr2 = id1;
+                                p1 = pr2;
+                                p2 = pr1;
+                            }
+                        } else if (ap.status != 1  &&  ap.status != 2) {
+
+                            // flip
+
+                            scr1 = id2;
+                            scr2 = id1;
+                            p1 = pr2;
+                            p2 = pr1;
+                        }
+                    } else if (ap.status == 1  ||  ap.status == 2) {
+                        skipped_decided++;
+                        continue;
+                    }
+                    if (ap != null) {
+                        log.info("CURATOR random ap status " + ap.status);
+                    }
+                    if (skipped_decided > 0) {
+                        log.info("CURATOR random skipped " + skipped_decided);
+                    }
+
+                }// end curator machinations
+
                 List<Screen> ret = new ArrayList<>();
                 ret.add(new Screen(session.browserID, 1, "v",
                                                         scr1, p1));
@@ -3059,7 +3183,8 @@ assume list is sorted.. couldn't go too wrong
                                              int viewNum, String orient,
                                              Session session,
                                              UserProfile up,
-                                             int angle, Picture prev)
+                                             int angle, Picture prev,
+                                             Set<String> seenPairs)
             throws SQLException {
 
         ListHolder lh = PictureDao.getPicsAtAngle(conn, angle);
@@ -3096,6 +3221,9 @@ assume list is sorted.. couldn't go too wrong
             if (ix < lh.size()) {
                 seen = true;
                 String id = lh.id2_l.get(ix);
+                if (seenPairs != null  &&  seenPairs.contains(id)) {
+                    continue;
+                }
                 PictureResponse pr = tryId(conn, orient, session,
                                                 picSet, seenIds, id);
                 if (pr != null) {
@@ -3109,6 +3237,9 @@ assume list is sorted.. couldn't go too wrong
             if (i > 0  &&  ix > -1) {
                 seen = true;
                 String id = lh.id2_l.get(ix);
+                if (seenPairs != null  &&  seenPairs.contains(id)) {
+                    continue;
+                }
                 PictureResponse pr = tryId(conn, orient, session,
                                             picSet, seenIds, id);
                 if (pr != null) {
@@ -3129,7 +3260,8 @@ assume list is sorted.. couldn't go too wrong
                                         int viewNum, String orient,
                                         Session session, UserProfile up,
                                         Picture prev,
-                                        boolean increment) // next golden
+                                        boolean increment, // next golden
+                                        Set<String> seenPairs)
             throws SQLException {
 
         //String lastId = "" + prev.archive + ":" + prev.sequence;
@@ -3156,7 +3288,7 @@ assume list is sorted.. couldn't go too wrong
 
             PictureResponse pr = tryPicsAtAngleAB(conn, viewNum, orient,
                                               session, up,
-                                              newAngle, prev);
+                                              newAngle, prev, seenPairs);
             ct++;
             if (pr != null) {
                 log.info("Angle " + newAngle +
@@ -3176,7 +3308,7 @@ assume list is sorted.. couldn't go too wrong
                 newAngle -= 360;
             }
             pr = tryPicsAtAngleAB(conn, viewNum, orient, session, up,
-                                        newAngle, prev);
+                                        newAngle, prev, seenPairs);
             ct++;
             if (pr != null) {
                 log.info("Angle " + newAngle +
@@ -3194,7 +3326,7 @@ assume list is sorted.. couldn't go too wrong
                                         int viewNum, String orient,
                                         Session session, UserProfile up,
                                         Picture prev,
-                                        int option)
+                                        int option, Set<String> seenPairs)
             throws SQLException {
 
         String lastId = prev.id;
@@ -3316,6 +3448,10 @@ assume list is sorted.. couldn't go too wrong
 
                 String id2 = lh2.id2_l.get(i);
 
+                if (seenPairs != null  &&  seenPairs.contains(id2)) {
+                    continue;
+                }
+
                 PictureResponse pr = tryId(conn, orient, session,
                                                 picSet, seenIds, id2);
                 if (pr != null) {
@@ -3329,6 +3465,10 @@ assume list is sorted.. couldn't go too wrong
                 seen = true;
 
                 String id2 = lh2.id2_l.get(i);
+
+                if (seenPairs != null  &&  seenPairs.contains(id2)) {
+                    continue;
+                }
 
                 PictureResponse pr = tryId(conn, orient, session,
                                                 picSet, seenIds, id2);
@@ -3359,12 +3499,16 @@ assume list is sorted.. couldn't go too wrong
         Picture p1 = PictureDao.getPictureById(conn, ids.get(1));
 
         PictureResponse pr1 = tryGoldenAB(conn, viewNum, orient, session, up,
-                                                p1, false);
+                                                p1, false, null);
         if (pr1 == null) {
             log.info("GoldenAB init got zilch");
             return null;
         }
         String id1 = pr1.p.id;
+        Set<String> seenPairsId1 = null;
+        if (session.curator != null) {
+            seenPairsId1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+        }
 
         if (option < 0) {
             // nn 2nd pic
@@ -3387,7 +3531,7 @@ assume list is sorted.. couldn't go too wrong
         SeenIds seenIds = getSeen(conn, session);
         seenIds.exclude.add(id1);// remember to remove
         PictureResponse pr2 = tryGoldenAB(conn, viewNum, orient, session, up,
-                                                pr1.p, true);
+                                                pr1.p, true, seenPairsId1);
         seenIds.exclude.remove(id1);
         if (pr2 == null) {
             return null;
@@ -3482,6 +3626,10 @@ assume list is sorted.. couldn't go too wrong
                 return null;
             }
 
+            Set<String> seenPairsId1 = null;
+            if (session.curator != null) {
+                seenPairsId1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+            }
             if (!up.longerThanSecondLastUserTime) {
                 log.info("handleGoldenScreens inverting skew");// e.g. >1x
                 up.skew = 1.0 - up.skew;
@@ -3495,7 +3643,7 @@ assume list is sorted.. couldn't go too wrong
             try {
 
                 pr2 = tryGolden(conn, viewNum, orient, session, up,
-                                      pr1.p, option);
+                                      pr1.p, option, seenPairsId1);
 
             } catch (SQLException sqe) {
 
@@ -3528,11 +3676,15 @@ assume list is sorted.. couldn't go too wrong
             }
 
             String id1 = pr1.p.id;
+            Set<String> seenPairsId1 = null;
+            if (session.curator != null) {
+                seenPairsId1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+            }
             seenIds.exclude.add(id1);// remember to remove
 
             PictureResponse pr2 = tryGolden(conn,
                                             viewNum, orient, session, up,
-                                            pr1.p, option);
+                                            pr1.p, option, seenPairsId1);
             seenIds.exclude.remove(id1);
 
             if (pr2 == null) {
@@ -4171,6 +4323,240 @@ assume list is sorted.. couldn't go too wrong
         return null;
     }
 
+
+    // uncalled
+    private PictureResponse chooseBestPairByColors(Connection conn,
+                                        int viewNum, String orient,
+                                        Session session,
+                                        int rating, HistoryPair last,
+                                        String prevId)
+            throws SQLException {
+
+        browserLastList.remove(session.browserID);// clear Plus history
+
+        long t1 = System.currentTimeMillis();
+
+        Set<String> picSet = data.getPicSet(viewNum, orient);
+
+        String type = null;
+        String column = null;
+        ListHolder lh = null;
+        Boolean kwd = null;
+        switch (rating) {
+            case 5:
+                type = "rgb_1";
+                column = "b0";
+                break;
+            case 6:
+                type = "lab1_1";
+                column = "b1";
+                break;
+            case 7:
+                type = "lab2_1";
+                column = "b2";
+                break;
+            case 8:
+                //type = "gist_1";
+                //column = "b3";
+                //break;
+            case 9:
+                type = "grey_1";
+                column = "b4";
+                break;
+            case 10:
+                type = "hs24_1";
+                column = "b5";
+                break;
+            case 11:
+                type = "hs48_1";
+                column = "b6";
+                break;
+            case 12:
+                type = "combo";
+                column = "b3 b2";// gist + lab2k
+                break;
+            case 13:
+                type = "rgb12_1";
+                column = "b7";
+                break;
+            case 14:
+                type = "rgb24_1";
+                column = "b8";
+                break;
+            case 15:
+                type = "rgb32_1";
+                column = "b9";
+                break;
+            case 16:  // top quality - keep number constant for convenience
+                type = "merge";
+                column = "b3 b9 b2 b6";
+                break;
+            case 17:  // top plus kwd
+                type = "merge";
+                column = "b3 b9 b2 b6";
+                kwd = true;
+                break;
+            default:
+                throw new RuntimeException("Browser " + session.browserID +
+                                           ": Unexpected option: " + rating);
+        }
+
+        log.info("chooseBestPairByColors: " + type + "/" + column +
+                 ": Last: " + prevId);
+
+        if ("combo".equals(type)) {
+            String meth = column.replaceAll(" ", "");
+            String cols[] = column.split(" ");
+            if (cols.length != 2) {
+                throw new RuntimeException("FIXME: " + column);
+            }
+
+            lh = PairTopDao.getPairtopSymm(conn, "col",
+                                    orient, prevId, cols[0],
+                                    false,  // don't bother inverting
+                                    "ASC", 200, picSet);
+            Set<String> target = new HashSet<>();
+            target.addAll(lh.id2_l);
+            // random sanity check
+            if (target.size() != lh.size()) {
+                throw new RuntimeException("Dupes in list " + prevId);
+            }
+
+            ListHolder lh2 = PairTopDao.getPairtopSymm(conn, "col",
+                                    orient, prevId, cols[1],
+                                    false,  // don't bother inverting
+                                    "ASC", 1000, picSet);
+
+            SeenIds seenIds = getSeen(conn, session);
+
+            int valid = 0;
+            for (int i=0;i<lh2.size();i++) {
+                String id2 = lh2.id2_l.get(i);
+                if (!target.contains(id2)) {
+                    continue;
+                }
+                if (seenIds.contains(id2)) {
+                    continue;
+                }
+                valid++;
+                log.info("combo set " + target.size() + " saw: " + i +
+                                  " valid: " + valid);
+                PictureResponse pr = new PictureResponse();
+                pr.p = PictureDao.getPictureById(conn, id2);
+                int ix = lh.id2_l.indexOf(id2);
+                log.info("Combo hash " + ix + " " + lh.value_l.get(ix) +
+                                 " list " + i + " " + lh2.value_l.get(i));
+                pr.value = lh.value_l.get(ix);
+                pr.method = "com_" + meth;
+                return pr;
+            }
+            log.info("combo no luck comparing " + target.size() + " with " +
+                     lh.size());
+            return null;
+
+        }
+        if ("merge".equals(type)) {
+            // here we go again
+            String cols[] = column.split(" ");
+            String meth = column.replaceAll(" ", "").replaceAll("b", "");
+            if (kwd != null) {
+                meth += "/k";
+            }
+            List<List<String>> ids = new ArrayList<>();
+            for (String c : cols) {
+                lh = PairTopDao.getPairtopSymm(conn, "col",
+                                        orient, prevId, c,
+                                        false, // don't bother inverting
+                                        "ASC", 500, picSet);
+                ids.add(lh.id2_l);
+            }
+
+            int sweep = 30 + last.orderInSession / 50;
+
+            HashCount hc = new HashCount();
+            for (List<String> idl : ids) {
+                for (int i=0;i<sweep && i<idl.size();i++) {
+                    hc.add(idl.get(i));
+                }
+            }
+            List<Set<String>> max_ids = hc.getSetsInOrder();
+            if (max_ids == null  ||  max_ids.size() == 1) {
+                log.info("No special case out of " + hc.size());
+                int newSweep = sweep * 2;
+                for (List<String> idl : ids) {
+                    if (idl.size() > sweep) {
+                        for (int i=sweep;i<newSweep && i<idl.size();i++) {
+                            hc.add(idl.get(i));
+                        }
+                        sweep = newSweep;// ok to keep hitting it
+                    }
+                }
+                max_ids = hc.getSetsInOrder();
+                if (max_ids == null  ||  max_ids.size() == 1) {
+                    log.info("Still no special case out of " + hc.size());
+                }
+            }
+            log.info("Sweep: " + sweep + " Sets: " +
+                      (max_ids == null ? "null" : max_ids.size()));
+            if (max_ids == null  ||  max_ids.size() == 1) {
+                return roundRobin(conn, session, meth, ids, null, 0, 0, orient);
+            }
+            SeenIds seenIds = getSeen(conn, session);
+            for (Set<String> prefSet : max_ids) {
+                Set<String> validSet = new HashSet<>();
+                for (String id : prefSet) {
+                    if (seenIds.contains(id)) {
+                        continue;
+                    }
+                    validSet.add(id);
+                }
+                log.info("SET " + prefSet.size() + " => " + validSet.size());
+                if (validSet.size() == 0) {
+                    continue;
+                }
+                if (validSet.size() == 1) {
+                    // no need to prioritize by list order
+                    log.info("GOT 1 max");
+                    Object oo[] = validSet.toArray();
+                    String id = (String) oo[0];
+                    PictureResponse pr = new PictureResponse();
+                    pr.p = PictureDao.getPictureById(conn, id);
+                    pr.method = "h_" + meth;
+                    return pr;
+                }
+                // check for highest prio in set, in given column order
+                PictureResponse pr = roundRobin(conn, session, meth, ids,
+                                                      validSet, 0, sweep,
+                                                      orient);
+                if (pr != null) {
+                    return pr;
+                }
+            }
+            // last resort
+            log.info("last resort rr");
+            meth += "fb";
+            return roundRobin(conn, session, meth, ids, null, sweep, 0,
+                              orient);
+        }
+
+        lh = PairTopDao.getPairtopSymm(conn, "col",
+                                orient, prevId, column,
+                                false, "ASC", 500, picSet);
+
+        // give best match, unfiltered
+
+        t1 = System.currentTimeMillis();
+        logIt(lh, false);
+        PictureResponse pr = pickFirstOk(conn, viewNum, orient, session,
+                                                lh, type);
+        if (pr != null) {
+            log.info(type + " dt: " + (System.currentTimeMillis()-t1) +
+                     " val " + pr.value);
+            return pr;
+        }
+        return null;
+    }
+
     private String mapUPRatioToColor(UserProfile up) {
 
         // MAGIC
@@ -4264,6 +4650,113 @@ assume list is sorted.. couldn't go too wrong
         return false;
     }
 
+    private List<Screen> checkApprovedPair(Connection conn, Session session,
+                                           ApprovedPair ap, Boolean hasKwd,
+                                           String initId,
+                                           PictureResponse initPr,
+                                           String orient,
+                                           SeenIds seenIds,
+                                           int[] debug)
+            throws SQLException {
+
+        if (seenIds.contains(ap.otherId)) {
+            debug[0]++;
+            return null;
+        }
+        if (checkSeen(conn, session.browserID, ap.id1, ap.id2)) {
+            debug[1]++;
+            return null;
+        }
+        PictureResponse pr = new PictureResponse();
+        pr.p = PictureDao.getPictureById(conn, ap.otherId);
+        if (pr.p == null) {
+            debug[2]++;
+            log.info("No version for unseen seq " + ap.otherId);
+            return null;
+        }
+
+        pr.method = "app/" + (hasKwd == null ? "all" :
+                                      (hasKwd ? "kwd" : "nokwd"));
+        List<Screen> ret = new ArrayList<>();
+        if (ap.otherId.equals(ap.id1)) {
+            ret.add(new Screen(session.browserID, 1, "v", ap.otherId, pr));
+            ret.add(new Screen(session.browserID, 2, "v", initId, initPr));
+        } else {
+            ret.add(new Screen(session.browserID, 1, "v", initId, initPr));
+            ret.add(new Screen(session.browserID, 2, "v", ap.otherId, pr));
+        }
+        log.info("checkApprovedPair ok: " + screenSummary(ret));
+        return ret;
+    }
+
+    private List<Screen> tryForApprovedPair(Connection conn,
+                                            int viewNum, String orient,
+                                            Session session,
+                                            Set<String> picSet,
+                                            String id, PictureResponse initPr,
+                                            Boolean hasKwd, double ratio)
+            throws SQLException {
+
+        List<ApprovedPair> approvedPairs = ApprovalDao.getApprovedPairsWithPic(
+                                                    conn, id, // hasKwd,
+                                                    picSet);
+        if (approvedPairs == null  ||  approvedPairs.size() == 0) {
+            log.info("tryForApprovedPair (No approved pairs in set size: " +
+                            (picSet == null ? "0" : picSet.size()) + ": " + id);
+            return null;
+        }
+        int target = (int) (ratio * approvedPairs.size());
+        if (target < 0  ||  target > approvedPairs.size()) {
+            int r = rand.nextInt(approvedPairs.size());
+            log.info("Adjust target " + target + " to " + r);
+            target = r;
+        }
+        int offset = 0;
+
+        SeenIds seenIds = getSeen(conn, session);
+
+        //log.info("tryForApprovedPair pairs: " + approvedPairs.size() +
+                 //" seenIds.seen " + (seenIds.seen == null ? "null" : "yes"));
+        int[] debug = new int[3];
+        List<List<Screen>> bak = new ArrayList<>();
+        while (true) {
+
+            boolean tried = false;
+
+            int ix = target + offset;
+            if (ix < approvedPairs.size()) {
+                ApprovedPair ap = approvedPairs.get(ix);
+                List<Screen> scl = checkApprovedPair(conn, session, ap,
+                                                     hasKwd, id, initPr,
+                                                     orient, seenIds, debug);
+                if (scl != null) {
+                    return scl;
+                }
+                tried = true;
+            }
+            ix = target - offset;
+            if (ix != target  &&  ix > -1) {
+                ApprovedPair ap = approvedPairs.get(ix);
+                List<Screen> scl = checkApprovedPair(conn, session, ap,
+                                                     hasKwd, id, initPr,
+                                                     orient, seenIds, debug);
+                if (scl != null) {
+                    return scl;
+                }
+                tried = true;
+            }
+            if (!tried) {
+                break;
+            }
+            offset++;
+        }
+        log.info("(No unseen approved pairs out of " + approvedPairs.size() +
+                 " seen pics " +
+                   (seenIds == null ? "null" : seenIds.seen.size()) +
+                 " debug " + Arrays.toString(debug));
+        return null;
+    }
+
     private List<Screen> getColorScreensPic2(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
@@ -4313,6 +4806,13 @@ assume list is sorted.. couldn't go too wrong
         log.info("size " + lh.size());
 
         int skipped_seen = 0;
+        Set<String> seenPairs1 = null;
+        Set<String> seenPairs2 = null;
+        if (session.curator != null) {
+            seenPairs1 = UniquePairDao.getPicsSeen(conn, id, "id1");
+            seenPairs2 = UniquePairDao.getPicsSeen(conn, id, "id2");
+        }
+
         SeenIds seenIds = getSeen(conn, session);
 
         List<Screen> ret = new ArrayList<>();
@@ -4348,12 +4848,22 @@ assume list is sorted.. couldn't go too wrong
                     initPr.p.sequence < pr.p.sequence  ||
                     initPr.p.sequence > pr.p.sequence + 5) {
                     //                             screen
+                    if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                        log.info("skipping..");
+                        skipped_seen++;
+                        continue;
+                    }
                     ret.add(new Screen(session.browserID, 1, "v",
                                                               id, initPr));
                     ret.add(new Screen(session.browserID, 2, "v",
                                                              id2, pr));
                 } else {
                     log.info("Swapping for seq closeness");
+                    if (seenPairs2 != null  &&  seenPairs2.contains(id2)) {
+                        log.info("skipping..");
+                        skipped_seen++;
+                        continue;
+                    }
                     // swap methods for reporting
                     String m = pr.method;
                     pr.method = initPr.method;
@@ -4439,6 +4949,13 @@ assume list is sorted.. couldn't go too wrong
         target.addAll(lh.id2_l);
 
         int skipped_seen = 0;
+        Set<String> seenPairs1 = null;
+        Set<String> seenPairs2 = null;
+        if (session.curator != null) {
+            seenPairs1 = UniquePairDao.getPicsSeen(conn, id, "id1");
+            seenPairs2 = UniquePairDao.getPicsSeen(conn, id, "id2");
+        }
+
         SeenIds seenIds = getSeen(conn, session);
 
         ListHolder ok_lh = new ListHolder();
@@ -4498,10 +5015,20 @@ assume list is sorted.. couldn't go too wrong
                     initPr.p.sequence < pr.p.sequence  ||
                     initPr.p.sequence > pr.p.sequence + 5) {
                     //                             screen
+                    if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                        log.info("skipping..");
+                        skipped_seen++;
+                        continue;
+                    }
                     ret.add(new Screen(session.browserID, 1, "v", id, initPr));
                     ret.add(new Screen(session.browserID, 2, "v", id2, pr));
                 } else {
                     log.info("Swapping for seq closeness");
+                    if (seenPairs2 != null  &&  seenPairs2.contains(id2)) {
+                        log.info("skipping..");
+                        skipped_seen++;
+                        continue;
+                    }
                     // swap methods for reporting
                     String m = pr.method;
                     pr.method = initPr.method;
@@ -4543,12 +5070,22 @@ assume list is sorted.. couldn't go too wrong
                 initPr.p.sequence < pr.p.sequence  ||
                 initPr.p.sequence > pr.p.sequence + 5) {
                 //                             screen
+                if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                    log.info("skipping..");
+                    skipped_seen++;
+                    continue;
+                }
                 ret.add(new Screen(session.browserID, 1, "v", id, initPr));
                 ret.add(new Screen(session.browserID, 2, "v", id2, pr));
 
             } else {
 
                 log.info("Swapping for seq closeness");
+                if (seenPairs2 != null  &&  seenPairs2.contains(id2)) {
+                    log.info("skipping..");
+                    skipped_seen++;
+                    continue;
+                }
                 // swap methods for reporting
                 String m = pr.method;
                 pr.method = initPr.method;
@@ -4645,7 +5182,7 @@ assume list is sorted.. couldn't go too wrong
     }
 
 
-    private List<Screen> checkPair(Connection conn, Session session,
+    List<Screen> checkPair(Connection conn, Session session,
                                         PictureResponse[] prs)
             throws SQLException {
 
@@ -4659,7 +5196,11 @@ assume list is sorted.. couldn't go too wrong
             return null;
         }
 
-        if (FeelingPairDao.checkSeen(conn, session.browserID, prs[0].p.id, prs[1].p.id)) {
+        if (session.curator != null  &&
+                ApprovalDao.settled(conn, prs[0].p.id, prs[1].p.id)) {
+            return null;
+        }
+        if (checkSeen(conn, session.browserID, prs[0].p.id, prs[1].p.id)) {
             return null;
         }
 
@@ -5013,239 +5554,55 @@ personal-pair ml
         return null;
     }
 
-    private void setTmpVec(Picture p, String vector) {
-
-        if ("nnl_7".equals(vector)) {
-            p.tmp_vec = p.nnl_7;
-/*
-        } else if ("vgg16_2".equals(vector)) {
-            p.tmp_vec = p.vgg16_2;
-*/
-        } else if ("vgg16_4".equals(vector)) {
-            p.tmp_vec = p.vgg16_4;
-        } else if ("dense_4".equals(vector)) {
-            p.tmp_vec = p.dense_4;
-        } else {
-            log.warn("Unknown vector: " + vector + " using vgg16_4");
-            p.tmp_vec = p.vgg16_4;
-        }
-    }
-
-    final boolean doRev = false;
-
-    private double reverseByteOrder(double value) {
-        if (!doRev) return value;
-        long longBits = Double.doubleToLongBits(value);
-        long reversedBits = Long.reverseBytes(longBits);
-        return Double.longBitsToDouble(reversedBits);
-    }
-
-    final int PAIRVEC_SZ = 60;
-
     /*
-     *  modelMatch() - MxN on lhs[2] using flowModel
-     */
-    private List<Screen> modelMatch(Connection conn,
-                                    UserProfile up, int viewNum, String orient,
-                                    Session session, List<String> ids, ListHolder lhs[])
-            throws Exception {
+    **  oneStageVectorMatch - match each pic independently
+    **                          from its list.
+    */
+    private List<Screen> oneStageVectorMatch(Connection conn,
+                                int viewNum, String orient,
+                                Session session,
+                                HistoryPair last,
+                                ListHolder[] lhs,
+                                String[] funcDims)
+            throws SQLException {
 
-        HistoryPair last = up.last;
-        if (last == null) {
-            log.info("modelMatch: no prev");
-            return null;
-        }
-        if (last.dotCount < 3) {
-            log.info("modelMatch: ndots<3: " + last.dotCount);
-            return null;
-        }
+        PictureResponse prs[] = new PictureResponse[2];
 
-        // dot histograms from drawing on pics1_1,_2
-        DotHistory dh = last.dotHistory;
-        int[] hist1 = dh.distHist;
-        int[] hist2 = dh.velocityHist;
-        int[] hist3 = dh.d3angleHist;
-        int[] hist4 = dh.d2angleHist;
+        StringBuilder sb = new StringBuilder();
 
-        String vector = ((dh.dots1 + dh.dots2) % 2 == 0 ? "nnl_7" : "vgg16_4");
+        for (int ct=0; ct<10; ct++) {
 
-        // gather the pic reps: previous pair for every case
-        //   leave pics handy for now
-        Picture p_1_1 = PictureDao.getPictureById(conn, ids.get(0));
-        Picture p_1_2 = PictureDao.getPictureById(conn, ids.get(1));
-        setTmpVec(p_1_1, vector);
-        setTmpVec(p_1_2, vector);
+            // check input
 
-        MultiLayerNetwork flowModel;
-        if ("vgg16_4".equals(vector)) {
-            flowModel = flowModel_vgg16_4;
-        } else if ("nnl_7".equals(vector)) {
-            flowModel = flowModel_nnl_7;
-        } else {
-            flowModel = flowModel_nnl_7;
-        }
-
-        // gather picreps for candidates on left and right
-
-        Map<String, float[]> picreps = new HashMap<>();
-
-        int errors = 0;
-
-        for (String id : lhs[0].id2_l) {
-            Picture p = PictureDao.getPictureById(conn, id);
-            setTmpVec(p, vector);
-            if (p.tmp_vec == null) {
-                errors++;
-                continue;
+            sb.setLength(0);
+            int t = 0;
+            for (int i=0; i<2; i++) {
+                sb.append(i).append(" ").append(lhs[i].size()).append("   ");
+                if (lhs[i].size() == 0) t++;
             }
-            picreps.put(id, p.tmp_vec);
-        }
-        for (String id : lhs[1].id2_l) {
-
-            if (picreps.get(id) != null) continue;
-
-            Picture p = PictureDao.getPictureById(conn, id);
-            setTmpVec(p, vector);
-            if (p.tmp_vec == null) {
-                errors++;
-                continue;
+            log.info("Lists: " + t + " on ct " + ct + " sizes\n" + sb.toString());
+            if (t > 0) {
+                break;
             }
-            picreps.put(id, p.tmp_vec);
-        }
+            // use input: get a pair by independent matches
+            for (int i=0; i<2; i++) {
 
-        // pack the constants into data:
-        //      i.e. all data but the vectors of new pair
-        //          1st pair, histograms, 'db' data are constant
+                prs[i] = tryLhP(conn, session, orient, last, lhs[i]);
 
-        int DATA_SZ = hist1.length + hist2.length + hist3.length + hist4.length +
-                      4 * p_1_1.tmp_vec.length;
-
-        double[] data = new double[DATA_SZ];
-
-        double data2d[][] = new double[1][];
-        data2d[0] = data;
-
-        int dix = 0;
-        for (int i=0; i<p_1_1.tmp_vec.length; i++) {
-            data[dix++] = reverseByteOrder( (double) p_1_1.tmp_vec[i] );
-        }
-        for (int i=0; i<p_1_2.tmp_vec.length; i++) {
-            data[dix++] = reverseByteOrder( (double) p_1_2.tmp_vec[i] );
-        }
-        for (int i=0; i<hist1.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist1[i] );
-        }
-        for (int i=0; i<hist2.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist2[i] );
-        }
-        for (int i=0; i<hist3.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist3[i] );
-        }
-        for (int i=0; i<hist4.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist4[i] );
-        }
-
-        // run the model over the NxM cases
-
-        try {
-
-            List<SortDoubleStrings> preds = new ArrayList<>();
-
-            for (int i=0; i<lhs[0].size(); i++) {
-
-                String lpic = lhs[0].id2_l.get(i);
-                float[] larr = picreps.get(lpic);
-                int dix2 = dix;
-                for (int c=0; c<larr.length; c++) {
-                    data[dix2++] = reverseByteOrder( (double) larr[c] );
+                if (prs[i] == null) {
+                    log.warn("oneStageVectorMatch giving up on ct=" + ct + " i=" + i);
+                    return null;
                 }
-
-                for (int j=0; j<lhs[1].size(); j++) {
-
-                    String rpic = lhs[1].id2_l.get(j);
-                    float[] rarr = picreps.get(rpic);
-                    int dix3 = dix2;
-                    for (int c=0; c<rarr.length; c++) {
-                        data[dix3++] = reverseByteOrder( (double) rarr[c] );
-                    }
-
-                    INDArray aaa = Nd4j.create(data2d);
-                    double prediction = flowModel.output(aaa).getDouble(0);
-
-                    preds.add( new SortDoubleStrings(prediction, new String[] {lpic, rpic} ) );
-
-                    //if (true) { log.info("WWWX flow pred " + prediction + " from " + Arrays.toString(data)); }
-
-                }
+                prs[i].method = funcDims[i] + (i==0 ? "(ll)" : "(rr)") + ct;
             }
-            Collections.sort(preds);
+            List<Screen> scl = checkPair(conn, session, prs);
 
-            SortDoubleStrings sds0 = preds.get(0);
-            SortDoubleStrings sdsN = preds.get(preds.size()-1);
-
-            SortDoubleStrings sds;
-            String method = Integer.toString(p_1_1.tmp_vec.length);
-            if (dh.dots2 < dh.dots1) {
-                sds = sds0;
-                method += "min";
-            } else {
-                sds = sdsN;
-                method += "max";
+            if (scl != null) {
+                return scl;
             }
-            if (lhs[0].size() == lhs[1].size()) {
-                method += lhs[0].size() + "|";
-            } else {
-                method += lhs[0].size() + "x" + lhs[1].size();
-            }
-            log.info("PRED " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
-            log.info("PREDrev " + method + " spread " + (reverseByteOrder(sdsN.value) - reverseByteOrder(sds0.value)) + " on " + preds.size());
-
-            PictureResponse pr1 = new PictureResponse();
-            pr1.p = PictureDao.getPictureById(conn, sds.strings[0]);
-            PictureResponse pr2 = new PictureResponse();
-            pr2.p = PictureDao.getPictureById(conn, sds.strings[1]);
-
-            pr1.method = method;
-            pr2.method = method;
-
-{
-Picture p1 = PictureDao.getPictureById(conn, sds0.strings[0]);
-Picture p2 = PictureDao.getPictureById(conn, sds0.strings[1]);
-log.info(
-"\nPRZ min " + p1.archive + "/" + p1.fileName + "  |  " +
-    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sds0.value) +
-    " rev " + String.format("%.5f", reverseByteOrder(sds0.value)));
-p1 = PictureDao.getPictureById(conn, sdsN.strings[0]);
-p2 = PictureDao.getPictureById(conn, sdsN.strings[1]);
-log.info(
-"\nPRZ max " + p1.archive + "/" + p1.fileName + "  |  " +
-    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sdsN.value) +
-    " rev " + String.format("%.5f", reverseByteOrder(sdsN.value)));
-double diff = sdsN.value-sds0.value;
-log.info(
-"\nPRZ     " + String.format("%.0e", diff) + " / " + preds.size() +
-    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
-    vector + " " + (sds == sds0 ? " min" : " max") );
-diff=reverseByteOrder(sdsN.value) - reverseByteOrder(sds0.value);
-log.info(
-"\nPRZ2     " + String.format("%.0e", diff) + " / " + preds.size() +
-    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
-    vector + " " + (sds == sds0 ? " min" : " max") );
-}
-
-            List<Screen> scl = new ArrayList<>();
-
-            scl.add(new Screen(session.browserID,
-                                   1, "v", sds.strings[0],
-                                   pr1));
-            scl.add(new Screen(session.browserID,
-                                   2, "v", sds.strings[1],
-                                   pr2));
-            return scl;
-
-        } catch (Exception e) {
-            log.error("PREDICT " + e, e);
         }
+
+        log.warn("oneStageVectorMatch giving up on ct=10");
         return null;
     }
 
@@ -5379,15 +5736,17 @@ log.info(
             return null;
         }
 
+        log.info("matchVectors: lhs: " + lhs[0].size() + " " + lhs[1].size());
+
         if (haveFlow()) {
-            log.info("Trying model 1st");
+
             List<Screen> scl = modelMatch(conn, up, viewNum, orient, session, ids, lhs);
             if (scl != null) {
                 return scl;
             }
         }
 
-        //log.info("lhs: " + lhs[0].size() + " " + lhs[1].size());
+        log.info("Model is null or no good, using old methods");
 
         if (up.speedUp  ||  up.restlessMouse) {
 
@@ -5440,8 +5799,6 @@ log.info(
             }
         }
 
-        //SeenIds seenIds = getSeen(conn, session);
-
         List<Screen> scl = null;
         if (twoStageFunc == null) {
             scl = oneStageVectorMatch(conn, viewNum, orient, session, up.last, lhs, funcDims);
@@ -5455,7 +5812,6 @@ log.info(
         log.error("handleVectorsInParallel2 was called --- how could this fail?");
         return null;
     }
-
 
     /*
     **  handleVectorsInParallel - return null or valid pair.
@@ -5484,8 +5840,8 @@ log.info(
         if (up.last != null) {
             seen = up.last.orderInSession;
         } else {
-            seen = FeelingPairDao.countPairs(conn, session.browserID, orient);
-            log.info("Showings/feelings counted: " + seen + " browser " + session.browserID);
+            seen = countPairs(conn, session.browserID, orient);
+            log.info("Pairs seen: " + seen + " browser " + session.browserID);
         }
 
         List<String> picList = data.getPicList(viewNum, orient);
@@ -5526,7 +5882,7 @@ log.info(
 
         lhs = PictureDao.matchVectors(conn, orient, ids, func, type, dim,
                                     data.getViewArchives(viewNum),
-                                    PAIRVEC_SZ, picSet, seenIds);
+                                    50, picSet, seenIds);
 
         if (lhs == null) {
 
@@ -5535,16 +5891,6 @@ log.info(
         }
 
         log.info("matchVectors: " + lhs[0].size() + "  " + lhs[1].size());
-
-        if (haveFlow()) {
-
-            List<Screen> scl = modelMatch(conn, up, viewNum, orient, session, ids, lhs);
-            if (scl != null) {
-                return scl;
-            }
-        }
-
-        log.info("Model is null or no good, using old methods");
 
         String[] funcDims = new String[] { firstFunc, firstFunc };
 
@@ -5564,14 +5910,14 @@ log.info(
             }
 
             List<Screen> scl = minVectorMatch(conn,
-                                    viewNum, orient, session,
-                                    lhs, funcDims, vec);
+                                viewNum, orient, session,
+                                lhs, funcDims, vec);
             if (scl != null) {
                 return scl;
             }
         }
 
-        // fallthru
+        //SeenIds seenIds = getSeen(conn, session);
 
         List<Screen> scl = null;
         if (twoStageFunc == null) {
@@ -5869,6 +6215,9 @@ log.info(
         String NEG_COL = "a_d0";
         Set<String> picSet = data.getPicSet(viewNum, orient);
 
+        Set<String> seenPairs1 = null;
+        Set<String> seenPairs2 = null;
+
         int skipped_seen = 0;// for LOCAL
 
         PictureResponse initPr = new PictureResponse();
@@ -5938,6 +6287,13 @@ log.info(
             }
             try1++;
 
+            if (session.curator != null) {
+                seenPairs1 = UniquePairDao.getPicsSeen(conn, searchid, "id1");
+                log.info("got seen0 TODO - cache?");
+                // will need this if we add a swap rule:
+                //seenPairs2 = UniquePairDao.getPicsSeen(conn, searchid, "id2");
+            }
+
             ListHolder lh2 = PairDao.getPosPairs(conn, orient, session.curator, NEG_COL, id1,
                                                   false, // get left
                                                   null, // hasKwd
@@ -5972,6 +6328,11 @@ log.info(
 
                 String id2 = pr2.p.id;
                 log.info("handleNeuralNegScreens GOT " + id1 + " " + id2);
+                if (seenPairs1 != null  &&  seenPairs1.contains(id2)) {
+                    log.info("skipping curator-seenpair..");
+                    skipped_seen++;
+                    continue;
+                }
                 if (id2.equals(id1)) {
                     continue;
                 }
@@ -6018,7 +6379,7 @@ log.info(
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
                                             String opt,
-                                            List<String> ids,
+                                            int n, List<String> ids,
                                             int which)
             throws SQLException {
 
@@ -6397,7 +6758,7 @@ log.info(
         if (up.last != null) {
             seen = up.last.orderInSession;
         } else {
-            seen = FeelingPairDao.countPairs(conn, session.browserID, orient);
+            seen = countPairs(conn, session.browserID, orient);
         }
 
         int len = 400;
@@ -6515,57 +6876,6 @@ log.info(
     }
 
 
-    /*
-    **  oneStageVectorMatch - match each pic independently
-    **                          from its list.
-    */
-    private List<Screen> oneStageVectorMatch(Connection conn,
-                                int viewNum, String orient,
-                                Session session,
-                                HistoryPair last,
-                                ListHolder[] lhs,
-                                String[] funcDims)
-            throws SQLException {
-
-        PictureResponse prs[] = new PictureResponse[2];
-
-        StringBuilder sb = new StringBuilder();
-
-        for (int ct=0; ct<10; ct++) {
-
-            // check input
-
-            sb.setLength(0);
-            int t = 0;
-            for (int i=0; i<2; i++) {
-                sb.append(i).append(" ").append(lhs[i].size()).append("   ");
-                if (lhs[i].size() == 0) t++;
-            }
-            log.info("Lists: " + t + " on ct " + ct + " sizes\n" + sb.toString());
-            if (t > 0) {
-                break;
-            }
-            // use input: get a pair by independent matches
-            for (int i=0; i<2; i++) {
-
-                prs[i] = tryLhP(conn, session, orient, last, lhs[i]);
-
-                if (prs[i] == null) {
-                    log.warn("oneStageVectorMatch giving up on ct=" + ct + " i=" + i);
-                    return null;
-                }
-                prs[i].method = funcDims[i] + (i==0 ? "(ll)" : "(rr)") + ct;
-            }
-            List<Screen> scl = checkPair(conn, session, prs);
-
-            if (scl != null) {
-                return scl;
-            }
-        }
-
-        log.warn("oneStageVectorMatch giving up on ct=10");
-        return null;
-    }
 
     private Picture[] picsFromIds(Connection conn, List<String> ids)
             throws SQLException {
@@ -6639,6 +6949,7 @@ log.info(
 
     private List<Screen> dotMappedNNs(Connection conn,
                                       int viewNum, String orient,
+                                      String kwdCoder,
                                       Session session, UserProfile up,
                                       List<String> ids,
                                       int screenId1, int screenId2)
@@ -6659,7 +6970,7 @@ log.info(
                             " option " + option + "/" + tag);
 
         return handlePhiScreens(conn, viewNum, orient, session, up,
-                                      "pt " + tag, ids, -1);
+                                      "pt " + tag, 2, ids, -1);
     }
 
 
@@ -6698,6 +7009,7 @@ log.info(
             lh1 = reverseList(lh1, up.skew, false);
         }
 
+        Set<String> seenPairs1 = null;// for left/new right
         int skipped_seen = 0;
         int try1 = 0;
         int try2 = 0;
@@ -6708,6 +7020,9 @@ log.info(
             }
             String id1 = initPr.p.id;
             try1++;
+            if (session.curator != null) {
+                seenPairs1 = UniquePairDao.getPicsSeen(conn, id1, "id1");
+            }
 
             ListHolder lh2 = PairTopDao.randomPairtopAsymByFileStr(conn, orient,
                                                 id1, false, // first
@@ -6726,10 +7041,20 @@ log.info(
                     break;
                 }
                 try2++;
+                if (seenPairs1 != null  &&  seenPairs1.contains(pr2.p.id)) {
+                    int ix = lh2.id2_l.indexOf(pr2.p.id);
+                    lh2.id2_l.remove(ix);
+                    lh2.value_l.remove(ix);
+                    lh2.dbl_l.remove(ix);
+                    skipped_seen++;
+                    continue;
+                }
                 initPr.method = "rpt" + method + "/" + try1;
                 pr2.method = "rpT" + method + "/" + try2;
-                log.info("handleIntersectPairtopNNTags: kinda gutted skipped.. ");
-
+                log.info("handleIntersectPairtopNNTags: " +
+                     " skipseen " + skipped_seen +
+                     " totseen " +
+                       (seenPairs1 == null ? "na" : seenPairs1.size()));
                 List<Screen> scl = new ArrayList<>();
 
                 scl.add(new Screen(session.browserID, 1, "v",
@@ -6762,7 +7087,7 @@ log.info(
     private List<Screen> doSigmaMixed(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            int sigma, List<String> ids)
+                                            int sigma, int n, List<String> ids)
                 throws SQLException {
 
         String func1 = null;
@@ -6806,7 +7131,7 @@ log.info(
     private List<Screen> doSigmaPairNet(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            int sigma, List<String> ids)
+                                            int sigma, int n, List<String> ids)
                 throws SQLException {
 
         // copy for shuffle
@@ -6818,7 +7143,7 @@ log.info(
                         "(or missing table support) sigma=" + sigma + " " + orient);
 
             return doSigmaMixed(conn, viewNum, orient, session, up,
-                                        sigma, ids);
+                                        sigma, n, ids);
         }
 
         log.info("doSigmaPairNet: " + sigma + orient + ": " + siggo);
@@ -6852,7 +7177,7 @@ log.info(
                 log.info(tags.size() > 1 ? "RAND " : "" +
                                 "pairtop tag: " + tag);
                 List<Screen> ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                                            "pt " + tag, ids, -1);
+                                                            "pt " + tag, n, ids, -1);
                 if (ret != null) {
                     return ret;
                 }
@@ -6874,7 +7199,7 @@ log.info(
                 if (sig_fields.length == 2) {
                     log.info("match: single tag " + sig_fields[1]);
                     List<Screen> ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                            "pt " + sig_fields[1], ids, -1);
+                                            "pt " + sig_fields[1], n, ids, -1);
                     if (ret != null) {
                         return ret;
                     }
@@ -6884,7 +7209,7 @@ log.info(
 
                     for (int i=1;i<sig_fields.length;i++) {
                         List<Screen> ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                            "pt " + sig_fields[i], ids, -1);
+                                            "pt " + sig_fields[i], n, ids, -1);
                         if (ret != null) {
                             return ret;
                         }
@@ -7017,6 +7342,41 @@ log.info(
         return scl;
     }
 
+    private List<Screen> flipEmDanno(Connection conn,
+                                        int viewNum, String orient,
+                                        Session session,
+                                        UserProfile up,
+                                        List<String> ids)
+            throws SQLException {
+
+        String id1 = ids.get(1);
+        String id2 = ids.get(0);
+        ApprovedPair ap = ApprovalDao.getApprovedPair(conn, -1, id1, id2);
+        if (ap == null) {
+            log.info("flipEmDanno: no app pair: " + id1 + ", " + id2);
+        } else {
+            log.info("flipEmDanno: " + ap);
+        }
+        PictureResponse pr1 = new PictureResponse();
+        pr1.p = PictureDao.getPictureById(conn, id1);
+        PictureResponse pr2 = new PictureResponse();
+        pr2.p = PictureDao.getPictureById(conn, id2);
+
+        if (up.last != null  &&
+            up.last.id1.equals(id2)  &&
+            up.last.id2.equals(id1)) {
+            pr1.method = "f:" + up.last.selMethod2;
+            pr2.method = "f:" + up.last.selMethod1;
+        } else {
+            pr1.method = "flip";
+            pr2.method = "flip";
+        }
+
+        List<Screen> ret = new ArrayList<>();
+        ret.add(new Screen(session.browserID, 1, "v", id1, pr1));
+        ret.add(new Screen(session.browserID, 2, "v", id2, pr2));
+        return ret;
+    }
 
     // 1 - histograms
     // 2 - imagenets
@@ -7537,7 +7897,6 @@ log.info(
 
         return scl;
     }
-
 
     private List<Screen> dotsOnOnePic(Connection conn,
                                         int viewNum, String orient,
@@ -8078,6 +8437,7 @@ log.info(
         return ret;
     }
 
+
     /*
     **  drawVectors - map user-drawn dots to a new pair of
     **      pics using vector matching (per-pic data).
@@ -8104,6 +8464,8 @@ log.info(
 
         if (up.lastCrossings <= 1) {
 
+            // TODO: check view.html/feel.html
+            //      for ShowingPair: double dotVecLen = Math.sqrt(last.dotVecLen);
             double diff =  Math.abs(last.dotDist - last.dotVecLen);
             double pctDiff = 100.0 * diff / last.dotDist;
             //log.info("DDDDD " + last.dotDist + " vec " + last.dotVecLen +
@@ -8138,11 +8500,11 @@ log.info(
         return dotsOnBothPics(conn, viewNum, orient,
                                         session, up, idsDrawnOn, stroke);
     }
-
     private List<Screen> oldDrawDots(Connection conn, int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            List<String> ids,
-                                            int screenId1, int screenId2)
+                                            int n, List<String> ids,
+                                            int screenId1, int screenId2,
+                                            String kwdCoder)
             throws SQLException {
 
         HistoryPair last = up.last;
@@ -8206,7 +8568,7 @@ log.info(
             if (scl != null) {
                 return scl;
             }
-            log.info("getScreens fast failed (tryNeighborsCache)");
+            log.info("oldDrawDots fast failed (tryNeighborsCache)");
 
             // other fast-triggered stuff below
         }
@@ -8257,7 +8619,7 @@ log.info(
                 //log.info("=====%%= TRY " + t + " -> " + tag);
 
                 ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                                "pt " + tag, ids, which);
+                                                "pt " + tag, n, ids, which);
                 if (ret != null) {
                     //log.info("=====%%= TRY->GOT " + t + " -> " + tag);
                     return ret;
@@ -8276,6 +8638,7 @@ log.info(
 
             // last resort for fast
 
+
             // picture table query on color should be fast,
             //  tho not coherent.
 
@@ -8291,54 +8654,148 @@ log.info(
 
         // not fast, or trying fast failed
 
-        if (PairDao.hasTable(orient)) {
+        switch (up.lastCrossings) {
 
-            log.info("GO a_d0");
+            // > 3: tried handleGoldenScreensAB above
 
-            ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 0);
+            case 0:   // all in one pic - in 'fast' above but backstopping code here.
 
-            if (ret != null) {
-                return ret;
-            }
-        }
-        if (!ABTried) {
+                ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 0);
+                if (ret != null) {
+                    return ret;
+                }
 
-            // try quick?
+                // drop thru no break;
 
-            ret = handleGoldenScreensAB(conn, viewNum, orient, session, up,
+            case 1:
+            case 2:
+
+                // default: dotMappedNNs unless excuse for d0 (dots == drawn by user)
+
+                String d0reason = "";
+
+                if (up.prevRating == 13) {
+                    d0reason = "lastneg";
+                }
+                if (!"".equals(d0reason)  &&  PairDao.hasTable(orient)) {
+
+                    log.info("GO a_d0: " + d0reason + " last " +
+                            (up.last == null ? "null" : up.last.selMethod));
+
+                    ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 0);
+
+                    if (ret == null) {
+
+                        if (!ABTried) {
+
+                            // try quick?
+
+                            ret = handleGoldenScreensAB(conn,
+                                                        viewNum, orient, session, up,
                                                         ids, 0);
-            if (ret != null) {
-                return ret;
-            }
-            ABTried = true;
-        }
+                            if (ret != null) {
+                                return ret;
+                            }
+                            ABTried = true;
+                        }
 
-        // worst case for response time
+                        // worst case for response time
 
-        ret = handlePrPosScreens(conn, viewNum, orient, session, up,
+                        ret = handlePrPosScreens(conn,
+                                                viewNum, orient, session, up,
                                                 "a_d0", ids, -1);
-        if (ret != null) {
-            return ret;
-        }
-        if (PairTopDao.hasTable("nn", orient)) {
+                    }
+                } else if (PairTopDao.hasTable("nn", orient)) {
 
-            ret = dotMappedNNs(conn, viewNum, orient,
-                                        session, up, ids,
-                                        screenId1, screenId2);
+                    ret = dotMappedNNs(conn, viewNum, orient,
+                                                kwdCoder,
+                                                session, up, ids,
+                                                screenId1, screenId2);
+                }
+                // TODO - add new best guess
+                break;
+
+            case 3:
+            case 4:
+
+                // TODO - does this matter? switched to pgvector-based
+                //          parallel color match, so d0 on 2nd would be
+                //          done via a general sequential method not
+                //          coming to mind, passing "d0" as caller in case  (2023_09)
+                //  first pic (TODO l or r, based on either l or r)
+                //  is chosen by selected color histo alg/space
+                //  2nd pic is nn match
+
+                ret = handleColorScreens(conn,
+                                            viewNum, orient, session, up,
+                                            "d0",
+                                            n, ids);
+
+                //  case 4 same as case 3 except 2nd pic also based on color-match
+                //  to 1st, can be a diff color alg
+                // ret = handleColorScreens(conn,
+                //                             viewNum, orient, session, up,
+                //                             13, // 13=?  IGNORED, see TODO above
+                //                             n, ids);
+
+                break;
+
+            case 5:
+
+                //  golden angle selection by selected space
+                //  2nd pic is nn match
+
+                int[] opts = { 0, -7, -8, -9, -11 };
+                int prop = up.scaleInt(opts.length);
+                prop--;
+                log.info("PROP " + prop);
+                if (prop < 0) {
+                    log.error("NEG/0");
+                    prop = rand.nextInt(opts.length);
+                }
+                int lopt = opts[prop];
+
+                if (lopt == 0) {
+                    ret = handleGoldenScreensAB(conn,
+                                                    viewNum, orient, session, up,
+                                                    ids, -1);// -1=nn 2nd
+                } else {
+                    ret = handleGoldenScreens(conn,
+                                                    viewNum, orient, session, up,
+                                                    ids, lopt);
+                }
+                break;
+
+            case 6:
+
+                //  1st (l or r) chosen randomly
+                //  2nd pic is nn match
+
+                return handleRandomScreens(conn,
+                                                viewNum, orient, session, up,
+                                                true);// true=nn 2nd
+
+            default: // 7+
+                // both random
+                return handleRandomScreens(conn,
+                                                viewNum, orient, session, up);
         }
+
         if (ret != null) {
             return ret;
         }
-        log.warn("oldDrawDots w/ deletions - zilch");
+        log.warn("oldDrawDots zilch");
         return null;
     }
 
     /*
     **  getScreens - main entry point
     */
-    public List<Screen> getScreens(Connection conn, Session session,
+    public List<Screen> getScreens(Connection conn,
                                     int viewNum, String orient,
-                                    List<String> ids,
+                                    String kwdCoder, Session session,
+                                    int option, String cmdMod,
+                                    int n, List<String> ids,
                                     int screenId1, int screenId2,
                                     int lastBig, HistoryPair last)
             throws Exception {
@@ -8361,38 +8818,336 @@ log.info(
 
         UserProfile up = new UserProfile(conn, session.browserID, 2, last);
 
-        String bigScream =
-            "iscream GETSCREENS GETSCREENS GETSCREENS ===\nGETSCREENS   view " + viewNum + " orient " + orient +
+        log.info("iscream GETSCREENS GETSCREENS GETSCREENS ===\nGETSCREENS   view " + viewNum + " orient " + orient +
                   " screenIds " + screenId1 + "|" + screenId2 +
+                  " option " + option + " cmdMod " + cmdMod +
                   " total picSet " + picSet.size() +
-                  " last " + (up.last == null ? "null" : up.last);
+                  " last " +
+                      (up.last == null ? "null" :
+                                 "" + up.last.orderInSession));
 
-        if (ids == null) {
-            // start of session
-            log.info("START (ids null) " + bigScream);
-            return handleRandomScreens(conn, viewNum, orient, session, up, false);
+        if (option == -3) {
+            // tiling change - return last 2 screens
+            if (up.history.size() < 2) {
+                log.error("HISTORY < 2 for option==-3");
+            }
+            return session.screens;
         }
-        if (up.last == null) {
-            log.info("START (ids ok but last null) " + bigScream);
-            return handleRandomScreens(conn, viewNum, orient, session, up, false);
+
+        if (option == -2) {
+
+            // init, was chosen from 'top' pairs
+            return handleRandomScreens(conn, viewNum, orient, session, up);
+
         }
 
-        log.info(bigScream);
+        if (option == 2) {
+            // user-selected random
+            log.info("user.random opt=2.... " + orient);
+            return handleRandomScreens(conn, viewNum, orient, session, up);
+        }
 
-        List<Screen> ret = drawVectors(conn, viewNum, orient, session, up, ids);
-        if (ret != null) {
+        List<String> picList = data.getPicList(viewNum, orient);
+        if (!session.repeatPics) {
+
+            int showOrient = ("v".equals(orient) ? seenIds.vertical : seenIds.horizontal);
+            log.info("SEEN " + showOrient + "/" + picList.size() +
+                         " view " + viewNum + "/" + orient);
+        }
+
+        //StringBuilder sum = new StringBuilder();
+        //log.info("CP " + sum.toString());
+
+        List<Screen> ret = null;
+
+        if (cmdMod != null) {
+
+            log.info("HIGHOPTION: " + cmdMod);
+
+            // func,dim chosen in UI w/ option:
+            //
+            //      Phob -> Parallel descent
+            //
+            // 'type==pairnet' is used
+            //      to distinguish asym cases
+            //      (l,r matches on separate vecs,
+            //      from ML) from sym ones (same vec
+            //      used for l, r, from histograms
+            //      or imagenet models):
+            //
+
+            int sigma = option % 100;
+
+            log.info("sigma " + sigma + " func " + cmdMod);
+
+            String[] ss = cmdMod.split("\\.");
+            String type = "imagenet";
+            String countertype = "histogram";
+            if (ss != null  &&  ss.length > 1) {
+                if ("1".equals(ss[1])) {
+                    type = "histogram";
+                    countertype = "imagenet";
+                } else if ("2".equals(ss[1])) {
+                    type = "imagenet";
+                    countertype = "histogram";
+                } else if ("3".equals(ss[1])) {
+                    type = "pairnet";
+                    countertype = "imagenet";
+                }
+            }
+
+            String l2rFunc = null;
+
+            switch (sigma) {
+
+                case 21:    // Sigma1 -> parallel, l->l', r->r'
+                    break;//            so leave l2r func null
+
+                case 22:     // Sigma2 -> latentGeom
+
+                    if ("imagenet".equals(countertype)) {
+                        l2rFunc = "cos.2.vgg16_256";
+                    } else {
+                        l2rFunc = "cos.1.256";
+                    }
+                    break;
+
+                case 23:     // Sigma3 -> latentGeom
+
+                    if ("imagenet".equals(countertype)) {
+                        l2rFunc = "cos.2.dense_1024";
+                    } else {
+                        l2rFunc = "cos.1.1728";
+                    }
+                    break;
+
+                case 24:     // Sigma4
+
+                    if ("imagenet".equals(countertype)) {
+                        l2rFunc = "cos.2.mob_1280";
+                    } else {
+                        l2rFunc = "cos.1.1984";
+                    }
+                    break;
+
+                case 25:     // Sigma5
+
+                    if ("imagenet".equals(countertype)) {
+                        l2rFunc = "cos.2.nnl_672";
+                    } else {
+                        //l2rFunc = "poi.1.1984";
+                        l2rFunc = "cos.2.vgg16_32";
+                    }
+                    break;
+
+                default:
+
+                    log.error("BAD CASE on l->r option: " + option);
+                    l2rFunc = "cos.1.1984";
+                    break;
+            }
+
+            ret = handleVectorsInParallel(conn, viewNum, orient,
+                                            session, up,
+                                            ids,
+                                            cmdMod, // firstFunc, from browser
+                                            l2rFunc);
+
+            if (ret != null) {
+                log.info("handleVectorsInParallel Success with " + cmdMod);
+
+                return ret;
+            }
+        }
+
+        if (option > 100) {
+
+            log.info("fallback [?] - strip 100's codes from vector match func: " + option);
+            option %= 100;
+
+        }
+
+        switch (option) {
+
+          case 0:
+
+            ret = tryD0BadCache(conn, viewNum, orient, session);
+            if (ret == null) {
+                ret = handleNeuralNegScreens(conn, viewNum, orient,
+                                            session, up, ids);
+            }
+            break;
+
+          case 1:   // yellow '+'
+
+            if (ret == null) {
+                ret = handleColorScreens(conn, viewNum, orient,
+                                            session, up,
+                                            "yplus", n, ids);
+            }
+            break;
+
+          case 3:  // green '+', see KEYWORDS boolean - TODO-ish keywords not used
+
+            ret = handleKeywordScreens(conn, viewNum, orient,
+                                            session, up, n, ids);
+            if (ret == null) {
+                log.info("Kwds no - fallback a_d0");
+                ret = handlePrPosScreens(conn, viewNum, orient, session, up,
+                                               "a_d0", ids, -1);
+            }
+            break;
+
+          case 6:    // grey '2'
+
+            ret = handleGoldenScreensAB(conn, viewNum, orient, session, up,
+                                                ids, option);
+            break;
+
+          case 7:    // grey '3'
+          case 8:    // grey '8'
+          case 9:    // grey '27'
+          case 11:   // grey '32K'
+
+            ret = handleGoldenScreens(conn, viewNum, orient, session, up,
+                                            ids, option);
+            break;
+
+          case 10:
+
+            // drew dots on pair: this case is the attempt at personality
+
+            ret = drawVectors(conn, viewNum, orient, session, up, ids);
+            if (ret != null) {
+                return ret;
+            }
+            log.warn("DOTS/10: vectors failed and the past takes over");
+
+            ret = oldDrawDots(conn, viewNum, orient, session, up, n, ids,
+                                screenId1, screenId2, kwdCoder);
+            break;
+
+          case 12:
+
+            // not used? replaces old in-memory kwd-based join
+            // ret = handleApprovedPair12(conn,
+            //                              viewNum, orient, session, up,
+
+            ret = handleApprovedPair0(conn, "case12",
+                                            viewNum, orient, session, up,
+                                            ids);
+            break;
+
+          case 13:
+
+            ret = handleNeuralNegScreens(conn,
+                                            viewNum, orient, session, up,
+                                            ids);
+            break;
+
+          case 14:
+          case 15:
+          case 16:
+          case 17:
+          case 18:
+          case 19:
+
+            throw new RuntimeException("Reload page");
+            //break;
+
+          case 20:
+
+            // Sigma 0
+
+            ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 1);
+            if (ret == null) {
+                // slow
+                ret = handlePrPosScreens(conn,
+                                            viewNum, orient, session, up,
+                                            "a_d0", ids, -1);
+            }
+            break;
+
+          case 21:
+          case 22:
+          case 23:
+          case 24:
+          case 25:
+
+            // Sigma 1-5, default/PairNet since cmdMod is null.
+            //              If no PairNet support, falls back to
+            //              histo/imagenet vectors
+
+            int sigma = option - 20;
+            ret = doSigmaPairNet(conn, viewNum, orient,
+                                       session, up,
+                                       sigma, n, ids);
+            break;
+
+          case 26:
+
+            // Sigma x = random PairNet/'NN'
+
+            ret = biasedNNScreens(conn, viewNum, orient, kwdCoder,
+                                        session, up,
+                                        ids, rand.nextDouble());
+            break;
+
+          case 30:
+
+            // flip if unseen, else randomNN
+
+            ret = flipEmDanno(conn, viewNum, orient, session, up, ids);
+            if (ret == null) {
+                ret = biasedNNScreens(conn, viewNum, orient, kwdCoder,
+                                            session, up,
+                                            ids, rand.nextDouble());
+            }
+            break;
+
+
+          default:
+
+            throw new RuntimeException("Unknown option: " + option);
+
+        }
+
+        if (ret == null) {
+            // likely already done
+            ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 0);
+            if (ret == null) {
+                ret = handlePrPosScreens(conn,
+                                            viewNum, orient, session, up,
+                                            "a_d0", ids, -1);
+            }
+        }
+
+        if (ret == null  ||  ret.size() == 0) {
             return ret;
         }
-        log.warn("DOTS: vectors failed and the past takes over");
 
-        ret = oldDrawDots(conn, viewNum, orient, session, up, ids,
-                                screenId1, screenId2);
+        log.info("\n======== GOT " + up.skew + "\nGOT " + screenSummary(ret));
+        higSleep(conn, session, option, ids, t0, up, ret);
 
-        if (ret != null) {
-            return ret;
+        if (KEYWORDS) {
+
+            // log any keyword match
+
+            String pnStr = "";
+            if (ids != null  &&  ids.size() > 0) {
+                if (ids.size() != 2) {
+                    throw new RuntimeException("IDs != 2: " + ids.size());
+                }
+                pnStr = "\n==>PN: " +
+                    DBUtil.kwdCompare(conn, kwdCoder, ret.get(0).id_s,
+                                                    ids.get(0), ids.get(1));
+            }
+            String lrStr = "\n==>LR: " +
+                DBUtil.kwdCompare(conn, kwdCoder, ret.get(1).id_s, ret.get(0).id_s);
+            log.info(pnStr + lrStr);
         }
-        log.info("getScreens: nope");
-        return null;
+
+        return ret;
     }
 
     // called by cacheNeighborsThread;just D0,
@@ -8605,6 +9360,7 @@ log.info(
 
         public List<Screen> getScreens(int option, Connection conn,
                                     int viewNum, String orient,
+                                    String kwdCoder,
                                     Session session, UserProfile up,
                                     List<String> ids)
             throws SQLException;
@@ -8623,19 +9379,79 @@ log.info(
         @Override
         public List<Screen> getScreens(int option, Connection conn,
                                         int viewNum, String orient,
+                                        String kwdCoder,
                                         Session session, UserProfile up,
                                         List<String> ids)
             throws SQLException {
-/*
+
             List<Screen> ret = tryNeighborsCache(conn, viewNum, orient, session, ids, up.last.dotEndScreen-1, 0);
             if (ret != null) {
                 return ret;
             }
-*/
             return handlePrPosScreens(conn,
                                         viewNum, orient, session, up,
                                         "a_d0", ids, -1);
         }
+    }
+
+
+    private final int LEN_PHI_MERGE = 200;
+
+
+    private ListHolder mergePairTopAsym(Connection conn, String orient,
+                                         String id,
+                                         String cols[], boolean lr,
+                                         SeenIds seenIds,
+                                         Set<String> picSet)
+            throws SQLException {
+
+        ListHolder[] lhs = new ListHolder[cols.length];
+        int max = 0;
+        for (int i=0;i<cols.length;i++) {
+            lhs[i] = PairTopDao.getPairtopAsym(conn,
+                                        orient, id, lr, // left->right match
+                                        cols[i], false, "DESC", // DESC/best
+                                        LEN_PHI_MERGE, picSet);
+            max += lhs[i].size();
+        }
+        log.info("mergePairTopAsym(" + id + "): tot: " + max);
+
+        ListHolder ret = new ListHolder();
+        Set<String> got = new HashSet<>();
+        long val = max * 2;
+        int skip = 0;
+        for (int level=0;level<LEN_PHI_MERGE && val > 0;level++) {
+            for (int i=0;i<lhs.length;i++) {
+                ListHolder lh = lhs[i];
+                if (lh == null) {
+                    continue;
+                }
+                if (lh.size()-1 < level) {
+                    lhs[i] = null;
+                    continue;
+                }
+                String id2 = lh.id2_l.get(level);
+                if (got.contains(id2)  ||
+                    seenIds.contains(id2)) {
+                    skip++;
+                    continue;
+                }
+
+                got.add(id2);
+                ret.id2_l.add(id2);
+                ret.value_l.add(val);
+                if (ret.size() > LEN_PHI_MERGE) {
+                    log.info("finished quota at level " + level +
+                             " val " + val);
+                    val = -1;
+                    break;
+                }
+                val--;
+            }
+        }
+        log.info("mergePairTopAsym(" + id + "): got: " + ret.size());
+
+        return ret;
     }
 
 
@@ -8681,7 +9497,7 @@ log.info(
 
             List<Screen> ret = handlePhiScreens(conn,
                                                     viewNum, orient, session, up,
-                                                    "pt " + tag, ids, -1);
+                                                    "pt " + tag, 2, ids, -1);
             if (ret != null) {
                 return ret;
             }
@@ -8701,8 +9517,9 @@ log.info(
 
     private List<Screen> biasedNNScreens(Connection conn,
                                             int viewNum, String orient,
+                                            String kwdCoder,
                                             Session session, UserProfile up,
-                                            HistoryPair last, List<String> ids, double bias)
+                                            List<String> ids, double bias)
             throws SQLException {
 
         // For counting:
@@ -8770,7 +9587,7 @@ log.info(
 
                 ret = handlePhiScreens(conn,
                                         viewNum, orient, session, up,
-                                        "pt " + tag, ids, -1);
+                                        "pt " + tag, 2, ids, -1);
             } else {
 
                 log.info("\n== n_ptop..n-2 (random/asym): " + opt);
@@ -8819,8 +9636,7 @@ log.info(
                 lh.dbl_l.remove(choice);
                 continue;
             }
-            if (FeelingPairDao.checkSeen(conn, session.browserID,
-                                               ids_arr[0], ids_arr[1])) {
+            if (checkSeen(conn, session.browserID, ids_arr[0], ids_arr[1])) {
                 lh.id2_l.remove(choice);
                 lh.value_l.remove(choice);
                 lh.dbl_l.remove(choice);
@@ -8893,10 +9709,27 @@ log.info(
                                             String id)
             throws SQLException {
 
-        throw new SQLException("No Trtrtr");
+        // id is already cleared to show
+
+        PictureResponse pr = new PictureResponse();
+        pr.p = PictureDao.getPictureById(conn, id);
+        if (pr.p == null) {
+            log.info("No version for unseen seq " + id);
+            return null;
+        }
+        pr.method = "try/appr";
+
+        List<Screen> scl = tryForApprovedPair(conn,
+                                                viewNum, orient, session,
+                                                picSet, id, pr, null, ratio);
+        if (scl != null  &&  scl.size() > 0) {
+            return scl;
+        }
+        //log.info("tryTry failed");
+        return null;
     }
 
-    private List<Screen> checkPair(Connection conn,
+    private List<Screen> tryApprovedPair(Connection conn,
                                              int viewNum, String orient,
                                              Session session,
                                              Set<String> picSet,
@@ -8916,7 +9749,7 @@ log.info(
 
         // approved pairs cannot be repeated by a browser id
 
-        if (FeelingPairDao.checkSeen(conn, session.browserID, ap.id1, ap.id2)) {
+        if (checkSeen(conn, session.browserID, ap.id1, ap.id2)) {
             return null;
         }
 
@@ -8940,7 +9773,7 @@ log.info(
         scl.add(new Screen(session.browserID, 2, "v", id2, pr2));
         return scl;
     }
-/*
+
     public PictureResponse getNeuralMatch(Connection conn,
                                             int viewNum, String orient,
                                             Session session,
@@ -8950,8 +9783,6 @@ log.info(
 
         Set<String> picSet = data.getPicSet(viewNum, orient);
 
-        boolrean has_d0 = PairDao.hasD0(orient);
-
         boolean a_d0 = false;
         String source = null;
         ListHolder lh = null;
@@ -8960,7 +9791,7 @@ log.info(
                 " " + last.orderInSession + " -> " +
                 ((double)last.orderInSession / picSet.size()));
 
-        if (has_d0  &&  last != null  &&
+        if (last != null  &&
             (double) last.orderInSession / picSet.size() > 0.4) {
 
             a_d0 = true;
@@ -8997,8 +9828,7 @@ log.info(
                                         false, "DESC", // DESC/best
                                         len, picSet);
         }
-        if (lh.size() == 0  &&  has_d0  &&  !a_d0) {
-
+        if (!a_d0  &&  lh.size() == 0) {
             source = "a_d0";
             // normal for small views, ~6K
 
@@ -9023,11 +9853,13 @@ log.info(
 
         // evaluate lh
 
-        Set<String> seenPairs = null;
-        if (screen == 0) {
-            seenPairs = FeelingPairDao.getPicsSeen(conn, id, "id1");
-        } else {
-            seenPairs = FeelingPairDao.getPicsSeen(conn, id, "id2");
+        Set<String> seenPairs= null;
+        if (session.curator != null) {
+            if (screen == 0) {
+                seenPairs = UniquePairDao.getPicsSeen(conn, id, "id1");
+            } else {
+                seenPairs = UniquePairDao.getPicsSeen(conn, id, "id2");
+            }
         }
 
         Set<String> seen = new HashSet<>();
@@ -9107,7 +9939,101 @@ log.info(
         log.info("getNeuralMatch: ZILCH skipseen " + skipped_seen);
         return null;
     }
-*/
+
+    private List<Screen> skewedApprovedMatch(Connection conn,
+                                            Session session, UserProfile up,
+                                            int viewNum, String orient,
+                                            Set<String> picSet,
+                                            List<ApprovedPair> l,
+                                            String method)
+            throws SQLException {
+
+        if (l.size() == 0) {
+            log.info("skewedApprovedMatch: no input pairs");
+            return null;
+        }
+        SeenIds seenIds = getSeen(conn, session);
+        //log.warn("HACK - USING d0 for sortCol");
+        String sortCol = "a_d0";
+        List<ApprovedPair> apl2 = new ArrayList<>();
+        long max = 0;
+        for (ApprovedPair ap : l) {
+            if (seenIds.contains(ap.id1)  ||  seenIds.contains(ap.id2)) {
+                continue;
+            }
+            // 0 == perfect match
+            ap.sortVal = PairDao.getVal(conn, ap.id1, ap.id2, orient, sortCol);
+            if (ap.sortVal > max) {
+                max = ap.sortVal;
+            }
+            apl2.add(ap);
+        }
+        if (apl2.size() == 0) {
+            log.info("skewedApprovedMatch: no remaining pairs");
+            return null;
+        }
+
+        Collections.sort(apl2);// ascending for d0==raw neural
+
+        int mid = (int)(up.skew * (double) apl2.size());
+        if (mid == apl2.size()) {
+            mid--;
+        }
+        mid = 0;
+
+        log.info("skewedApprovedMatch: init size: " + l.size() +
+                    " procd " + apl2.size() + " mid " + mid);
+        l = apl2;
+int x=0;
+        for (int i=0;i<l.size();i++) {
+            boolean seen = false;
+            int ix = mid - i;
+            if (ix > -1) {
+                seen = true;
+                ApprovedPair ap = l.get(ix);
+x++;
+                List<Screen> scl = tryApprovedPair(conn,
+                                                    viewNum, orient, session,
+                                                    picSet, ap, seenIds,
+                                                    method + "/" + sortCol);
+                if (scl != null) {
+                    log.info("skewedApprovedMatch got " + ix + " " +
+                                 screenSummary(scl));
+                    return scl;
+                }
+            }
+            if (i > 0) {
+                ix = mid + i;
+                if (ix < l.size()) {
+                    seen = true;
+x++;
+                    ApprovedPair ap = l.get(ix);
+                    List<Screen> scl = tryApprovedPair(conn,
+                                                        viewNum, orient, session,
+                                                        picSet, ap, seenIds,
+                                                        method + "/" + sortCol);
+                    if (scl != null) {
+                        log.info("skewedApprovedMatch got " + ix + " " +
+                                 screenSummary(scl));
+                        return scl;
+                    }
+                }
+            }
+            if (!seen) {
+                break;
+            }
+        }
+        log.info("skewedApprovedMatch: fallback");
+
+        List<Screen> ret = fallbackLinear(conn, viewNum, orient,
+                                                session, up,
+                                                up.skew);
+        if (ret == null  ||  ret.size() == 0) {
+            log.error("No fallback");
+        }
+        return ret;
+    }
+
 
     private ListHolder interleaveLists(Set<String> picSet, SeenIds seenIds,
                                        ListHolder lh1, ListHolder lh2) {
@@ -9171,6 +10097,200 @@ log.info(
         return lh;
     }
 
+
+
+    private List<Screen> handleApprovedPair0(Connection conn, String caller,
+                                            int viewNum, String orient,
+                                            Session session, UserProfile up,
+                                            List<String> ids)
+            throws SQLException {
+
+        // try to avoid exposing approved prs, slow anyway
+        log.warn("handleApprovedPair0 - caller " + caller);
+
+        final boolean best = true;
+
+        Set<String> picSet = data.getPicSet(viewNum, orient);
+        SeenIds seenIds = getSeen(conn, session);
+
+        double ratio = 0.0;
+        double rat2 = 0.0;
+        if (up.last != null  &&  up.avgUserTime > 0) {
+            ratio = (double) up.last.userTime / up.avgUserTime;
+            ratio = conditionRatio(ratio);
+            rat2 = (double) up.deltaUserTime / up.avgUserTime;
+            rat2 = conditionRatio(rat2);
+        }
+
+        int limit = session.curator == null ? 500 : -1;
+
+        ListHolder lh = PairDao.getPosPairsParallel(conn, orient, session.curator, "a_d0",
+                                                    ids, best, 200, picSet);
+
+        PictureResponse pr = new PictureResponse();
+
+        Set<String> seenAps = new HashSet<>();
+
+        while (lh.size() > 0) {
+            pr.p = chooseFromDistribution(conn, "appr/0", session, up, lh, 0,
+                                                orient);
+            if (pr.p == null) {
+                log.info("Exhausted w/ limit " + limit);
+                break;
+            }
+            String id = pr.p.id;
+
+            List<ApprovedPair> apl = ApprovalDao.getApprovedPairsWithPic(
+                                                    conn, id, // null,
+                                                    picSet);
+            if (apl.size() == 0) {
+                // next pic matching one of orig pair
+                continue;
+            }
+
+            int zeroct = 0;
+
+            String method = "a_d0";
+
+            // sometimes throw in a reverse sort
+            if (up.last != null  &&  up.last.userTime < 6000  &&
+                up.skew > 0.68) {  // MAGIC, 1.0 > skew > .333
+
+                method = "a_d0";
+
+                log.info("**************\n********\n******** Worst?");
+
+                for (ApprovedPair ap : apl) {
+                    if (seenAps.contains(ap.idP)) {
+                        continue;
+                    }
+                    seenAps.add(ap.idP);
+                    ap.sortVal = PairDao.getVal(conn, id, ap.otherId, orient,
+                                                      "a_d0", true);
+                    if (ap.sortVal == 0) {
+                        zeroct++;
+                    }
+                }
+                Collections.sort(apl);
+
+            } else {
+
+                for (ApprovedPair ap : apl) {
+                    if (seenAps.contains(ap.idP)) {
+                        continue;
+                    }
+                    seenAps.add(ap.idP);
+                    ap.sortVal = PairDao.getVal(conn, id, ap.otherId, orient,
+                                                      "a_d0", true /* def 0*/);
+                    if (ap.sortVal == 0) {
+                        zeroct++;
+                    }
+                }
+                Collections.sort(apl, Collections.reverseOrder());
+            }
+
+            log.info("Sorted ap's: " + method + ": " +
+                     apl.get(0).sortVal + ".." +
+                     apl.get(apl.size()-1).sortVal +
+                     " zeroes: " + zeroct);
+
+            for (int ix=0;ix<apl.size();ix++) {
+
+                ApprovedPair ap = apl.get(ix);
+
+                List<Screen> scl = tryApprovedPair(conn,
+                                                    viewNum, orient, session,
+                                                    picSet, ap, seenIds, "ap/d0");
+                if (scl != null) {
+                    log.info("Got linear sorted approved pair " + ix + " " +
+                                 screenSummary(scl));
+                    return scl;
+                }
+            }
+            log.info("no ap's matching " + id);
+        }
+        log.info("handleApprovedPair0 exhausted - go linear");
+        return linearSearchApprovedPairs(conn,
+                                            viewNum, orient, session, up,
+                                            picSet, seenIds,
+                                            ratio, rat2);
+    }
+
+    private List<Screen> linearSearchApprovedPairs(Connection conn,
+                                            int viewNum, String orient,
+                                            Session session, UserProfile up,
+                                            Set<String> picSet, SeenIds seenIds,
+                                            double ratio, double rat2)
+            throws SQLException {
+
+        //boolean first = up.longerThanSecondLastUserTime;
+        //boolean forward = up.longerThanAverageUserTime;
+
+        List<ApprovedPair> allpr = null;
+        if ("v".equals(orient)) {
+            allpr = data.approvedV;
+        } else {
+            allpr = data.approvedH;
+        }
+
+        int mid = (int)(ratio * rat2 * allpr.size());
+        if (mid < 0) {
+            mid *= -1;
+        }
+        mid = mid % allpr.size();
+
+        log.info("handleApprovedPair0 'linear' search " + orient +
+                    " size " + allpr.size() +
+                    " picSet size " + (picSet == null ? 0 : picSet.size()) +
+                    " seenIds.seen " + (seenIds.seen == null ? "null" : "yes") +
+                    " mid " + mid);
+
+        int x=0;
+        for (int i=0;i<allpr.size();i++) {
+            boolean seen = false;
+            int ix = mid - i;
+            if (ix > -1) {
+                seen = true;
+                ApprovedPair ap = allpr.get(ix);
+                x++;
+                List<Screen> scl = tryApprovedPair(conn,
+                                                    viewNum, orient, session,
+                                                    picSet, ap, seenIds, "ap0/lin/" + x);
+                if (scl != null) {
+                    log.info("Got linear approved pair " + ix + " " +
+                                 screenSummary(scl));
+                    return scl;
+                }
+            }
+            if (i > 0) {
+                ix = mid + i;
+                if (ix < allpr.size()) {
+                    seen = true;
+                    x++;
+                    ApprovedPair ap = allpr.get(ix);
+                    List<Screen> scl = tryApprovedPair(conn,
+                                                        viewNum, orient, session,
+                                                        picSet, ap, seenIds,
+                                                       "ap0/lin/" + x);
+                    if (scl != null) {
+                        log.info("Got linear approved pair " + ix + " " +
+                                 screenSummary(scl));
+                        return scl;
+                    }
+                }
+            }
+            if (!seen) {
+                break;
+            }
+        }
+        log.info("handleApprovedPair linear search done: " +
+                  x + "/" + allpr.size() +
+                 " signaling option done/ODONE");
+
+        return new ArrayList<>();
+    }
+
+
     private List<Screen> tryOutAP(Connection conn,
                                                 String orient,
                                                 Session session,
@@ -9190,7 +10310,7 @@ log.info(
         if (seenIds.contains(ap.otherId)) {
             return null;
         }
-        if (FeelingPairDao.checkSeen(conn, session.browserID, ap.id1, ap.id2)) {
+        if (checkSeen(conn, session.browserID, ap.id1, ap.id2)) {
             return null;
         }
         PictureResponse pr = new PictureResponse();
@@ -9236,16 +10356,16 @@ log.info(
 
         for (int i=history.size()-1;i>-1;i-=1) {  // put in sequential order
 
-            HistoryPair fp = history.get(i);
+            HistoryPair hp = history.get(i);
 
-            userTimes.add(new Integer( fp.userTime).doubleValue());
-            netTimes.add(new Integer( fp.bigTime ).doubleValue());
+            userTimes.add(new Integer(hp.userTime).doubleValue());
+            netTimes.add(new Integer(hp.bigTime ).doubleValue());
                                       // -1,-2 ok
 
-            //clickTimes.add(new Integer(fp.clickTime).doubleValue());
-            //userTimes2.add(new Integer(fp.userTime2).doubleValue());
-            //mouseDists.add(new Integer(fp.mouseDist).doubleValue());
-            //mouseDists2.add(new Integer(fp.mouseDist2).doubleValue());
+            //clickTimes.add(new Integer(hp.clickTime).doubleValue());
+            //userTimes2.add(new Integer(hp.userTime2).doubleValue());
+            //mouseDists.add(new Integer(hp.mouseDist).doubleValue());
+            //mouseDists2.add(new Integer(hp.mouseDist2).doubleValue());
         }
 
         double ret[] = new double[] { 0.0, 0.0 };
@@ -9449,6 +10569,139 @@ log.info(
     }
 
 
+    private List<Screen> tryForKwdApproved(Connection conn,
+                                            int viewNum, String orient,
+                                            Session session, UserProfile up,
+                                            String id1,
+                                            int screenId, // in [0,1]
+                                            ListHolder kwd_lh,
+                                            ListHolder kwd_lh_fallback)
+            throws SQLException {
+        log.info("tryForKwdApproved " + screenId + " " + id1);
+
+        if (true) {
+            log.error("NO lh.map! kwds gone a while ago");
+            return null;
+        }
+
+        Set<String> picSet = data.getPicSet(viewNum, orient);
+
+        double ratio = 0.5;
+        if (up.last != null  &&  up.avgUserTime > 0) {
+            double t = (double) up.last.userTime / up.avgUserTime;
+            if (t == 0.0) {
+                t = 0.01;
+            } else {
+                while (t < 0.01) {
+                    t *= 10.0;
+                }
+                while (t > 0.5) {
+                    t /= 2.0;
+                }
+            }
+
+            if (t < 0.5) {
+                if (up.longerThanSecondLastUserTime) {
+                    t *= -1;
+                }
+                ratio += t;
+            }
+        }
+
+        int mid = 0;
+
+        PictureResponse pr = new PictureResponse();
+
+        // the keyword association is fast, since in-memory
+
+        ListHolder lh = null;
+        if (kwd_lh != null) {
+            //lh = kwd_lh.map.get(id1);
+        }
+        if (lh == null  &&  kwd_lh_fallback != null) {
+            log.warn("No list for " + id1 + " relaxing");
+            //lh = kwd_lh_fallback.map.get(id1);
+        }
+        if (lh == null) {
+            // TODO - retry w/ geom kwds
+            log.error("No list for " + id1);
+            List<Screen> ret = fallbackLinear(conn,
+                                                viewNum, orient,
+                                                session, up,
+                                                ratio);
+            if (ret == null  ||  ret.size() == 0) {
+                log.error("No fallback after no list for " + id1);
+            }
+            return ret;
+        }
+        mid = (int)(ratio * lh.size());
+        if (mid == lh.size()) {
+            mid--;
+        }
+
+        log.info("handleApprovedPairSCreen kwd matches: " + lh.size() +
+                 " ratio " + ratio + " mid " + mid);
+
+        // sort by target plus keyword potential MAGIC
+
+        ListHolder lh2 = new ListHolder();
+
+        int incr = 1;
+        long base_val = lh.value_l.get(mid);// get crazy
+        for (int i=0;i<lh.size();i++) {
+            int theone;
+            if (i == 0) {
+              theone = mid;
+            } else if (i % 2 == 1) {
+              theone = mid - incr;
+            } else {
+              theone = mid + incr;
+              incr++;
+            }
+            if (theone < 0) {
+                theone = lh.size() + theone;
+            } else if (theone >= lh.size()) {
+                theone -= lh.size();
+            }
+            lh2.id2_l.add(lh.id2_l.get(theone));
+            long val = Math.abs(base_val - lh.value_l.get(theone)) % base_val;
+            lh2.value_l.add(val);
+        }
+        if (lh2.size() != lh.size()) {
+            log.error("COMPLAIN LOUDLY");
+        }
+
+        int ct = 0;
+        SeenIds seenIds = getSeen(conn, session);
+        List<String> tmpIds = new ArrayList<>();// TODO FIX this dubious scheme
+
+        while (lh2.size() > 0) {
+
+            pr.p = chooseFromDistribution(conn, "app/kwd", session, up, lh2, 0,
+                                                orient);
+            if (pr.p == null) {
+                log.info("No first with list size " + lh2.size());
+                break;
+            }
+            ct++;
+            pr.method = "app/kwd";
+            String id = pr.p.id;
+            List<Screen> scl = tryForApprovedPair(conn,
+                                                    viewNum, orient, session,
+                                                    picSet, id, pr,
+                                                    null /* hasKwd */, ratio);
+            if (scl != null  &&  scl.size() > 0) {
+                log.info("handleApprovedPair/kwd tried " + ct);
+                seenIds.exclude.removeAll(tmpIds);
+                return scl;
+            }
+            seenIds.exclude.add(id);// remember to remove
+            tmpIds.add(id);
+        }
+        log.info("Got nothing");
+        seenIds.exclude.removeAll(tmpIds);
+        return null;
+    }
 
     private List<Screen> fallbackLinear(Connection conn,
                                         int viewNum, String orient,
@@ -9457,8 +10710,66 @@ log.info(
 
             throws SQLException {
 
-        throw new SQLException("UNIMPL: fallbackLinear");
+        Set<String> picSet = data.getPicSet(viewNum, orient);
 
+        //boolean first = up.longerThanSecondLastUserTime;
+        //boolean forward = up.longerThanAverageUserTime;
+        List<ApprovedPair> all = ApprovalDao.getAllApprovedPairs(conn,
+                                                1, orient, null,//curatorUpper
+                                                true, // d0
+                                                null, null, picSet);
+
+        int mid = (int)(ratio * (double) all.size());
+        if (mid == all.size()) {
+            mid--;
+        }
+
+        log.info("fallbackLinear: trying 'linear' search " +
+                    " size " + all.size() + " mid " + mid);
+
+        SeenIds seenIds = getSeen(conn, session);
+
+        int x=0;
+        for (int i=0;i<all.size();i++) {
+            boolean seen = false;
+            int ix = mid - i;
+            if (ix > -1) {
+                seen = true;
+                x++;
+                ApprovedPair ap = all.get(ix);
+                List<Screen> scl = tryApprovedPair(conn,
+                                                    viewNum, orient, session,
+                                                    picSet, ap, seenIds, "fb/lin");
+                if (scl != null) {
+                    log.info("Got linear approved pair " + ix + " " +
+                                 screenSummary(scl));
+                    return scl;
+                }
+            }
+            if (i > 0) {
+                ix = mid + i;
+                if (ix < all.size()) {
+                    seen = true;
+                    x++;
+                    ApprovedPair ap = all.get(ix);
+                    List<Screen> scl = tryApprovedPair(conn,
+                                                        viewNum, orient, session,
+                                                        picSet, ap, seenIds, "fb/lin");
+                    if (scl != null) {
+                        log.info("Got linear approved pair " + ix + " " +
+                                 screenSummary(scl));
+                        return scl;
+                    }
+                }
+            }
+            if (!seen) {
+                break;
+            }
+        }
+        log.info("handleApprovedPair linear search done: " + x + "/" + all.size() +
+                 " signaling option done/ODONE");
+
+        return new ArrayList<>();
     }
 
 
@@ -9471,6 +10782,90 @@ log.info(
         return sb.toString();
     }
 
+
+    private List<Screen> tryForApprovedPair12(Connection conn,
+                                            int viewNum, String orient,
+                                            Session session,
+                                            Set<String> picSet,
+                                            String id, PictureResponse initPr,
+                                            Boolean hasKwd, double ratio)
+            throws SQLException {
+
+        List<ApprovedPair> approvedPairs = ApprovalDao.getApprovedPairsWithPic(
+                                                    conn, id, // hasKwd,
+                                                    picSet);
+        if (approvedPairs == null  ||  approvedPairs.size() == 0) {
+            //log.info("(No approved pairs");
+            return null;
+        }
+        SeenIds seenIds = getSeen(conn, session);
+
+        List<ApprovedPair> apl2 = new ArrayList<>();
+        for (ApprovedPair ap : approvedPairs) {
+            if (orient != null  &&
+                "v".equals(orient) != data.verticals.contains(ap.otherId)) {
+                continue;
+            }
+            if (seenIds.contains(ap.otherId)) {
+                continue;
+            }
+            Picture p = PictureDao.getPictureById(conn, ap.otherId);
+            ap.sortVal = p.density;
+            apl2.add(ap);
+        }
+        if (apl2.size() == 0) {
+            log.info("Nothing after filter");
+            return null;
+        }
+        Collections.sort(apl2);
+        log.info("SOrted " + apl2.get(0).sortVal + " " +
+                  apl2.get(apl2.size()-1).sortVal);
+
+        approvedPairs = apl2;
+
+        int target = (int) (ratio * approvedPairs.size());
+        int offset = 0;
+
+        log.info("Trying approved pairs: " + approvedPairs.size() +
+                   " target " + target);
+
+        List<List<Screen>> bak = new ArrayList<>();
+        int[] debug = new int[3];
+
+        while (true) {
+
+            boolean tried = false;
+
+            int ix = target + offset;
+            if (ix < approvedPairs.size()) {
+                ApprovedPair ap = approvedPairs.get(ix);
+                List<Screen> scl = checkApprovedPair(conn, session, ap,
+                                                     hasKwd, id, initPr,
+                                                     orient, seenIds, debug);
+                if (scl != null) {
+                    return scl;
+                }
+                tried = true;
+            }
+            ix = target - offset;
+            if (ix != target  &&  ix > -1) {
+                ApprovedPair ap = approvedPairs.get(ix);
+                List<Screen> scl = checkApprovedPair(conn, session, ap,
+                                                     hasKwd, id, initPr,
+                                                     orient, seenIds, debug);
+                if (scl != null) {
+                    return scl;
+                }
+                tried = true;
+            }
+            if (!tried) {
+                break;
+            }
+            offset++;
+        }
+        //log.info("(No approved pairs");
+        return null;
+    }
 
     private ListHolder filterSeen(ListHolder lh, SeenIds seenIds) {
 
@@ -9487,6 +10882,240 @@ log.info(
             }
         }
         return ret;
+    }
+
+    private List<Screen> handleKeywordScreens(Connection conn,
+                                            int viewNum, String orient,
+                                            Session session, UserProfile up,
+                                            int n, List<String> ids)
+            throws SQLException {
+
+        Set<String> picSet = data.getPicSet(viewNum, orient);
+        SeenIds seenIds = getSeen(conn, session);
+
+        if (up.last.rateTime != null  &&  up.last.createTime != null) { // HACK
+            long sysTime = up.last.rateTime.getTime() -
+                           up.last.createTime.getTime();
+
+            double diff = Math.abs(sysTime - up.last.userTime);
+            if (diff > 0.1 * sysTime) {
+                log.warn("DIFF IN TIMES: sys " + sysTime + " user " +
+                                                 up.last.userTime);
+            }
+        }
+
+        // a little sanity check for browsers that don't cache
+        //   so do a second load when document["image"].src = tmpimg.src
+        if (up.history.size() > 1) {
+            if (up.last.callCount == up.history.get(1).callCount) {
+                log.warn("DOUBLE count browser " + session.browserID +
+                         " count " + up.last.callCount);
+            }
+        }
+
+        StringBuilder sum = new StringBuilder("\n ");
+        StringBuilder tsum = new StringBuilder(" ");
+
+
+        // get matches for both of last pics interleaved for speed
+        //   TODO: use 'in (x,y)' in db for speed
+        int depth_per_pic = 100;
+        if (up.last.orderInSession > 1000) {
+            depth_per_pic *= 2;
+            log.info("Bumping depth -> " + depth_per_pic);
+        }
+        final boolean best = true;
+        ListHolder lh = PairDao.getPosPairsParallel(conn, orient, session.curator, "a_d0",
+                                                    ids, best, 200, picSet);
+
+        List<Screen> ret = new ArrayList<>();
+
+        PictureResponse initPr = new PictureResponse();
+        PictureResponse pr = new PictureResponse();
+
+        int randTries0 = 10; // decrements
+
+        int initPr_ct = 0;
+        int pr_ct = 0;
+
+        int skipped_seen = 0;
+        int flip_skipped_seen = 0;
+        int skipped_approved = 0;
+
+        while (true) {
+
+            initPr.p = null;
+
+            if (lh.size() > 0) {
+                initPr.method = "iKd0." + initPr_ct;
+                initPr.p = chooseFromDistribution(conn, "d0Ki",
+                                                        session, up, lh, -1);
+            }
+            if (initPr.p == null  &&  randTries0-- > 0) {
+                log.info("fall back to random for first");
+                initPr = chooseRandomImage(conn, viewNum, orient,
+                                                    session, true);
+            }
+            if (initPr == null  ||  initPr.p == null) {
+                log.info("getting init/0 done");
+                break;
+            }
+
+            // !CONVENTION is id+initPr, id2+pr
+
+            initPr_ct++;
+
+            String id = initPr.p.id;
+
+            ListHolder lh2 = PairDao.getPosPairs(conn, orient, session.curator, "a_d0",
+                                                      id, false, // pic rt
+                                                      true, // has kwd;ignored
+                                                      best,
+                                                      depth_per_pic, picSet);
+            // AB,BA's mixed, not worrying which for picking
+            if (lh2.size() == 0) {
+                log.info("all seen for " + id);
+                continue;
+            }
+
+            log.info("=initPr " + id + " matches: " + lh2.size());
+
+            Set<String> seenPairsId1 = null;
+            Set<String> seenPairsId2 = null;
+            if (session.curator != null) {
+                seenPairsId1 = UniquePairDao.getPicsSeen(conn, id, "id1");
+                seenPairsId2 = UniquePairDao.getPicsSeen(conn, id, "id2");
+            }
+
+            while (lh2.size() > 0) {
+
+                pr.p = chooseFromDistribution(conn, "K0", session, up,
+                                                          lh2, -1);
+                if (pr.p == null) {
+                    break;
+                }
+                pr_ct++;
+
+                pr.method = "Kd0." + pr_ct;
+
+                String id2 = pr.p.id;
+
+                if (session.curator != null) {
+                    if (seenPairsId1.contains(id2)) {
+
+                        skipped_seen++;
+
+                        // flip for curator? - shouldn't happen soon
+                        //      if caught up
+                        if (seenPairsId1.contains(id2)) {
+                            log.info("flipped seen too (curator)");
+                            flip_skipped_seen++;
+                            continue;
+                        }
+                        if (ApprovalDao.settled(conn, id2, id)) {
+                            skipped_approved++;
+                            continue;
+                        }
+
+                        ret.add(new Screen(session.browserID,
+                                                    1, "v", id2, pr));
+                        ret.add(new Screen(session.browserID,
+                                                    2, "v", id, initPr));
+                        log.info("Kwd/curator flip:" +
+                               " skipped_seen " + skipped_seen +
+                               " flip_skipped_seen " + flip_skipped_seen +
+                               " skipped_approved " + skipped_approved);
+                        return ret;
+                    }
+                    if (ApprovalDao.settled(conn, id, id2)) {
+                        skipped_approved++;
+                        continue;
+                    }
+                    ret.add(new Screen(session.browserID,
+                                                    1, "v", id, initPr));
+                    ret.add(new Screen(session.browserID,
+                                                    2, "v", id2, pr));
+                    log.info("Kwd/curator fwd:" +
+                               " skipped_seen " + skipped_seen +
+                               " flip_skipped_seen " + flip_skipped_seen +
+                               " skipped_approved " + skipped_approved);
+                    return ret;
+                }
+
+                // Both pics haven't been seen in session.
+                ret.add(new Screen(session.browserID,
+                                                    1, "v", id, initPr));
+                ret.add(new Screen(session.browserID,
+                                                    2, "v", id2, pr));
+                return ret;
+            }
+            log.info("=l2 done");
+        }
+
+        log.info("kwd fallback to general a_d0");
+        return handlePrPosScreens(conn,
+                                    viewNum, orient, session, up,
+                                    "a_d0", ids, -1);
+    }
+
+    private PictureResponse tryKwd(Connection conn, ListHolder lh,
+                                            int viewNum, String orient,
+                                            Session session,
+                                            String id1, double tskew)
+            throws SQLException {
+
+        if (true) {
+            log.error("KWDS need map in ListHolder or redesign");
+            return null;
+        }
+        //lh = lh.map.get(id1);// read-only
+        if (lh == null) {
+            log.warn("No keyword match list for for " + id1);
+            return null;
+        }
+        Set<String> picSet = data.getPicSet(viewNum, orient);
+        ListHolder lh2 = intersectSet(lh, null, picSet);
+        log.info(id1 + " List size " + lh2.size());
+
+        int start = (int)(tskew * (double) lh2.size());
+        if (start == lh2.size()) {
+            start = 0;
+        }
+
+        SeenIds seenIds = getSeen(conn, session);
+
+        PictureResponse pr = new PictureResponse();
+        StringBuilder blah = new StringBuilder();
+        for (int i=start;i<lh2.size();i++) {
+            String id = lh2.id2_l.get(i);
+            if (seenIds.contains(id)) {
+                blah.append(id).append(' ');
+                continue;
+            }
+            pr.p = PictureDao.getPictureById(conn, id);
+            if (pr.p == null) {
+                log.info("No version for unseen seq " + id);
+                continue;
+            }
+            pr.method = "match";
+            return pr;
+        }
+        for (int i=start-1;i>-1;i--) {
+            String id = lh2.id2_l.get(i);
+            if (seenIds.contains(id)) {
+                blah.append(id).append(' ');
+                continue;
+            }
+            pr.p = PictureDao.getPictureById(conn, id);
+            if (pr.p == null) {
+                log.info("No version for unseen seq " + id);
+                continue;
+            }
+            pr.method = "match";
+            return pr;
+        }
+        log.info(id1 + " tried: " + blah);
+        return null;
     }
 
 }

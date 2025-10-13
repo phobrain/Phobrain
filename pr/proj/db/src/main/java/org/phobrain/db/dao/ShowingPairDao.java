@@ -10,7 +10,7 @@ package org.phobrain.db.dao;
  **  ShowingPairDao  - pr.showing_pair - record what shown and response
  **/
 
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.Picture;
 
 import org.phobrain.util.AtomSpec;
@@ -66,7 +66,7 @@ public class ShowingPairDao extends DaoBase {
         "  atom_impact, impact_factor, big_stime)" +
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    public static void insertShowingPair(Connection conn, ShowingPair s) 
+    public static void insertPair(Connection conn, HistoryPair s) 
                                                   throws SQLException {
 
         PreparedStatement ps = null;
@@ -207,20 +207,20 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    public static ShowingPair getLastShowingToBrowser(Connection conn, 
+    public static HistoryPair getLastPair(Connection conn, 
                                                   long browserID)
               throws SQLException {
-        long showingID = getLastShowingID(conn, browserID);
+        long showingID = getLastID(conn, browserID);
         if (showingID == -1) {
             return null;
         }
-        return getShowingPairByID(conn, showingID);
+        return getPairByID(conn, showingID);
     }
 
     private final static String SQL_GET_LAST_SHOWING_ID =
         "SELECT MAX(id) FROM pr.showing_pair WHERE browser_id = ?";
 
-    public static long getLastShowingID(Connection conn, long browserID)
+    public static long getLastID(Connection conn, long browserID)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -232,7 +232,7 @@ public class ShowingPairDao extends DaoBase {
             ps.setLong(1, browserID);
             rs = ps.executeQuery();
             if (!rs.next()) {   // impossible?
-                throw new SQLException("getLastShowing: no result");
+                throw new SQLException("getLastID: no result");
             }
             long showingID = rs.getLong(1);
             if (showingID == 0) {
@@ -246,103 +246,103 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    private static ShowingPair showingPairFromResultSet(ResultSet rs) 
+    private static HistoryPair showingPairFromResultSet(ResultSet rs) 
             throws SQLException {
 
-        ShowingPair sp = new ShowingPair();
+        HistoryPair hp = new HistoryPair();
 
-        sp.id = rs.getLong(1);
-        sp.createTime = rs.getTimestamp(2);
+        hp.id = rs.getLong(1);
+        hp.createTime = rs.getTimestamp(2);
 
-        sp.browserID = rs.getLong(3);
-        sp.callCount = rs.getInt(4);
-        sp.orderInSession = rs.getInt(5);
+        hp.browserID = rs.getLong(3);
+        hp.callCount = rs.getInt(4);
+        hp.orderInSession = rs.getInt(5);
  
-        sp.id1 = rs.getString(6);
-        sp.archive1 = rs.getInt(7);
-        sp.fileName1 = rs.getString(8);
-        sp.selMethod1 = rs.getString(9);
+        hp.id1 = rs.getString(6);
+        hp.archive1 = rs.getInt(7);
+        hp.fileName1 = rs.getString(8);
+        hp.selMethod1 = rs.getString(9);
 
-        sp.id2 = rs.getString(10);
-        sp.archive2 = rs.getInt(11);
-        sp.fileName2 = rs.getString(12);
-        sp.selMethod2 = rs.getString(13);
+        hp.id2 = rs.getString(10);
+        hp.archive2 = rs.getInt(11);
+        hp.fileName2 = rs.getString(12);
+        hp.selMethod2 = rs.getString(13);
 
-        sp.pairRating = rs.getInt(14);
-        sp.ratingScheme = rs.getInt(15);
+        hp.pairRating = rs.getInt(14);
+        hp.ratingScheme = rs.getInt(15);
 
-        sp.rateTime = getTimestamp(rs, 16);
-        sp.userTime = rs.getInt(17);
-        sp.userTime2 = rs.getInt(18);
-        sp.watchDotsTime = rs.getInt(19);
-        sp.mouseDownTime = rs.getInt(20);
+        hp.rateTime = getTimestamp(rs, 16);
+        hp.userTime = rs.getInt(17);
+        hp.userTime2 = rs.getInt(18);
+        hp.watchDotsTime = rs.getInt(19);
+        hp.mouseDownTime = rs.getInt(20);
 
-        sp.mouseDist = rs.getInt(21);
-        sp.mouseDist2 = rs.getInt(22);
+        hp.mouseDist = rs.getInt(21);
+        hp.mouseDist2 = rs.getInt(22);
 
-        sp.mouseDx = rs.getInt(23);
-        sp.mouseDy = rs.getInt(24);
-        sp.mouseVecx = rs.getInt(25);
-        sp.mouseVecy = rs.getInt(26);
+        hp.mouseDx = rs.getInt(23);
+        hp.mouseDy = rs.getInt(24);
+        hp.mouseVecx = rs.getInt(25);
+        hp.mouseVecy = rs.getInt(26);
 
-        sp.mouseMaxv = rs.getInt(27);
-        sp.mouseMaxa = rs.getInt(28);
-        sp.mouseMina = rs.getInt(29);
-        sp.mouseMaxj = rs.getInt(30);
+        hp.mouseMaxv = rs.getInt(27);
+        hp.mouseMaxa = rs.getInt(28);
+        hp.mouseMina = rs.getInt(29);
+        hp.mouseMaxj = rs.getInt(30);
 
-        sp.clickTime = rs.getInt(31);
-        sp.loadTime = rs.getInt(32);
-        sp.pixInPic = rs.getInt(33);
-        sp.dotCount = rs.getInt(34);
-        sp.pixOutPic = rs.getInt(35);
+        hp.clickTime = rs.getInt(31);
+        hp.loadTime = rs.getInt(32);
+        hp.pixInPic = rs.getInt(33);
+        hp.dotCount = rs.getInt(34);
+        hp.pixOutPic = rs.getInt(35);
 
-        sp.atomImpact = AtomSpec.fromInt(rs.getInt(36));
-        sp.impactFactor = rs.getFloat(37);
-        sp.picClik = rs.getString(38);
+        hp.atomImpact = AtomSpec.fromInt(rs.getInt(36));
+        hp.impactFactor = rs.getFloat(37);
+        hp.picClik = rs.getString(38);
 
-        sp.nTogs = rs.getInt(39);
-        sp.togSides = rs.getString(40);
+        hp.nTogs = rs.getInt(39);
+        hp.togSides = rs.getString(40);
         String togts = rs.getString(41);
         if (togts != null) {
-            sp.togTimes = MiscUtil.base64ToIntArray(togts);
+            hp.togTimes = MiscUtil.base64ToIntArray(togts);
         }
 
-        sp.vertical = rs.getBoolean(42);
-        sp.bigTime = rs.getInt(43);
-        sp.bigStime = rs.getInt(44);
+        hp.vertical = rs.getBoolean(42);
+        hp.bigTime = rs.getInt(43);
+        hp.bigStime = rs.getInt(44);
 
-        sp.dotDist = rs.getInt(45);
-        sp.dotVecLen = rs.getInt(46);
-        sp.dotVecAng = rs.getInt(47);
+        hp.dotDist = rs.getInt(45);
+        hp.dotVecLen = rs.getInt(46);
+        hp.dotVecAng = rs.getInt(47);
 
-        sp.dotMaxVel = rs.getInt(48);
-        sp.dotMaxAccel = rs.getInt(49);
-        sp.dotMaxJerk = rs.getInt(50);
+        hp.dotMaxVel = rs.getInt(48);
+        hp.dotMaxAccel = rs.getInt(49);
+        hp.dotMaxJerk = rs.getInt(50);
 
-        sp.dotStartScreen = rs.getInt(51);
-        sp.dotEndScreen = rs.getInt(52);
+        hp.dotStartScreen = rs.getInt(51);
+        hp.dotEndScreen = rs.getInt(52);
 
-        return sp;
+        return hp;
     }
 
-    private static ShowingPair showingPairIDBothFromResultSet(ResultSet rs) 
+    private static HistoryPair showingPairIDBothFromResultSet(ResultSet rs) 
             throws SQLException {
 
-        ShowingPair sp = new ShowingPair();
+        HistoryPair hp = new HistoryPair();
 
-        sp.createTime = rs.getTimestamp(1);
+        hp.createTime = rs.getTimestamp(1);
 
-        sp.id1 = rs.getString(2);
-        sp.archive1 = rs.getInt(3);
-        sp.fileName1 = rs.getString(4);
+        hp.id1 = rs.getString(2);
+        hp.archive1 = rs.getInt(3);
+        hp.fileName1 = rs.getString(4);
 
-        sp.id2 = rs.getString(5);
-        sp.archive2 = rs.getInt(6);
-        sp.fileName2 = rs.getString(7);
+        hp.id2 = rs.getString(5);
+        hp.archive2 = rs.getInt(6);
+        hp.fileName2 = rs.getString(7);
 
-        sp.vertical = rs.getBoolean(8);
+        hp.vertical = rs.getBoolean(8);
 
-        return sp;
+        return hp;
     }
     private final static String SQL_GET_SHOWING_PAIR_BY_ID =
         "SELECT " +
@@ -350,7 +350,7 @@ public class ShowingPairDao extends DaoBase {
           SHOWING_PAIR_FIELDS +
         " FROM pr.showing_pair WHERE id = ?";
 
-    public static ShowingPair getShowingPairByID(Connection conn, 
+    public static HistoryPair getPairByID(Connection conn, 
                                                  long showingID) 
               throws SQLException {
         PreparedStatement ps = null;
@@ -363,7 +363,7 @@ public class ShowingPairDao extends DaoBase {
             ps.setLong(1, showingID);
             rs = ps.executeQuery();
             if (!rs.next()) {   // impossible?
-                throw new SQLException("getLastShowingPairByID: no result");
+                throw new SQLException("getPairByID: no result");
             }
 
             return showingPairFromResultSet(rs);
@@ -380,7 +380,7 @@ public class ShowingPairDao extends DaoBase {
         " id2, archive2, file_name2, vertical " +
         " FROM pr.showing_pair_ids_both WHERE id1 = ? AND id2 = ?";
 
-    public static ShowingPair getShowingPairByIDsAndTime(Connection conn, 
+    public static HistoryPair getPairByIDsAndTime(Connection conn, 
                                                  String id1, String id2, 
                                                  long t) 
               throws SQLException {
@@ -395,23 +395,23 @@ public class ShowingPairDao extends DaoBase {
             ps.setString(2, id2);
             rs = ps.executeQuery();
 
-            ShowingPair sp = null;
+            HistoryPair hp = null;
             int skipped = 0;
 
             while (rs.next()) {
-                ShowingPair tsp = showingPairIDBothFromResultSet(rs);
-                if (Math.abs(t - tsp.createTime.getTime()) > 2000) {
+                HistoryPair thp = showingPairIDBothFromResultSet(rs);
+                if (Math.abs(t - thp.createTime.getTime()) > 2000) {
                     skipped++;
                     continue;
                 }
-                if (sp != null) {
-                    log.warn(">1 sp's at time");
+                if (hp != null) {
+                    log.warn(">1 hp's at time");
                     return null;
                 }
-                sp = tsp;
+                hp = thp;
             }
 
-            return sp;
+            return hp;
 
         } finally {
             closeSQL(rs);
@@ -419,7 +419,7 @@ public class ShowingPairDao extends DaoBase {
         }
     }
 
-    public static List<ShowingPair> getShowingPairsByIDs(Connection conn, 
+    public static List<HistoryPair> getPairsByIDs(Connection conn, 
                                                  String id1, String id2) 
               throws SQLException {
         PreparedStatement ps = null;
@@ -433,7 +433,7 @@ public class ShowingPairDao extends DaoBase {
             ps.setString(2, id2);
             rs = ps.executeQuery();
 
-            List<ShowingPair> ret = new ArrayList<>();
+            List<HistoryPair> ret = new ArrayList<>();
 
             while (rs.next()) {
                 ret.add(showingPairIDBothFromResultSet(rs));
@@ -453,7 +453,7 @@ public class ShowingPairDao extends DaoBase {
           SHOWING_PAIR_FIELDS +
         " FROM pr.showing_pair WHERE browser_id = ? ORDER BY id DESC LIMIT ?";
 
-    public static List<ShowingPair> getLastShowings(Connection conn, 
+    public static List<HistoryPair> getLastPairs(Connection conn, 
                                                 long browserID, int n) 
               throws SQLException {
         PreparedStatement ps = null;
@@ -467,7 +467,7 @@ public class ShowingPairDao extends DaoBase {
             ps.setInt(2, n);
             rs = ps.executeQuery();
 
-            List<ShowingPair> l = new ArrayList<>();
+            List<HistoryPair> l = new ArrayList<>();
 
             while (rs.next()) {
                 l.add(showingPairFromResultSet(rs));
@@ -483,12 +483,12 @@ public class ShowingPairDao extends DaoBase {
     private final static String SQL_COUNT_BROWSER_SHOWINGS =
         "SELECT COUNT(*)  FROM pr.showing_pair WHERE browser_id = ?";
 
-    public static int countShowings(Connection conn, long browserID) 
+    public static int countPairs(Connection conn, long browserID) 
               throws SQLException {
-        return countShowings(conn, browserID, null);
+        return countPairs(conn, browserID, null);
     }
 
-    public static int countShowings(Connection conn, long browserID, 
+    public static int countPairs(Connection conn, long browserID, 
                                                      String orient) 
               throws SQLException {
         PreparedStatement ps = null;
@@ -526,7 +526,7 @@ public class ShowingPairDao extends DaoBase {
           SHOWING_PAIR_FIELDS +
         " FROM pr.showing_pair WHERE browser_id = ? ORDER BY id ASC";
 
-    public static List<ShowingPair> getAllShowings(Connection conn, 
+    public static List<HistoryPair> getAll(Connection conn, 
                                                    long browserID) 
               throws SQLException {
         PreparedStatement ps = null;
@@ -539,7 +539,7 @@ public class ShowingPairDao extends DaoBase {
             ps.setLong(1, browserID);
             rs = ps.executeQuery();
 
-            List<ShowingPair> l = new ArrayList<>();
+            List<HistoryPair> l = new ArrayList<>();
 
             while (rs.next()) {
                 l.add(showingPairFromResultSet(rs));
@@ -600,101 +600,101 @@ public class ShowingPairDao extends DaoBase {
                         " dot_max_acc = ?, dot_max_jerk = ?" +
                         " WHERE id = ?";
 
-    public static void updateShowingPair(Connection conn, ShowingPair sp)
+    public static void updatePair(Connection conn, HistoryPair hp)
               throws SQLException {
 
-        if ("na".equals(sp.togSides)) {
-            sp.togSides = null;
+        if ("na".equals(hp.togSides)) {
+            hp.togSides = null;
         }
-        if (MiscUtil.NULL_BASE64.equals(sp.toggleTStr)) {
-            sp.toggleTStr = null;
+        if (MiscUtil.NULL_BASE64.equals(hp.toggleTStr)) {
+            hp.toggleTStr = null;
         }
 
-        if (sp.toggleTStr != null  &&  sp.toggleTStr.length() > 1024) {
-            log.warn("TRUNCATING togTimestr: " + sp.toggleTStr);
+        if (hp.toggleTStr != null  &&  hp.toggleTStr.length() > 1024) {
+            log.warn("TRUNCATING togTimestr: " + hp.toggleTStr);
             int i = 1024;
-            while (sp.toggleTStr.charAt(i) != '_' && i > 0) i--;
+            while (hp.toggleTStr.charAt(i) != '_' && i > 0) i--;
             if (i == 0) {
                 log.error("BAD togTimes setting -> null");
-                sp.toggleTStr = null;
+                hp.toggleTStr = null;
             } else {
-                sp.toggleTStr = sp.toggleTStr.substring(0, i);
-                log.warn("TRUNCATED togTimes: " + sp.toggleTStr);
+                hp.toggleTStr = hp.toggleTStr.substring(0, i);
+                log.warn("TRUNCATED togTimes: " + hp.toggleTStr);
             }
         }
 
-        if (sp.clickTime > 32767) {
+        if (hp.clickTime > 32767) {
             // TODO - seems to happen when clicking on pic then going away
-            log.warn("TRUNCating clickTime " + sp.clickTime + " to 32767");
-            sp.clickTime = 32767;
+            log.warn("TRUNCating clickTime " + hp.clickTime + " to 32767");
+            hp.clickTime = 32767;
         }
-        if (sp.bigTime > 32767) {
+        if (hp.bigTime > 32767) {
             // TODO - seems to happen when building pairs indexes
-            log.warn("TRUNCating bigTime " + sp.bigTime + " to 32767");
-            sp.bigTime = 32767;
+            log.warn("TRUNCating bigTime " + hp.bigTime + " to 32767");
+            hp.bigTime = 32767;
         }
 
         PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement(SQL_ADD_RATING);
 
-            ps.setTimestamp(1,  sp.rateTime);
+            ps.setTimestamp(1,  hp.rateTime);
 
-            ps.setInt(2,  sp.pairRating);
-            ps.setInt(3,  sp.ratingScheme);
+            ps.setInt(2,  hp.pairRating);
+            ps.setInt(3,  hp.ratingScheme);
 
-            ps.setInt(4,  sp.userTime);
-            ps.setInt(5,  sp.userTime2);
-            ps.setInt(6,  sp.clickTime); // mouse_time==draw time
-            ps.setInt(7,  sp.watchDotsTime);
-            ps.setInt(8,  sp.mouseDownTime);
-            ps.setInt(9,  sp.loadTime);
+            ps.setInt(4,  hp.userTime);
+            ps.setInt(5,  hp.userTime2);
+            ps.setInt(6,  hp.clickTime); // mouse_time==draw time
+            ps.setInt(7,  hp.watchDotsTime);
+            ps.setInt(8,  hp.mouseDownTime);
+            ps.setInt(9,  hp.loadTime);
 
-            ps.setInt(10,  sp.mouseDist);
-            ps.setInt(11,  sp.mouseDist2);
+            ps.setInt(10,  hp.mouseDist);
+            ps.setInt(11,  hp.mouseDist2);
 
-            ps.setInt(12,  sp.mouseDx);
-            ps.setInt(13,  sp.mouseDy);
+            ps.setInt(12,  hp.mouseDx);
+            ps.setInt(13,  hp.mouseDy);
 
-            ps.setInt(14,  sp.mouseVecx);
-            ps.setInt(15,  sp.mouseVecy);
+            ps.setInt(14,  hp.mouseVecx);
+            ps.setInt(15,  hp.mouseVecy);
 
-            ps.setInt(16,  sp.mouseMaxv);
-            ps.setInt(17,  sp.mouseMaxa);
+            ps.setInt(16,  hp.mouseMaxv);
+            ps.setInt(17,  hp.mouseMaxa);
 
-            ps.setInt(18,  sp.mouseMina);
-            ps.setInt(19,  sp.mouseMaxj);
+            ps.setInt(18,  hp.mouseMina);
+            ps.setInt(19,  hp.mouseMaxj);
 
-            ps.setInt(20,  sp.pixInPic);
-            ps.setInt(21,  sp.dotCount);
+            ps.setInt(20,  hp.pixInPic);
+            ps.setInt(21,  hp.dotCount);
 
-            ps.setInt(22,  sp.pixOutPic);
-            ps.setString(23, sp.picClik);
+            ps.setInt(22,  hp.pixOutPic);
+            ps.setString(23, hp.picClik);
 
-            ps.setInt(24,  sp.nTogs);
-            ps.setString(25, sp.togSides);
+            ps.setInt(24,  hp.nTogs);
+            ps.setString(25, hp.togSides);
 
-            ps.setString(26, sp.toggleTStr);
-            ps.setInt(27, sp.bigTime);
+            ps.setString(26, hp.toggleTStr);
+            ps.setInt(27, hp.bigTime);
 
-            ps.setInt(28, sp.dotStartScreen);
-            ps.setInt(29, sp.dotEndScreen);
+            ps.setInt(28, hp.dotStartScreen);
+            ps.setInt(29, hp.dotEndScreen);
 
-            ps.setInt(30, sp.dotDist);
-            ps.setInt(31, sp.dotVecLen);
+            ps.setInt(30, hp.dotDist);
+            ps.setInt(31, hp.dotVecLen);
 
-            ps.setInt(32, sp.dotVecAng);
-            ps.setInt(33, sp.dotMaxVel);
+            ps.setInt(32, hp.dotVecAng);
+            ps.setInt(33, hp.dotMaxVel);
 
-            ps.setInt(34, sp.dotMaxAccel);
-            ps.setInt(35, sp.dotMaxJerk);
+            ps.setInt(34, hp.dotMaxAccel);
+            ps.setInt(35, hp.dotMaxJerk);
 
             // where
-            ps.setLong(36, sp.id);
+            ps.setLong(36, hp.id);
 
             int rows = ps.executeUpdate();
             if (rows != 1) {
-                throw new SQLException("updateShowingPair update rows != 1: " + 
+                throw new SQLException("updatePair update rows != 1: " + 
                                        rows);
             }
         } catch (SQLException sqe) {

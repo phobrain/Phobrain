@@ -40,7 +40,7 @@ import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Browser;
 import org.phobrain.db.record.Screen;
 import org.phobrain.db.record.User;
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.DotHistory;
 import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureResponse;
@@ -97,9 +97,9 @@ public class GetEngine {
 
         long create = System.currentTimeMillis();
 
-        List<ShowingPair> history;  // most recent first
-        ShowingPair last = null;
-        ShowingPair lastPlus = null;
+        List<HistoryPair> history;  // most recent first
+        HistoryPair last = null;
+        HistoryPair lastPlus = null;
         int prevRating = -1;
         boolean recentNeg = false;
 
@@ -169,10 +169,10 @@ public class GetEngine {
         int minLoadTime = Integer.MAX_VALUE;
 
         UserProfile(Connection conn, long browserID, int screens,
-                                     ShowingPair lastLocal)
+                                     HistoryPair lastLocal)
             throws SQLException {
 
-            history = ShowingPairDao.getLastShowings(conn, browserID, 10);
+            history = ShowingPairDao.getLastPairs(conn, browserID, 10);
 
             if (history == null  ||  history.size() == 0) {
                 log.info("UserProfile: history 0");
@@ -213,7 +213,7 @@ public class GetEngine {
                 boolean stillGood = true;
                 int[] times = new int[SPEEDUP_COMPARE];
                 for (int i=0;i<SPEEDUP_COMPARE;i++) {
-                    ShowingPair sp = history.get(i);
+                    HistoryPair sp = history.get(i);
                     if (sp.pairRating != 3) { // need to compare apples/apples?
                         stillGood = false;
                         break;
@@ -253,7 +253,7 @@ public class GetEngine {
 
             for (int i=0;i<history.size();i++) {
 
-                ShowingPair sp = history.get(i);
+                HistoryPair sp = history.get(i);
 
                 // use sp.tmpInt to encode drawing begin/end
 
@@ -303,7 +303,7 @@ public class GetEngine {
             //}
 
             userTimeDev = 0.0;
-            for (ShowingPair sp : history) {
+            for (HistoryPair sp : history) {
                 int t = Math.abs(sp.userTime - avgUserTime);
                 userTimeDev += (double)t * (double)t;
 //log.info("\ngUseruserTimeDev " + userTimeDev + " tt " + tt + " t " + t);
@@ -487,7 +487,7 @@ public class GetEngine {
 
             for (int i=0;i<maxDepth;i++) {
 
-                ShowingPair sp = history.get(i);
+                HistoryPair sp = history.get(i);
 
                 totView += sp.userTime;
                 if (sp.userTime > maxView) maxView = sp.userTime;
@@ -589,10 +589,10 @@ public class GetEngine {
         }
 
         // in UserProfile
-        private boolean restlessFilter(List<ShowingPair> history,
+        private boolean restlessFilter(List<HistoryPair> history,
                                        StringBuilder sum) {
 
-            ShowingPair last = history.get(0);
+            HistoryPair last = history.get(0);
 
             if (last.mouseMaxv > 300) {
                 // most general case
@@ -616,7 +616,7 @@ public class GetEngine {
 
                 // check for mouse straying between clicks on the option
 
-                ShowingPair sp = history.get(1);
+                HistoryPair sp = history.get(1);
                 if (last.pairRating == sp.pairRating  &&  last.mouseDist > 25) {
                     sum.append(" restlessMs dist ")
                        .append(last.mouseDist).append("\n");
@@ -730,7 +730,7 @@ public class GetEngine {
 
     //  pick a histogram via histos % ndots
 
-    private int[] spHisto(ShowingPair sp) {
+    private int[] spHisto(HistoryPair sp) {
 
         if (sp.dotHistory == null) {
             log.error("spHisto: dotHistory is null");
@@ -750,7 +750,7 @@ public class GetEngine {
         }
     }
 
-    private void dotHistMe(ShowingPair sp, ListHolder lh, StringBuilder sb) {
+    private void dotHistMe(HistoryPair sp, ListHolder lh, StringBuilder sb) {
 
         // choose a histogram
 
@@ -1088,9 +1088,9 @@ public class GetEngine {
             } else {
                 if (force  ||  !session.repeatPics) {
                     ret.seen = ShowingPairDao.getSeen(conn, session.browserID);
-                    ret.vertical = ShowingPairDao.countShowings(conn,
+                    ret.vertical = ShowingPairDao.countPairs(conn,
                                                   session.browserID, "v");
-                    ret.horizontal = ShowingPairDao.countShowings(conn,
+                    ret.horizontal = ShowingPairDao.countPairs(conn,
                                                   session.browserID, "h");
                 }
             }
@@ -1106,9 +1106,9 @@ public class GetEngine {
         ret = new SeenIds();
         if (force  ||  !session.repeatPics) {
             ret.seen = ShowingPairDao.getSeen(conn, session.browserID);
-            ret.vertical = ShowingPairDao.countShowings(conn,
+            ret.vertical = ShowingPairDao.countPairs(conn,
                                                   session.browserID, "v");
-            ret.horizontal = ShowingPairDao.countShowings(conn,
+            ret.horizontal = ShowingPairDao.countPairs(conn,
                                                   session.browserID, "h");
         }
         browserSeen.put(session.browserID, ret);
@@ -1157,9 +1157,9 @@ public class GetEngine {
         if (set.seen == null) {
             // TODO - roll into 1 query
             set.seen = ShowingPairDao.getSeen(conn, browserID);
-            set.vertical = ShowingPairDao.countShowings(conn,
+            set.vertical = ShowingPairDao.countPairs(conn,
                                                   browserID, "v");
-            set.horizontal = ShowingPairDao.countShowings(conn,
+            set.horizontal = ShowingPairDao.countPairs(conn,
                                                   browserID, "h");
         }
         for (String id : ids) {
@@ -1186,7 +1186,7 @@ public class GetEngine {
             throws SQLException {
         Integer order = browserLastOrderInSession.get(browserID);
         if (order == null) {
-            int n = ShowingPairDao.countShowings(conn, browserID);
+            int n = ShowingPairDao.countPairs(conn, browserID);
             order = n + 1;
         } else {
             order++;
@@ -1355,7 +1355,7 @@ public class GetEngine {
 
 
 
-    private void createDblL(ShowingPair sp, ListHolder lh, StringBuilder sb) {
+    private void createDblL(HistoryPair sp, ListHolder lh, StringBuilder sb) {
 
         if (sp != null  &&  sp.dotCount > 0) {
             // reflect user movement
@@ -1449,7 +1449,7 @@ public class GetEngine {
 
     private PictureResponse tryLhP(Connection conn,
                                     Session session, String orient,
-                                    ShowingPair sp,
+                                    HistoryPair sp,
                                     ListHolder lh)
             throws SQLException {
 
@@ -1791,7 +1791,7 @@ assume list is sorted.. couldn't go too wrong
         }
     }
 
-    private ListHolder filterList(StringBuilder pref, ShowingPair last,
+    private ListHolder filterList(StringBuilder pref, HistoryPair last,
                                   int viewNum, String kwdCoder,
                                   ListHolder lh, ListHolder altLh,
                                   ListHolder bakLh, boolean copyIf)
@@ -3812,7 +3812,7 @@ assume list is sorted.. couldn't go too wrong
     private PictureResponse drewOnPic(Connection conn,
                                         int viewNum, String orient,
                                         Session session, UserProfile up,
-                                        ShowingPair last,
+                                        HistoryPair last,
                                         String prevId,
                                         Set<String> prefSet)
             throws SQLException {
@@ -4202,7 +4202,7 @@ assume list is sorted.. couldn't go too wrong
     public PictureResponse replacePicOnClick(Connection conn,
                                     int viewNum, String orient,
                                     Session session,
-                                    ShowingPair current,
+                                    HistoryPair current,
                                     int screen,   // side of clicked pic
                                     String clickLoc,
                                     int[] locspec,
@@ -4365,7 +4365,7 @@ assume list is sorted.. couldn't go too wrong
     private PictureResponse chooseBestPairByColors(Connection conn,
                                         int viewNum, String orient,
                                         Session session,
-                                        int rating, ShowingPair last,
+                                        int rating, HistoryPair last,
                                         String prevId)
             throws SQLException {
 
@@ -5520,7 +5520,7 @@ assume list is sorted.. couldn't go too wrong
     private List<Screen> twoStageVectorMatch(Connection conn,
                                 int viewNum, String orient,
                                 Session session,
-                                ShowingPair last,
+                                HistoryPair last,
                                 ListHolder[] lhs, // closest matches for id1, id2
                                 String[] funcDims, // selects for each side
                                 String func)  // second select side1->side2
@@ -5601,7 +5601,7 @@ personal-pair ml
                                             List<String> ids)
             throws Exception {
 
-        ShowingPair last = up.last;  // should match w/ ids
+        HistoryPair last = up.last;  // should match w/ ids
         DotHistory dh = last.dotHistory;
 
         // for each pic,
@@ -5814,7 +5814,7 @@ personal-pair ml
         if (up.last != null) {
             seen = up.last.orderInSession;
         } else {
-            seen = ShowingPairDao.countShowings(conn, session.browserID, orient);
+            seen = ShowingPairDao.countPairs(conn, session.browserID, orient);
             log.info("Showings counted: " + seen + " browser " + session.browserID);
         }
 
@@ -6732,7 +6732,7 @@ personal-pair ml
         if (up.last != null) {
             seen = up.last.orderInSession;
         } else {
-            seen = ShowingPairDao.countShowings(conn, session.browserID, orient);
+            seen = ShowingPairDao.countPairs(conn, session.browserID, orient);
         }
 
         int len = 400;
@@ -6857,7 +6857,7 @@ personal-pair ml
     private List<Screen> oneStageVectorMatch(Connection conn,
                                 int viewNum, String orient,
                                 Session session,
-                                ShowingPair last,
+                                HistoryPair last,
                                 ListHolder[] lhs,
                                 String[] funcDims)
             throws SQLException {
@@ -7478,7 +7478,7 @@ personal-pair ml
                                         List<String> ids)
             throws SQLException {
 
-        ShowingPair last = up.last;
+        HistoryPair last = up.last;
 
         // gesture being straight, [d3|d2]angleHist makes no sense
         //      TODO see how these compare, maybe make swappable
@@ -7842,7 +7842,7 @@ personal-pair ml
                                         boolean stroke)
             throws SQLException {
 
-        ShowingPair last = up.last;  // should match w/ ids
+        HistoryPair last = up.last;  // should match w/ ids
         int ndots = last.dotCount;
         DotHistory dh = last.dotHistory;
 
@@ -8312,7 +8312,7 @@ personal-pair ml
                                         List<String> idsDrawnOn)
             throws SQLException {
 
-        ShowingPair last = up.last;
+        HistoryPair last = up.last;
 
         // if line is straight, might
         //      treat it as a gesture for projection
@@ -8374,7 +8374,7 @@ personal-pair ml
                                             String kwdCoder)
             throws SQLException {
 
-        ShowingPair last = up.last;
+        HistoryPair last = up.last;
 
         List<Screen> ret = null;
 
@@ -8664,7 +8664,7 @@ personal-pair ml
                                     int option, String cmdMod,
                                     int n, List<String> ids,
                                     int screenId1, int screenId2,
-                                    int lastBig, ShowingPair last)
+                                    int lastBig, HistoryPair last)
             throws Exception {
 
         checkScreens("getScreens", screenId1, screenId2);
@@ -9645,7 +9645,7 @@ personal-pair ml
     public PictureResponse getNeuralMatch(Connection conn,
                                             int viewNum, String orient,
                                             Session session,
-                                            ShowingPair last,
+                                            HistoryPair last,
                                             String id, int screen)
             throws SQLException {
 
@@ -10203,7 +10203,7 @@ x++;
         return ret;
     }
 
-    private double[] higDim(List<ShowingPair> history) {
+    private double[] higDim(List<HistoryPair> history) {
 
         if (history.size() < 10) {
             return new double[] { 0.0, 0.0 };
@@ -10224,7 +10224,7 @@ x++;
 
         for (int i=history.size()-1;i>-1;i-=1) {  // put in sequential order
 
-            ShowingPair sp = history.get(i);
+            HistoryPair sp = history.get(i);
 
             userTimes.add(new Integer( sp.userTime).doubleValue());
             netTimes.add(new Integer( sp.bigTime ).doubleValue());

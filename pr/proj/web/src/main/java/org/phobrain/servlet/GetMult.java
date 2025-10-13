@@ -34,7 +34,7 @@ import org.phobrain.db.dao.UniquePairDao;
 import org.phobrain.db.record.Session;
 import org.phobrain.db.record.Screen;
 import org.phobrain.db.record.Browser;
-import org.phobrain.db.record.ShowingPair;
+import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureMap;
 import org.phobrain.db.record.ApprovedPair;
@@ -753,7 +753,7 @@ toggleTStr = null;
                      " " + browserID + " " + remoteHost);
             }
 
-            ShowingPair last = ShowingPairDao.getLastShowingToBrowser(
+            HistoryPair last = ShowingPairDao.getLastPair(
                                          conn, browserID);
 
             if (last != null) {
@@ -887,10 +887,10 @@ toggleTStr = null;
                 } else {  // !sendCurrent
 
                     if (last == null) {
-                        log.error("l: NO PREV ShowingPair: " + browserID + " " +
+                        log.error("l: NO PREV HistoryPair: " + browserID + " " +
                                    remoteHost);
                     } else {
-                        ShowingPairDao.updateShowingPair(conn, last);
+                        ShowingPairDao.updatePair(conn, last);
                     }
 
                     // match screen to left
@@ -946,9 +946,9 @@ toggleTStr = null;
                                "l: Last is null on single-pic " +
                                browserID + " " + remoteHost);
                     }
-                    ShowingPairDao.updateShowingPair(conn, last);
+                    ShowingPairDao.updatePair(conn, last);
 
-                    ShowingPair sp = new ShowingPair();
+                    HistoryPair sp = new HistoryPair();
                     sp.browserID = browserID;
                     sp.callCount = callCount;
                     sp.orderInSession = engine.getOrderInSession(conn,
@@ -979,7 +979,7 @@ toggleTStr = null;
                     sp.vertical = pr.p.vertical;
                     sp.atomImpact = AtomSpec.NO_ATOM;
                     sp.bigStime = (int) (System.currentTimeMillis() - t1);
-                    ShowingPairDao.insertShowingPair(conn, sp);
+                    ShowingPairDao.insertPair(conn, sp);
 
                     scr.showingId = sp.id;
                     scr.id_s = pr.p.id;
@@ -1095,11 +1095,11 @@ toggleTStr = null;
 
                 if (r != -2) { // past initial load
                     if (last == null) {
-                        log.error("NO PREV ShowingPair: " + browserID + " " +
+                        log.error("NO PREV HistoryPair: " + browserID + " " +
                                    remoteHost);
 
                     } else {
-                        ShowingPairDao.updateShowingPair(conn, last);
+                        ShowingPairDao.updatePair(conn, last);
                     }
                 }
                 List<String> ids = new ArrayList<>();
@@ -1179,14 +1179,14 @@ toggleTStr = null;
                 PictureResponse pr2 = (PictureResponse) screens.get(1).pr;
 
                 if (pr1 == null  &&  pr2 == null) {
-                    log.error("Inserting ShowingPair: both pr's null");
+                    log.error("Inserting HistoryPair: both pr's null");
                 } else if (pr1 == null  ||  pr2 == null) {
-                    log.error("Inserting ShowingPair: Null pr on screen: " +
+                    log.error("Inserting HistoryPair: Null pr on screen: " +
                                 (pr1 == null ? "1" : "") +
                                 (pr2 == null ? "2" : ""));
                 }
 
-                ShowingPair sp = new ShowingPair();
+                HistoryPair sp = new HistoryPair();
                 sp.browserID = browserID;
 
                 if (pr1 != null) {
@@ -1212,7 +1212,7 @@ toggleTStr = null;
                 sp.bigStime = (int) t1;
                 sp.atomImpact = AtomSpec.NO_ATOM;
 
-                ShowingPairDao.insertShowingPair(conn, sp);
+                ShowingPairDao.insertPair(conn, sp);
                 screens.get(0).showingId = sp.id;
                 screens.get(1).showingId = sp.id;
 
