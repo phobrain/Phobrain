@@ -25,6 +25,37 @@ var waitingDotty = 0;
 
 var lastGibberStart = null;
 
+function histogramNormOnMax(hist, list)
+{
+    let N = hist.length;
+
+    console.log("histogramNormOnMax(bins=" + N + ", cases=" + list.length +")");
+
+    if (list.length < 1) {
+        return null;
+    }
+    let max = -1;
+    for (var i=0; i<list.length; i++) {
+        let x = list[i];
+        if (x > max) max = x;
+    }
+    for (var i=0; i<list.length; i++) {
+
+        let x = list[i];
+        x = Math.floor((N * x) / max);
+        if (x > N-1) {
+            //console.log("Unexpected x to N-1");
+            x = N - 1;
+        }    // else if (x == 0) { console.log("hist: x=0: " + list[i] + ", max=" + max + "  N=" + N); }
+        hist[x]++;
+        // console.log(hist);
+    }
+
+    console.log("histogramNormOnMax(" + max + "), cases=" + list.length +
+                    " 0's=" + (Math.floor((100 * hist[0])/list.length)) + "%: " + hist);
+    return hist;
+}
+
 function toggleWatchDots()
 {
     watchDots = !watchDots;
@@ -58,6 +89,10 @@ function vecAngle( dY, dX)
     return t;
 }
 
+// reset by resetNotDots()
+var notDots1 = 0;
+var notDots2 = 0;
+
 // reset by reDot()
 var dotList = [];
 var d2angleHist = new Array(36).fill(0); // per 2 consecutive dots, absolute
@@ -71,6 +106,7 @@ var cacheDots = false;
 function reDot()
 {
     if (logDots) console.log("REDOT");
+
 	clearInterval(dotGibberTimer);
 	dotGibberTimer = null;
 	dotSpeed = 0;
@@ -82,8 +118,9 @@ function reDot()
             if (!dot.mouseUp) document.body.removeChild(dotList[i]);
 		}
 	}
-//console.log(d3angleHist);
-//console.log(d2angleHist);
+    //console.log(d3angleHist);
+    //console.log(d2angleHist);
+
 	gibIndex = 0;
 	dotList = [];
 	spiralRGB = null;
@@ -355,6 +392,22 @@ function updateXY(x, y, caller)
 	} else {
 		pixOutPic++;
 	}
+    if (!mouseDown) {
+        if (dialogFlowRating == null) {
+
+            // 'empty' mouse moves from pictures loaded to rating
+	        notDot1(x, y, now);
+
+        } else {
+
+            // 'empty' mouse moves after rating til starting dots
+            //    minimal == straight path 
+            //      from rating[p,q] button
+            //      to first dot
+
+	        notDot2(x, y, now);
+        }
+    }
 
 	lastX = x;
 	lastY = y;
@@ -458,15 +511,6 @@ var imageLoaded = -1;
 function disableDragging(e) {
   e.preventDefault();
 }
-
-/*
-// reset by reDot()
-var dotList = [];
-var d3angleHist = new Array(36).fill(0);
-var d2angleHist = new Array(36).fill(0);
-
-var cacheDots = false;
-*/
 
 var solidIncrease = true;
 
@@ -1201,7 +1245,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
     if (!mouseDown  &&  !hasTouch) {
         // startsize == cutdistsq == -1, why even call?
         //  -- seems a broken carryover from multiple draws
-        if (logDots) console.log("placeDot - skip on mouse down: " + mouseDown + " hasTouch: " + hasTouch);
+        if (logDots) console.log("placeDot - skip on mouseDown: " + mouseDown + " hasTouch: " + hasTouch);
         return;
     }
 
@@ -1227,6 +1271,7 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 
 	if (dotList.length == 0) {
 		dotSpeed = 1;
+        lastNotDot1 = null;
 	}
 
 	var dot = document.createElement('div');
@@ -1640,6 +1685,159 @@ function placeDot(scrn, startsize, cutdistsq, x, y, now, mobile)
 //'\nt ' + t1 + ' ' + (new Date()-t0));
 }
 
+// not-dot histograms are reset by summarizeDots()
+
+const DIM = 50;  // increments of each screen dimension (one DIM == axes normalized)
+
+var notDotsX1 = new Array(DIM).fill(0);
+var notDotsY1 = new Array(DIM).fill(0);
+var notDotsV1 = new Array(DIM).fill(0);
+var notDotsVL1 = [];
+
+var notDotsX2 = new Array(DIM).fill(0);
+var notDotsY2 = new Array(DIM).fill(0);
+var notDotsV2 = new Array(DIM).fill(0);
+var notDotsVL2 = [];
+
+var lastNotDot1 = null;
+var lastNotDot2 = null;
+
+function notDot1(x, y, now)
+{
+    if (mouseDown  ||  hasTouch) {
+        if (logDots) console.log("notDot1 - skip on mouse down: " + mouseDown + " hasTouch: " + hasTouch);
+        return;
+    }
+
+    if (logDots && notDots1 % DIM == 0) 
+        console.log("notDots1 " + x + "," + y + " t " + now.getTime() + " N " + notDots1);
+
+    let xi = Math.floor((DIM * x) / window.outerWidth);
+    if (xi > notDotsX1.length-1) xi = notDotsX1.length-1;
+    let yi = Math.floor((DIM * y) / window.outerHeight);
+    if (yi > notDotsY1.length-1) yi = notDotsY1.length-1;
+    notDotsX1[xi]++;
+    notDotsY1[yi]++;
+
+    if (lastNotDot1 == null) {
+        lastNotDot1 = new Object();
+    } else {
+        pushVel(now, x, y, lastNotDot1, notDotsVL1);
+    }
+    lastNotDot1.x = x;
+    lastNotDot1.y = y;
+    lastNotDot1.t = now;
+
+    notDots1++;
+}
+
+function pushVel(now, x, y, lastNotDotx, notDotsVLx)
+{
+    let dt = now - lastNotDotx.t;
+    if (dt == 0) {
+        dt = 1;
+        //console.log("dt:0->1: prev x,y " + lastNotDotx.x + ", " + lastNotDotx.y + "  -> " + x + ", " + y);
+    }
+    let dx = x - lastNotDotx.x;
+    let dy = y - lastNotDotx.y;
+    let d2 = dx * dx + dy * dy;
+    let dt2 = dt * dt;
+    let vel = Math.sqrt(d2 / dt2);
+    notDotsVLx.push(vel);
+}
+
+function notDot2(x, y, now)
+{
+    if (mouseDown  ||  hasTouch) {
+        if (logDots) console.log("notDot2 - skip on mouse down: " + mouseDown + " hasTouch: " + hasTouch);
+        return;
+    }
+
+    if (logDots && notDots2 % DIM == 0) 
+        console.log("notDots2 " + x + "," + y + " t " + now.getTime() + " N " + notDots2);
+
+    // x,y are histogrammed
+
+    let xi = Math.floor((DIM * x) / window.outerWidth);
+    if (xi > notDotsX2.length-1) xi = notDotsX2.length-1;
+    let yi = Math.floor((DIM * y) / window.outerHeight);
+    if (yi > notDotsY2.length-1) yi = notDotsY2.length-1;
+    notDotsX2[xi]++;
+    notDotsY2[yi]++;
+
+    // v is cached
+
+    if (lastNotDot2 == null) {
+        lastNotDot2 = new Object();
+    } else {
+        // calc/save v
+        pushVel(now, x, y, lastNotDot2, notDotsVL2);
+
+        /*
+        let dt = now - lastNotDot2.t;
+        if (dt == 0) {
+            dt = 1;
+            //console.log("dt:0->1: prev x,y " + lastNotDot2.x + ", " + lastNotDot2.y + "  -> " + x + ", " + y);
+        }
+        let dx = x - lastNotDot2.x;
+        let dy = y - lastNotDot2.y;
+        let d2 = dx * dx + dy * dy;
+        let dt2 = dt * dt;
+        let vel2 = d2 / dt2;
+        notDotsVL2.push(vel2);
+        */
+    }
+    lastNotDot2.x = x;
+    lastNotDot2.y = y;
+    lastNotDot2.t = now;
+
+    notDots2++;
+}
+
+/*
+ *  resetNotDots()
+ *        - update notDotsX, notDotsY, reset
+ */
+function resetNotDots()
+{
+    if (notDots1 + notDots2 == 0) {
+        console.log("resetNotDots: notDots1+2=0");
+        return;
+    }
+
+    if (!mouseDown) {
+        console.log("resetNotDots: mouseDown false?");
+    }
+
+    console.log("resetting x,y,v hists, notDots1=" + notDots1);
+    //console.log(notDotsX1);
+    //console.log(notDotsY1);
+    //console.log(notDotsV1);
+    console.log("resetting x,y,v hists, notDots2=" + notDots2);
+    //console.log(notDotsX2);
+    //console.log(notDotsY2);
+    //console.log(notDotsV2);
+
+    notDots1 = 0;
+    notDots2 = 0;
+
+    for (var i=0; i<DIM; i++) {
+        notDotsX1[i] = 0;
+        notDotsY1[i] = 0;
+        notDotsV1[i] = 0;
+
+        notDotsX2[i] = 0;
+        notDotsY2[i] = 0;
+        notDotsV2[i] = 0;
+    }
+
+    lastNotDot1 = null;
+    lastNotDot2 = null;
+    notDotsVL1 = [];
+    notDotsVL2 = [];
+
+}
+
 
 function overlap(o1, o2)
 {
@@ -1749,6 +1947,7 @@ if (dotList.length > 3) console.log('tch>1: ' + e.touches.length + ' dots: ' + d
 		// TODO calc if in a pic
 		var size = 16 + Math.round((img.offsetWidth * img.offsetHeight)/ 80000);
 		placeDot(scrn, size, size*size, x, y, now, true);
+        // notDot not possible for touch screens
 	};
 
 	img.addEventListener("touchstart", start, false);
@@ -1906,6 +2105,32 @@ function summarizeDots(logit)
     }
 	dh.push(-1 * velHist.length);
     Array.prototype.push.apply(dh, velHist);
+
+    // indent new, notdots 2026_02 to resetNotDots()
+
+	    dh.push(-2);  // else old records continuing at -8
+	    dh.push(notDots1); // cases in histo==checksum
+	    dh.push(notDots2); // cases in histo==checksum
+
+	    dh.push(-1 * notDotsX1.length);
+        Array.prototype.push.apply(dh, notDotsX1);
+	    dh.push(-1 * notDotsY1.length);
+        Array.prototype.push.apply(dh, notDotsY1);
+        console.log("v1 len " + notDotsV1.length);
+        histogramNormOnMax(notDotsV1, notDotsVL1);
+        dh.push(-1 * notDotsV1.length);
+        Array.prototype.push.apply(dh, notDotsV1);
+
+	    dh.push(-1 * notDotsX2.length);
+        Array.prototype.push.apply(dh, notDotsX2);
+	    dh.push(-1 * notDotsY2.length);
+        Array.prototype.push.apply(dh, notDotsY2);
+        console.log("v2 len " + notDotsV2.length);
+        histogramNormOnMax(notDotsV2, notDotsVL2);
+        dh.push(-1 * notDotsV2.length);
+        Array.prototype.push.apply(dh, notDotsV2);
+
+        resetNotDots();
 
     dh.push(-8);
 

@@ -88,7 +88,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
 
         String queryString = request.getQueryString();
         String pathInfo = request.getPathInfo();
-        String host = request.getRemoteHost();
+        String host = request.getRemoteAddr();
 
         if (queryString != null) {
             log.info("QUERY " + queryString + " Path " + pathInfo + " host " + host);
@@ -191,7 +191,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
         }
         final boolean cacheit = cache;
 
-        log.info("Mapping" + (cache ? " (cache=t) " : " (temp) ") + name + " to " + ftmp.getAbsolutePath() +
+        log.info("Mapping" + (cache ? " (cache=t) " : " (temp) ") + name + " to " + file.getAbsolutePath() +
                        " " + request.getRemoteAddr());
 
         return new StaticResource() {
@@ -201,7 +201,7 @@ public class FileSystemResourceServlet extends StaticResourceServlet {
             }
             @Override
             public long getLastModified() {
-                return System.currentTimeMillis();
+                return file.lastModified();
             }
             @Override
             public InputStream getInputStream() throws IOException {

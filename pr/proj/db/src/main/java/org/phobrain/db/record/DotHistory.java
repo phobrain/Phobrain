@@ -9,10 +9,8 @@ package org.phobrain.db.record;
 // 2024_02 - putting in db.record for easy compile
 
 /**
- **  DotHistory - Parse String from view.html to ints.
- **
- **             view.html:
- **                 function summarizeDots(logit)
+ **  DotHistory - Parse String from phodots.js 
+ **                 summarizeDots() to ints.
  **
  **             Log and return null if not right.
  */
@@ -50,6 +48,16 @@ public class DotHistory {
     public int[] d3angleHist;    // 38
     public int[] distHist;     // 51
     public int[] velocityHist; // 51
+
+    public int notDots1; // cases==checksum
+    public int[] notDotsX1; // 50
+    public int[] notDotsY1; // 50
+    public int[] notDotsV1; // 50
+
+    public int notDots2; // cases==checksum
+    public int[] notDotsX2; // 50
+    public int[] notDotsY2; // 50
+    public int[] notDotsV2; // 50
 
     public int[] rect1;
     public int[] rect2;
@@ -191,10 +199,8 @@ public class DotHistory {
             this.distHist[i] = ints[ix++];
         }
 
-        //  dh.push(-1 * vels.length);
-        //  for (var i=0; i<vels.length; i++) {
-        //    dh.push(vels[i]);
-        //  }
+        // dh.push(-1 * velHist.length);
+        // Array.prototype.push.apply(dh, velHist);
 
         len = getArraySize();
         if (len == 0) {
@@ -205,6 +211,112 @@ public class DotHistory {
 
         for (int i=0; i<len; i++) {
             this.velocityHist[i] = ints[ix++];
+        }
+
+        //  dh.push(-2);  // else old records continuing at -8
+        //  dh.push(notDots1); // cases in histo set==checksum
+        //  dh.push(notDots2); // cases in histo set==checksum
+
+        len = getArraySize();
+        if (len == 0) {
+            return;
+        }
+        if (len == 2) {
+
+            // notDots, added 2026_02
+
+            this.notDots1 = ints[ix++];  // cases in histo set
+            this.notDots2 = ints[ix++];  // cases in histo set
+
+            //  dh.push(-1 * notDotsX1.length);
+            //  Array.prototype.push.apply(dh, notDotsX1);
+            //  dh.push(-1 * notDotsY1.length);
+            //  Array.prototype.push.apply(dh, notDotsY1);
+            //  histogram(notDotsV1, notDotsVL1);
+            //  console.log("v1 len " + notDotsV1.length);
+            //  dh.push(-1 * notDotsV1.length);
+            //  Array.prototype.push.apply(dh, notDotsV1);
+
+            // [XYV]1==pre-dots mouse moves
+
+            len = getArraySize();
+            if (len == 0) {
+                return;
+            }
+            this.notDotsX1 = new int[len];
+            for (int i=0; i<len; i++) {
+                this.notDotsX1[i] = ints[ix++];
+            }
+
+            len = getArraySize();
+            if (len == 0) {
+                return;
+            }
+            this.notDotsY1 = new int[len];
+            for (int i=0; i<len; i++) {
+                this.notDotsY1[i] = ints[ix++];
+            }
+
+            len = getArraySize();
+            if (len == 0) {
+                return;
+            }
+            this.notDotsV1 = new int[len];
+            for (int i=0; i<len; i++) {
+                this.notDotsV1[i] = ints[ix++];
+            }
+
+            // [XYV]2==post-dots mouse moves
+
+            len = getArraySize();
+            if (len == 0) {
+                return;
+            }
+            this.notDotsX2 = new int[len];
+            for (int i=0; i<len; i++) {
+                this.notDotsX2[i] = ints[ix++];
+            }
+
+            len = getArraySize();
+            if (len == 0) {
+                return;
+            }
+            this.notDotsY2 = new int[len];
+            for (int i=0; i<len; i++) {
+                this.notDotsY2[i] = ints[ix++];
+            }
+
+            len = getArraySize();
+            if (len == 0) {
+                return;
+            }
+            this.notDotsV2 = new int[len];
+            for (int i=0; i<len; i++) {
+                this.notDotsV2[i] = ints[ix++];
+            }
+
+            // check; orig size = 50
+
+            Set<Integer> sizes = new HashSet<>();
+            sizes.add(notDotsX1.length);
+            sizes.add(notDotsY1.length);
+            sizes.add(notDotsV1.length);
+            sizes.add(notDotsX2.length);
+            sizes.add(notDotsY2.length);
+            sizes.add(notDotsV2.length);
+
+            if (sizes.size() != 1) {
+                log.error("\n\nNotDots histo sizes mismatch:");
+                for (int size : sizes) {
+                    log.error("\n\t" + size);
+                }
+                throw new RuntimeException("NotDots histo sizes mismatch");
+            }
+
+        } else {
+
+            log.warn("Pre-2026_02 records, notDots section not there. Next: checking for sync on -8 block.");
+
         }
 
         //  dh.push(-8);
@@ -306,7 +418,10 @@ log.info("WWWWW WWWW WW centersDist " + centersDist);
         log.info("DOTS: d3angleHist: " + d3angleHist.length +
                       " d2angleHist: " + d2angleHist.length +
                       " distHist: " + distHist.length +
-                      " velHist: " + velocityHist.length);
+                      " velHist: " + velocityHist.length +
+                      " notDotsX1: " + notDotsX1.length +
+                      " notDotsY1: " + notDotsY1.length +
+                      " notDotsV1: " + notDotsV1.length);
 
         // call analyzeDots()
         //      to use dots

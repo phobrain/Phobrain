@@ -1,29 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<!--
- *  SPDX-FileCopyrightText: 2015-2024 Bill Ross Photoriot <phobrain@sonic.net>
- *
- *  SPDX-License-Identifier: AGPL-3.0-or-later
--->
+<html><head>
+<!-- Copyright (C) 2015-2024 Photoriot -->
+ <meta charset="utf-8">
  <link rel="canonical" href="http://phobrain.com"/>
  <link rel="icon" href="favicon.ico"/>
  <meta name="description" content="Your mind on photos - how to find it."/>
  <meta  http-equiv="content-type" content="text/html; charset=ISO-8859-1"/>
-
  <title>Phobrain Explain</title>
-
- <script src="js/jquery/jquery-1.11.3.min.js"></script>
+<style>
+/**
+ * CSSReset.com - How To Keep Footer At Bottom of Page with CSS
+ * 
+ * Original Tutorial: http://www.cssreset.com/2010/css-tutorials/how-to-keep-footer-at-bottom-of-page-with-css/
+ * License: Free - do whatever you like with it! Credit and linkbacks much appreciated.
+ *
+ * NB: Make sure the value for 'padding-bottom' on #content is equal to or greater than the height of #footer.
+ */
+html,
+body {
+	margin:0;
+	padding:0;
+	height:100%;
+}
+#wrapper {
+	min-height:100%;
+	position:relative;
+}
+#header {
+	background:transparent;
+	padding:1px;
+}
+#content {
+	padding-bottom:100px; /* Height of the footer element */
+}
+#footer {
+	background:#909090;
+	width:100%;
+	height:100px;
+	position:absolute;
+	bottom:0;
+	left:0;
+}
+</style>
 </head>
 <body bgcolor="#fffaf0">
 <div id="header">
 <table style="width:100%">
 <tr>
 <td style="text-align:left">
-<a href="javascript:history.back()">
-<p style="color:rgba(0,0,0,0.4);font-size: 25pt; font-family:'Courier New',Courier,monospace;">
-&nbsp;&nbsp;&nbsp;&nbsp;Back</p>
-</a>
+	<p> &nbsp;</p>
 </td>
 <td style="text-align:right">
 <a href="comment.html">
@@ -55,6 +80,7 @@ A{text-decoration:none}
 <p style="color:red;font-size: 15pt;">
 I think the web is a big boring mistake, and here are my baby steps to rectify it and save humanity.
 </p>
+<i>"One rapper to wrule them all?"</i><br />
 <i>"One wrapper to rule them all."</i><br />
 <a href="20121122_180539crop.jpg">
 <img id="image" src="mmm.jpg" height="400" width="auto" alt="photo?">
@@ -66,18 +92,24 @@ I think the web is a big boring mistake, and here are my baby steps to rectify i
 <tbody>
 <tr><td>
 <blockquote style="font-size: 15pt;">
-	"Mr. M. Frydman, an engineer, remarked on the subject of Grace, 
+	"Identity is the artificial flower on the compost 
+	heap of time." -- Louis Menand, "Listening to Bourbon"</blockquote>
+<blockquote style="font-size: 15pt;">
 		'A salt doll diving into the sea will not be protected 
 		by a waterproof coat.'
 	It was a very happy simile and was applauded as such. Maharshi added, 
-	'The body is the waterproof coat.'" 
+	'The body is the waterproof coat.'
 	-- Talks With Sri Ramana Maharshi</blockquote>
-<blockquote style="font-size: 15pt;">
-	Identity is the artificial flower on the compost 
-	heap of time. -- Louis Menand, "Listening to Bourbon"</blockquote>
 
 <p>
-Phobrain uses a new type of recorded brain, based on training neural nets on interesting photo pairs, navigating it in response to your mouse movement. Mapping your action to this landscape in a unique way puts Phobrain in the moment with you, an initial step toward it feeling alive. The base algorithm is a weighted-random auction process.
+Phobrain attempts a new type of recorded brain, 
+based on training neural nets on interesting photo pairs, 
+then navigating the nets' predictions by 'drawing dots'. 
+Mapping your action to this landscape in a unique way puts 
+Phobrain in the moment with you, an initial step toward it 
+feeling alive. 
+The 'aliveness' algorithm is a weighted-random auction, 
+where drawing dots modulates weights based on photo similarities.
 </p>
 <p>
 <i>
@@ -95,7 +127,7 @@ something responding to you.
 </i>
 You look at the photos, and see what the pair has in common, if it
 seems meaningful somehow.
-Then you draw a line of dots on them, and this is used to 
+Then you draw a line of dots on the photos, and this is used to 
 select the next pair. 
 I find that if I think about my drawing,
 like tracing things or moving to music, I see more in the next pair. 
@@ -103,26 +135,35 @@ Often I can feel like something has answered me, even though I know
 there is no such understanding. 
 Beyond comparing and contrasting, Phobrain is designed
 to explore how we identify living beings and classify
-them, as a step toward being seen as fully alive.
+them as alive or projected, as a step toward a being 
+- aka something being experienced as fully alive.
 </p>
 <p>
 <i>
 How is the line of dots used?
 </i>
-The drawn line is used like cookies for choosing
-online ads &mdash; replacing the personal data gathered for commerce
+The drawn line replaces cookie data used for choosing
+online ads &mdash; 
 with a 'motion vector' inspired by dance and molecular
-simulation. For example, using the 
+simulation, and this modulates an 'auction' to determine
+the next pairs that is analogous to the mini-auctions that sell 
+aka target ads to spaces on web pages. Here that aliveness that
+comes from commerce is exploited purely for fun. For example, the 
 distance between the first and last dots 
 divided by the 
 length of the line,
-along with similar simple measurements, all rolled into an arbitrary
+along with similar simple measurements, are rolled into an arbitrary
 formula that I have tuned and which, since it's causal
 (though statistical), one might learn unconsciously,
 like skipping a stone on a pond. 
-The 'pond' of Phobrain is a
-multidimensional mental landscape I have created by training 
-neural nets on my favorite pair choices. 
+The 'pond' of Phobrain portrait ('vertical') pairs is 
+based on training neural nets on my favorite pair choices. 
+The landscape ('horizontal') pairs are formed using generic
+Imagenet models to calculate simplified 'image vectors',
+to demonstrate associativity one
+can use to extrapolate from a given pair when training
+one's own model - tools to explore the 
+finer boundaries of self.
 </p>
 <p>
 Clicking in the grey area just above the photos 
@@ -230,11 +271,8 @@ most interesting similarity between the two photos is
 that there is an interaction between a person (or people) and
 a representation of a person in each. 
 This site can help build up your analytical
-abilities, although it does not do such a complicated
-analysis itself, and would be unlikely (we hope) to join
-these two pictures when the
-<span title="similar" style="color:green;font-weight:bold;">+</span> 
-option is used.
+abilities, although it does not do an explicit
+analysis itself.
 </p>
 <p>
 Like when learning a language, you can enjoy the view
@@ -247,6 +285,12 @@ keep you from seeing any repeats of pictures within a given View.
 <p><i>The dog's eyes:</i> My goal is to make the site smart enough so that
 it seems alive, like the feeling you get when looking into a dog's eyes.
 The fading image when you enter the slideshow is a gesture toward that goal. 
+More concretely, a
+<a href="mol.html"><span style="text-decoration: underline;">
+(disabled) live molecular dynamics simulation</span><a> is used as
+a sort of heart: it is affected by clicks on the slideshow
+page, and in turn affects the next picture you see; 
+and it gives a continuing life to the site.
 </p>
 
 <p><i>Can you make it browsable?</i>
@@ -257,7 +301,7 @@ I plan to add the ability to upload photos to the site.</p>
 <p><i>Will it be available in vape pen factor? Can pets view it
 safely?</i>
 Product plans are extensive but tightly-held via obscure diction
-as phobrain on reddit. This is all-new technology folks, so only
+as phobrain on reddit. This is all-new technology, so only
 exposure to guinea pigs and the 1% is advised at this time.
 </p>
 
@@ -299,14 +343,17 @@ to inoculate against closing one's mind, using 'compare and contrast'
 to cultivate multidimensional thinking and curiosity. 
 Its current unobviousness to
 people resembles the universal lack of desire to hear about the Internet 
-encountered before the powers that be decided to promote it, so I expect 
+before the powers that be decided to promote it, so I expect 
 the Phobrain concept could take over as our dominant social paradigm, 
 enabling a more useful frame of reference to collectively solve the problems 
 we face.</p>
 <p>
 I believe humanity will need to switch from our evolved material growth mode 
-to a phase where the leading edge of growth is in internal enrichment, 
-necessary for the survival of civilization perhaps.
+to a phase where the leading edge of personal growth is in intangibles 
+rather than yachts, necessary for the survival of civilization perhaps.
+</p>
+<p>
+Formulated as Quora advice: <a href="https://www.quora.com/Im-14-years-old-and-my-IQ-score-is-126-Can-I-raise-it-to-135/answer/Bill-1985">I'm 14 years old and my IQ score is 126. Can I raise it to 135?</a>
 </p>
 
 <h4><i>The Enemy is Us</i></h4>
@@ -338,6 +385,10 @@ necessary for the survival of civilization perhaps.
         on the hunt while others loafed around in the cave. There was little 
         advantage in reasoning clearly, while much was to be gained from 
         winning arguments."</i></li>
+   <li> <a href="https://scottaaronson.blog/?p=2410">
+		   <b>Common Knowledge and Aumann’s Agreement Theorem</b></a>
+	   Blog of Scott Aaronson, August 14, 2015. <br />
+	   <i>In math and science, in my experience, it’s common to see two people furiously arguing with each other at a blackboard.  Come back five minutes later, and they’re arguing even more furiously, but now their positions have switched.  As we’ve seen, that’s precisely what the math says a rational conversation should look like.  In social and political discussions, though, usually the very best you’ll see is that two people start out diametrically opposed, but eventually one of them says “fine, I’ll grant you this,” and the other says “fine, I’ll grant you that.”  We might say, that’s certainly better than the common alternative, of the two people walking away even more polarized than before!  Yet the math tells us that even the first case—even the two people gradually getting closer in their views—is nothing at all like a rational exchange, which would involve the two participants repeatedly leapfrogging each other, completely changing their opinion about the question under discussion (and then changing back, and back again) every time they learned something new.  The first case, you might say, is more like haggling—more like “I’ll grant you that X is true if you grant me that Y is true”—than like our ideal friendly mathematicians arguing at the blackboard, whose acceptance of new truths is never slow or grudging, never conditional on the other person first agreeing with them about something else.</i></li>
 
     <!-- li> <a href="https://digest.bps.org.uk/2017/07/21/why-some-smart-people-make-foolish-decisions/">
         <b>Critical thinking skills are more important than IQ for making
@@ -413,11 +464,17 @@ necessary for the survival of civilization perhaps.
 	Can you train yourself to develop ‘super senses’?</a>
 	Harriet Dempsey-Jones, Postdoctoral Researcher in 
 	Clinical Neurosciences, University of Oxford.</li>
-  <li> <a href="http://nautil.us/blog/new-evidence-for-the-geometry-of-thought">
+  <!-- li> <a href="http://nautil.us/blog/new-evidence-for-the-geometry-of-thought">
       New Evidence for the Strange Geometry of Thought</a> 
-      Adithya Rajagopalan</li>
-  <li> <a href="http://www.sciencealert.com/harvard-scientists-think-they-ve-pinpointed-the-neural-source-of-consciousness">
+      Adithya Rajagopalan</li -->
+      <li> <a href="https://www.nature.com/articles/s41467-022-35764-7">
+	 <i> Functional geometry of the cortex encodes dimensions of consciousness</i></a>,
+	      Zirui Huang, George A. Mashour & Anthony G. Hudetz,
+	      Nature Communications volume 14, Article number: 72 (2023).</li>
+  <li> <a href="https://www.sciencealert.com/harvard-scientists-think-they-ve-pinpointed-the-neural-source-of-consciousness">
     Harvard scientists think they've pinpointed the physical source of consciousness.</a></li>
+  <li> <a href="https://www.wvxu.org/2023-07-03/scientists-have-found-part-of-the-brain-that-triggers-out-of-body-experiences">
+    Scientists have found part of the brain that triggers out-of-body experiences.</a></li>
   <li> <a href="http://www.sadanduseless.com/2017/04/funny-pareidolia/">
        Funny Examples of Pareidolia (Seeing Faces In Everyday Objects)</a></li>
   <li> <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3170918/">
@@ -483,7 +540,8 @@ necessary for the survival of civilization perhaps.
 	Dirk K.F. Meijer, Hans J H Geesink, NeuroQuantology 15:3 (2017).</li>
  <li> An intermediate goal for Phobrain: 
 	<a href="https://en.wikipedia.org/wiki/Being_There">
-	Chauncey Gardiner in Being There.</a></li>
+		Chauncey Gardiner in Being There.</a>
+	<a href="https://youtu.be/Bow1ZJTV4L4?t=192"> The ending hits bottom smartly.</a></li>
 	
 </ul>
 
@@ -491,14 +549,12 @@ necessary for the survival of civilization perhaps.
 <h4><i>Phobrain-related Articles and threads</i></h4>
 
 <ul>
-<li> <a href="https://www.reddit.com/r/learnmachinelearning/comments/aqu04c/weekly_showoff/">
-	Pour yourself a drink.</a> Reddit</li>
 
 <li> <a href="https://www.photo.net/discuss/threads/diptych-scale-to-fit-tool.5497561/">
 	Do-it-yourself diptych formatter</a> Photo.net</li>
-<li> <a href="http://photo.net/philosophy-of-photography-forum/00eEHX" >
+<!-- li> <a href="https://photo.net/philosophy-of-photography-forum/00eEHX" >
   	What's it all about, Alfie? (discussion)</a>
-	Photo.net.</li>
+	Photo.net.</li -->
 <li> <a href="https://www.photo.net/discuss/threads/diptychs.512417">
 	Diptychs (discussion)</a>
 	Photo.net</li>
@@ -529,17 +585,21 @@ necessary for the survival of civilization perhaps.
 
 <ul>
 <li> <a href="creation/">
-	Creation,</a> illustrations for Robin Williamson's epic song.</li>
+	Creation,</a> a pairwise elegy for Robin Williamson's epic song.</li>
 <li> <a href="four_duets.html">
-	Four Duets,<a/> homage to TS Eliot's Four Quartets.</li>
+	Four Duets,<a/> a pairwise homage to TS Eliot's Four Quartets.</li>
 <li> <a href="siagal.html">
-	Neural nets applied to choosing pairs.</a></li>
+	First application of neural nets to choosing pairs.</a></li>
 <li> <a href="gal.html">Early history.</a></li>
 </ul>
 
 <h4><i>Notes</i></h4>
 
 <ul>
+<li> <a href="SCMETA_Ross.pdf">
+		<em>Birth of the pair</em><br>Proposal:
+	An Immersive Demonstration of Animal Presence Through Display of Photos.
+	</a></li>
 <li> <a href="siamese.html">
 	Neural nets applied to choosing pairs (calcs).</a></li>
 <li> <a href="tf_poet2.html">
@@ -548,33 +608,65 @@ necessary for the survival of civilization perhaps.
 	Calculating histogram distances in Poincare spherical spaces.</a></li>
 <li> <a href="angledesc.html">
 	Analysis of angles in many-dimensional image spaces.</a></li>
-<li> <a href="SCMETA_Ross.pdf">
-	Proposal:
-	An Immersive Demonstration of Animal Presence Through Display of Photos.
-	</a></li>
 <li> <a href="imgdesc.html">
 	Analysis of distance functions in many-dimensional image spaces.</a></li>
+<li> <a href="moldesc.html">
+	Setting up an online DNA molecular dynamics simulation.</a></li>
 </ul>
 
 <h4><i>Site History</i></h4>
 
 <ul>
-<li>
-        <li>
-                <i>7/2022</i> As new photos are added at home,
-                        the set on the public site is regenerated
-                        using the neural nets' predictions of
-                        pairability (since 3/2019). 
-                        Due to this (improving) selection tech
-                        from an increasing number of photos,
-                        random pairs are now about as likely
-                        to be interesting as ones generated by nets,
-                        but the latter tend to be 'stronger'
-                        than what one finds with random.
-                        Sizes are now fixed at 20,000 portrait,
-                        30,000 landscape, drawn from ~30K and ~50K
-                        respectively.
-        </li>
+	<li>
+		<i>11/2025</i>
+		First demonstration screen captures of feel.html sessions.
+		Dot styling is now using acceleration and jerk to jack dot size
+		and render reliable fallback flashiness.
+	</li>
+	<li>
+		<i>1/2025</i>
+		Added feel.html for including user action in training.
+	</li>
+	<li>
+		<i>6/2024</i> 
+		Open sourced the Phobrain
+		pair exploration workbench with AGPL license,
+		<a href="https://github.com/phobrain/Phobrain/tree/main">
+		in github.</a>
+	</li>
+	<li>
+		<i>5/2024</i> Added pairing through averaged 
+			imagenet model vectors, preparing open 
+			source release.
+	</li>
+	<li>
+		<i>4/2024</i> Added support for .webp image format,
+			and switched site from jpg. 
+			Breaks for Safari on MacOS &lt; 11, 
+			but it's a win for the rest of humanity.
+			Use Chrome if affected.
+	</li>
+	<li>
+		<i>11/2022</i> Pursuant to being the winds of change,
+		<a rel="me" href="https://sciencemastodon.com/@phobrain">
+			@phobrain@sciencemastodon.com</a>
+	</li>
+
+	<li>
+		<i>7/2022</i> As new photos are added at home, 
+			the set on the public site is regenerated 
+			using the neural nets' predictions of
+			pairability (since 3/2019). 
+			Due to this (improving) selection tech
+			from an increasing number of photos,
+			random pairs are now about as likely
+			to be interesting as ones generated by nets,
+			but the latter tend to be 'stronger'
+			than what one finds with random.
+			Sizes are now fixed at 20,000 portrait,
+			30,000 landscape, drawn from ~30K and ~50K
+			respectively.
+	</li>
 <li> 
     <i>5/2020</i> First use of classic Imagenet-derived neural nets
     for adding keywords to new photos (VGG19, I'm lookin' at you). 
@@ -583,7 +675,8 @@ necessary for the survival of civilization perhaps.
     enhancement envisioned is auto-editing of photos' alignment and 
     color, at which point push-button addition of the more-obviously-ok
     photos can be considered. A hope for the pipeline is that 
-    someday all cameras will have an option to share with Phobrain.
+    someday all cameras will have an option to share with one's personal
+    Phobrain.
     </li>
 <li> 
     <i>1/2020</i> 
@@ -694,6 +787,7 @@ necessary for the survival of civilization perhaps.
   analogous to touching a face.</li>
 <li> <i>5/2016</i> A live DNA molecular dynamics simulation 
   interacts with picture selection, acting as a beating heart for the site. 
+  <a href="mol.html"><i>The moving molecule.</i></a></li>
 <li> <i>4/2016</i> Added 1400 of Elle's pictures.  User mouse behavior 
   now influences picture selection.</li>
 <li><i>1/2016</i> Elle classified the photos according to her own scheme.</li>
@@ -768,18 +862,19 @@ button {
     text-shadow:0px 0px 5px #fff;
 }
 </style>
+<span title="Original pair-labeling options">
+	<button style="font-size:50px; color:red;">
+	-
+	</button>
 
-<button onclick="alert('Enter below');" title="na" style="font-size:50px; color:red;">
--
-</button>
+	<button style="font-size:40px; color:blue;">
+	|
+	</button>
 
-<button onclick="alert('Enter below');" title="nu" style="font-size:40px; color:blue;">
-|
-</button>
-
-<button onclick="alert('Enter below');" title="ni" style="font-size:50px; color:green;">
-+
-</button>
+	<button style="font-size:50px; color:green;">
+	+
+	</button>
+</span>
 
 <style>
 h3{

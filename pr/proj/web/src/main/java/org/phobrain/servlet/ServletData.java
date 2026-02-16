@@ -519,8 +519,6 @@ picSetViewsH.get(0).size());
 
             if ("dummy".equals(viewDef)) {
 
-                // this is what the loop fills in
-
                 log.info("Placeholder view: " + viewNum);
 
                 picSetViewsH.put(viewNum, new HashSet<>());

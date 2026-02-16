@@ -104,20 +104,14 @@ public abstract class StaticResourceServlet extends HttpServlet {
             return;
         }
 
+        String remote = request.getRemoteAddr(); // cache for exceptions
         try {
             writeContent(response, resource);
         } catch (IOException ioe) {
             Cookie[] cookies = request.getCookies();
-            log.info("IOException on write (" + request.getRemoteHost() + ") " +
-                       //" contextPath: " + request.getContextPath() +
-                       //" cookieCt: " + 
-                         //(cookies == null ? "0" : cookies.length) +
-                       //" headers: " + request.getHeaderNames() +
-                       //" method: " + request.getMethod() +
-                       request.getPathInfo());
-                       //" URL: " + request.getRequestURL());
+            log.info("IOException on write " + request.getPathInfo() + " to " + remote);
         } catch (TimeoutException te) {
-            log.info("Timeout on write " + request.getRemoteHost());
+            log.info("Timeout on write to " + remote);
         }
     }
 

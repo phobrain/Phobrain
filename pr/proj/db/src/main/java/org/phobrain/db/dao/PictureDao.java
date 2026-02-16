@@ -1963,6 +1963,10 @@ log.info("arr2 " +v);
         return lhs;
     }
 
+    private static boolean noEntries(List l) {
+        return l == null  ||  l.size() == 0;
+    }
+
     public static ListHolder[] matchVectors(Connection conn,
                                                 String orient, List<String> ids,
                                                 String func, String type, int dim,
@@ -2185,6 +2189,14 @@ log.info("arr2 " +v);
             "VEXX2/fixed " + Arrays.toString(lhs[1].value_l.toArray(Long[]::new)));
         }
 
+        if (noEntries(lhs[0].value_l)  || noEntries(lhs[1].value_l)) {
+
+            log.warn("PictureDao.matchVectors\nVEXX value_l('s) empty");
+
+            log.info("PictureDao.matchVectors\nVEXX " + tag +
+                " t=" + (System.currentTimeMillis()-t0));
+            return null;
+        }
         log.info("PictureDao.matchVectors\nVEXX " + tag +
                 " t=" + (System.currentTimeMillis()-t0) +
                 " range(size)s " + lhs[0].value_l.get(0) + ".." +
