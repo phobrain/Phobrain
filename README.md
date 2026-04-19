@@ -22,5 +22,7 @@ Neural nets: color histograms and Imagenet vectors are used to represent photos.
 
 Observation: the gold standard for labeling is to use randomly-generated pairs. Alternative methods are provided for variety.
 
+NB: If there is ever a movie, I request the title be "Rorschach's Pears."
+
 
 
