@@ -1,8 +1,8 @@
 What if you turned AI on yourself? What data might you use?
 
-I propose labeling 'Rorschach pairs' of pictures interesting or not according to one's taste. Small models predict interesting unseen pairs with 90% accuracy within the set of pictures, implying a quantitative model of personality. The process of labeling itself is a new kind of statistical-moral solitaire for exploring how one's mind works, starting by doing 'compare and contrast' on the pairs of photos. Weighing pairs leads to clashes in rationales, introducing classification in a nitty-gritty, personal way. I hypothesize that increasing such decisions will have a measurable effect on personality. This might be a provable form of work for general educational, economic and social purposes, possibly the first of many such apps in different media.
+I propose labeling pairs of pictures interesting or not according to one's taste. Generally, any pair of photos that makes some kind of sense provides a snapshot of an aspect of one's mind, as if a vector formed by the two photos passed through one's center. Putting the yes's and no's together, small learning models predict interesting unseen pairs with 90% accuracy within the set of pictures, implying a quantitative model of personality can be achieved. The process of labeling itself is a new kind of statistical-moral solitaire for exploring how one's mind works, starting by doing 'compare and contrast' on the pairs of photos. Weighing pairs leads to clashes in rationales, introducing classification in a nitty-gritty, personal way. I hypothesize that increasing such decisions will have a measurable effect on personality. This might be a provable form of work for general educational, economic and social purposes, possibly the first of many such apps in different media.
 
-You'll own the data, and have a grasp to accelerate understanding any new AI you might throw at it, not to mention personal insights that may give. I call this application 'Rorschach pairs', since in theory the graph formed by 'connections' of interestingly-paired photos is a map or sculpture of personality that enables quantitative approaches to Rorschach's notion of projection. (As several wise old LLMs told me in the 60's, "Dude, it could blow your mind!")
+You'll own the data, and have a grasp to accelerate understanding any new AI you might throw at it, not to mention personal insights that may give. I propose that the graph formed by 'connections' of interestingly-paired photos is a map or sculpture of personality that enables new quantitative approaches to Hermann Rorschach's notion of projection. (As several wise old LLMs told me in the 60's, "Dude, it could blow your mind!")
 
 The setup should become more user-friendly, starting from this programmer-level description:
 
@@ -21,5 +21,6 @@ The (Java) web server is intended for local use as a default for data protection
 Neural nets: color histograms and Imagenet vectors are used to represent photos. Pairs labeled 0/1 train nets to ~85% accuracy. Then vectors of size 2..16 are generated for the photos using those nets (these are personal pair analogs of Imagenet vectors), and groups of these smaller vectors are again taken to represent the photos, using the original labeled pairs to train miniscule nets that predict interesting photos with ~90% accuracy.
 
 Observation: the gold standard for labeling is to use randomly-generated pairs. Alternative methods are provided for variety.
+
 
 
