@@ -6,12 +6,9 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  GetMult - web interface for GetEngine.
- **     Potentially get more than pairs,
- **     e.g. number of walls in room.
- **
- */
+//  GetMult - web interface for GetEngine.
+//     Potentially get more than pairs,
+//     e.g. number of walls in room.
 
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.MathUtil;
@@ -79,20 +76,22 @@ import java.util.concurrent.TimeUnit;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.AsyncContext;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //@WebServlet(urlPatterns={"/getmext"}, asyncSupported=true)
 public class GetMult extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private double TAP_MAX = 0.0;
 /*
@@ -210,7 +209,7 @@ public class GetMult extends HttpServlet {
 
         String fakefname = URLEncoder.encode("resize_" +
                                              rand.nextInt(99) + "_" +
-                                             rand.nextInt(20) + ".jpg");
+                                             rand.nextInt(20) + ".jpg", "UTF-8");
         // cacheing
 
         long lastModified = System.currentTimeMillis() -
@@ -266,7 +265,6 @@ public class GetMult extends HttpServlet {
                 buffer.clear();
             }
             response.getOutputStream().flush();
-            outputChannel.close();
 
         }
 

@@ -6,11 +6,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  ServletData - mem cache for db and config, 
- **     used mostly by GetEngine.
- **
- */
+//  ServletData - mem cache for db and config
 
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.MiscUtil;
@@ -70,8 +66,8 @@ public class ServletData {
 
     // calling the constructor here hangs sync on the parallel loads
     // for some reason
-    private static ServletData single = null; 
-
+    private static ServletData single = null;
+    // just used to init for static methods TODO correcterly?
     public static ServletData get() {
         synchronized(ServletData.class) {
             if (single == null) {
@@ -82,12 +78,7 @@ public class ServletData {
     }
 
     // default archives for views to select from
-    static List<Integer> view0Archives;  
-
-    // PAYLOAD - ApprovedPairs - for quick rrandom selection
-
-    static List<ApprovedPair> approvedH; // all H 1's
-    static List<ApprovedPair> approvedV; // all V 1's
+    static List<Integer> view0Archives;
 
     // PAYLOAD - Archives, Pictures
 
@@ -131,7 +122,7 @@ public class ServletData {
         }
 
         if (cmd.length != 2) {
-            throw new SQLException("loadBadIds: len!=2: 'bad <%>'" + 
+            throw new SQLException("loadBadIds: len!=2: 'bad <%>'" +
                                         cmd.length);
         }
         double pct = 0;
@@ -146,12 +137,14 @@ public class ServletData {
         int v_d0lim = -1 * (int) ((pct * picListsV.get(0).size())/ 100);
         int h_d0lim = -1 * (int) ((pct * picListsH.get(0).size())/ 100);
 
-        List<String> picListV = PictureDao.getPicList(conn, view0Archives, 
+        log.info("Getting lists w/ limits v,h = " + v_d0lim + "." + h_d0lim);
+
+        List<String> picListV = PictureDao.getPicList(conn, view0Archives,
                                                         true, v_d0lim);
-        List<String> picListH = PictureDao.getPicList(conn, view0Archives, 
+        List<String> picListH = PictureDao.getPicList(conn, view0Archives,
                                                         false, h_d0lim);
 
-        log.info("loadBadIds view " + view + 
+        log.info("loadBadIds view " + view +
                  ": v/h " + picListV.size() + "/" + picListH.size());
 
         picListsV.put(view, picListV);
@@ -163,14 +156,14 @@ public class ServletData {
     }
 
     // v and h
-    public static int[] loadKwdIds(Connection conn, int view, String[] kwds) 
+    public static int[] loadKwdIds(Connection conn, int view, String[] kwds)
             throws SQLException {
 
         // keep view 0 pure, since others select from it
         if (view < 1  ||  picListsV.get(view) == null) {
             throw new SQLException("loadKwdIds: bad view " + view);
         }
-log.warn("KWD ID's - NO d0 Cut in case it matters sizes/0: " + 
+log.warn("KWD ID's - NO d0 Cut in case it matters sizes/0: " +
 picSetViewsV.get(0).size() + "/" +
 picSetViewsH.get(0).size());
 
@@ -197,8 +190,8 @@ picSetViewsH.get(0).size());
                 }
             }
         }
-        log.info("loadKwdIds view " + view + 
-                 ": ids: " + ids.size() + 
+        log.info("loadKwdIds view " + view +
+                 ": ids: " + ids.size() +
                  ": v/h " + picListV.size() + "/" + picListH.size());
 
         picListsV.put(view,  picListV);
@@ -277,7 +270,7 @@ picSetViewsH.get(0).size());
 
             if (!meta.startsWith("db")) {
                 String path = meta;
-                log.info("Loading map: " + path); 
+                log.info("Loading map: " + path);
                 File metadump = new File(path);
                 if (!metadump.exists()) { // impossible unless moved just now
                     log.error("CONFIG: meta file DOES NOT EXIST: " + path);
@@ -344,16 +337,16 @@ picSetViewsH.get(0).size());
             } else {
                 topPairsH = topPairs;
             }
-            //log.info("Loaded coderview " + coderView + 
+            //log.info("Loaded coderview " + coderView +
             //                " size " + ih.map.size());
         }
     }
 */
 
-    private static void checkPicsAvailable(Connection conn, String im_subdir) 
+    private static void checkPicsAvailable(Connection conn, String im_subdir)
                 throws SQLException {
 
-        log.info("\n\n\t*** Checking pics in images.dir on disk: " + 
+        log.info("\n\n\t*** Checking pics in images.dir on disk: " +
                                     im_subdir + "\n\n");
 
         int db_prob = 0;
@@ -368,7 +361,7 @@ picSetViewsH.get(0).size());
                     h_prob.append(id).append("/db ");
                     db_prob++;
             } else {
-                String path = im_subdir + 
+                String path = im_subdir +
                               pic.archive + "/" +
                               pic.fileName;
                 if (!(new File(path).exists())) {
@@ -398,8 +391,8 @@ picSetViewsH.get(0).size());
         if (db_prob + file_prob == 0) {
             log.info("Pic check: all ok: " + im_subdir);
         } else {
-            log.error("PIC CHECK/MISSING: db prob: " + db_prob + 
-                                    "  file prob: " + file_prob + 
+            log.error("PIC CHECK/MISSING: db prob: " + db_prob +
+                                    "  file prob: " + file_prob +
                                     "\nH: " + h_prob +
                                     "\nV: " + v_prob);
         }
@@ -485,7 +478,7 @@ picSetViewsH.get(0).size());
                             viewNums.size() + "/" + viewL.size());
         }
 
-        int nviews = viewL.size(); 
+        int nviews = viewL.size();
 
         verticals = PictureDao.getPicsBool(conn, "vertical", true);
         horizontals = PictureDao.getPicsBool(conn, "vertical", false);
@@ -493,8 +486,8 @@ picSetViewsH.get(0).size());
         face = PictureDao.getPicsBool(conn, "face", true);
         people = PictureDao.getPicsBool(conn, "people", true);
 
-        log.info("Init: nviews: " + nviews + 
-                    " Verticals: " + verticals.size() +
+        log.info("Init: nviews: " + nviews +
+                    " V/H: " + verticals.size() + "/" + horizontals.size() +
                     " Face: " + face.size() +
                     " People: " + people.size());
 
@@ -557,7 +550,7 @@ picSetViewsH.get(0).size());
             } else {
                 viewArchives.put(viewNum, archives.stream().mapToInt(ii->ii).toArray());
             }
-            log.info("View " + i + " viewnum " + viewNum + " [" + viewDef + "] => " + 
+            log.info("View " + i + " viewnum " + viewNum + " [" + viewDef + "] => " +
                         Arrays.toString(archives.toArray()));
 
             // d0 is based on user pair training, so optional and warning is too much?
@@ -575,9 +568,15 @@ picSetViewsH.get(0).size());
             }
 
             if (viewNum == 0) {
-                log.info("MASTER picLists V/H " + 
-                                             picListV.size() + "/" + 
+                log.info("MASTER picLists V/H " +
+                                             picListV.size() + "/" +
                                              picListH.size());
+                if (picListV.size() == 0) {
+                    log.warn("NO V's in view 0!");
+                }
+                if (picListH.size() == 0) {
+                    log.warn("NO H's in view 0!");
+                }
             }
 
             picListsH.put(viewNum, picListH);
@@ -588,7 +587,7 @@ picSetViewsH.get(0).size());
 
         }
 
-        log.info("INIT_T_ loadViews: " + 
+        log.info("INIT_T_ loadViews: " +
                             (System.currentTimeMillis()-tt1)); // 557 millis
     }
 
@@ -626,7 +625,7 @@ picSetViewsH.get(0).size());
         } else if ("a_".equals(prefix)) {
             return tbl.get(2);
         } else {
-            log.info("No pairs_" + (vertical ? "v" : "h") + 
+            log.info("No pairs_" + (vertical ? "v" : "h") +
                      " column nn prefix: " + prefix + " Expected: p_, n_, or a_");
             return null;
         }
@@ -661,7 +660,7 @@ picSetViewsH.get(0).size());
         }
     }
 
-    // Init from db: all v or h tags in one list from pairtop_nn_[vh], 
+    // Init from db: all v or h tags in one list from pairtop_nn_[vh],
     //  tag groups are build on these lists
     private static List<String> pairtop_nn_v_tags = null;
     private static List<String> pairtop_nn_h_tags = null;
@@ -679,7 +678,7 @@ picSetViewsH.get(0).size());
     private static void initNNConfig(Connection lconn) throws SQLException {
 
         long tt1 = System.currentTimeMillis();
-        
+
         log.info("NN Pic Config..");
 
         String s = ConfigUtil.runtimeProperty("indexed.imagenet.vectors");
@@ -700,7 +699,7 @@ picSetViewsH.get(0).size());
         }
 
         log.info("NN Pair Config..");
-        
+
         if (PairDao.hasD0("v")) {
             pairs_v_nn_cols = PairDao.getPairNNCols(lconn, true);
         }
@@ -741,7 +740,7 @@ picSetViewsH.get(0).size());
             log.warn("no avg nn pairs_v cols");
             //fatal = true;
         } else {
-            log.info("pairs_v_nn avg-type cols: " + 
+            log.info("pairs_v_nn avg-type cols: " +
                             Arrays.toString(pairs_v_nn_cols.toArray()));
         }
         if (pairs_h_nn_cols == null  ||
@@ -750,7 +749,7 @@ picSetViewsH.get(0).size());
             log.warn("no avg nn pairs_h cols");
             //fatal = true;
         } else {
-            log.info("pairs_h_nn avg-type cols: " + 
+            log.info("pairs_h_nn avg-type cols: " +
                             Arrays.toString(pairs_h_nn_cols.toArray()));
         }
         //if (fatal) {
@@ -773,16 +772,16 @@ picSetViewsH.get(0).size());
         }
 
         // Sigma opts:
-        //  view.html (Phob: Search Mode: AI) 
-        //  curate.html 
+        //  view.html (Phob: Search Mode: AI)
+        //  curate.html
 
-        initSigmas(); 
+        initSigmas();
 
         log.info("INIT NN config: " + (System.currentTimeMillis()-tt1) + " ms");
     }
 
     public static List<String> getPairtopNNTags(String tagBase,
-                                            boolean vertical, 
+                                            boolean vertical,
                                             boolean matchPrefix) {
 
         List<String> ret = new ArrayList<String>();
@@ -797,7 +796,7 @@ picSetViewsH.get(0).size());
             return ret;
         }
 
-        Map<String, TagGroup> tagGroups = vertical ? pairtop_nn_v_tag_groups 
+        Map<String, TagGroup> tagGroups = vertical ? pairtop_nn_v_tag_groups
                                                     : pairtop_nn_h_tag_groups;
         TagGroup tg = tagGroups.get(tagBase);
         if (tg == null) {
@@ -844,8 +843,8 @@ picSetViewsH.get(0).size());
 
             boolean vertical = v[i];
             String orient = o[i];
-            List<List<String>> pairs_nn_cols = (List<List<String>>)
-                                                    a_pairs_cols[i];
+            // unchecked - write another converter?
+            List<List<String>> pairs_nn_cols = (List<List<String>>) a_pairs_cols[i];  // ok/lint
             String[] sigmas = a_sigmas[i];
 
             List<String> pairtop_nn_tag_list = getPairtopNNTags(v[i]);
@@ -874,7 +873,7 @@ picSetViewsH.get(0).size());
                     log.error("Short config: " + key + ": " + def);
                     continue;
                 }
-                
+
                 String expect = "kwd: expected one of {p_xxx pt_xxx d_xxx}: ";
 
                 String kwd = fields[0];
@@ -905,7 +904,7 @@ picSetViewsH.get(0).size());
 
                             log.error("FATAL: kwd: p_avg <a_col>: " +
                                         "No such col in pairs tbl: " + a_col +
-                                        "\np_avg: must be 'any' or one of: " + 
+                                        "\np_avg: must be 'any' or one of: " +
                                           Arrays.toString(pairs_nn_cols.get(1)
                                                                 .toArray())
                                           );
@@ -938,7 +937,7 @@ picSetViewsH.get(0).size());
                             !pairs_nn_cols.get(1).contains(p_col)) {
 
                             log.error("FATAL: kwd: p_negpos <n_col> <p_col>: " +
-                                          "not 'any' or db a_col: " + 
+                                          "not 'any' or db a_col: " +
                                           p_col);
                             System.exit(1);
                         }
@@ -954,7 +953,7 @@ picSetViewsH.get(0).size());
 
 
                 } else if ("pt".equals(type[0])) {
-                    
+
                     // pairtop_nn_[vh]
 
                     if (fields.length < 2) {
@@ -978,7 +977,7 @@ picSetViewsH.get(0).size());
                                 String tag = fields[k];
 
                                 if (!pairtop_nn_tag_list.contains(tag)) {
-                                    log.error(key + " match: no such " + 
+                                    log.error(key + " match: no such " +
                                               orient + " pairtop tag: " + tag);
                                     log.error("ptnnt: " + Arrays.toString(
                                             pairtop_nn_tag_list.toArray()));
@@ -1006,7 +1005,7 @@ picSetViewsH.get(0).size());
 
                             TagGroup tg = tagGroups.get(grp);
                             if (tg == null) {
-                                log.error("No such group tag: " + 
+                                log.error("No such group tag: " +
                                         key + ": " + def + " [" + grp + "]");
                                 continue;
                             }
@@ -1024,8 +1023,8 @@ picSetViewsH.get(0).size());
                         sigmas[j-1] = "pt_group " + sb;
 
                     } else {
-                        log.error("Type [" + fields[0] + 
-                                "] not in pt_[match|group]: " + 
+                        log.error("Type [" + fields[0] +
+                                "] not in pt_[match|group]: " +
                                 key + ": " + def);
                         continue;
                     }
@@ -1043,7 +1042,7 @@ System.exit(1);
                 if (sigmas[j-1] == null) {
                     log.error("No sigma " + orient + "." + j + ": " + def);
                 } else {
-                    log.info("Sigma " + key + ": " + orient + "." + j + ": " + 
+                    log.info("Sigma " + key + ": " + orient + "." + j + ": " +
                                                     sigmas[j-1]);
                 }
 log.info("Sigma 1..5 done");
@@ -1059,6 +1058,7 @@ log.info("Sigma v/h done");
             throw new RuntimeException("ServletData(): already ran init()");
         }
         init = true;
+        long t1 = System.currentTimeMillis();
 
         //System.out.println("ServletData constructor");
         log.info("ServletData constructor");
@@ -1079,53 +1079,7 @@ log.info("Sigma v/h done");
             //   pairtop_[col|nn]_[vh]
             PairTopDao.testTables(conn);
 
-
-// --- TODO - delete?
-
-            log.info("Loading approved pairs in threads");
-            long t1 = System.currentTimeMillis();
-
-            final Connection conn_static = conn;
-            Thread th1 = new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        approvedV = ApprovalDao.getAllApprovedPairs(
-                                                    conn_static, 1, 
-                                                     "v", null,
-                                                     true, // d0
-                                                     null, null, 
-                                                     null);
-                    } catch (SQLException sqe) {
-                        log.error("approvedV: " + sqe);
-                        System.exit(1);
-                    }
-                }
-            });
-            th1.start();
-            Thread th2 = new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        approvedH = ApprovalDao.getAllApprovedPairs(
-                                                    conn_static, 1, 
-                                                     "h", null,
-                                                     true, // d0
-                                                     null, null, 
-                                                     null);
-                    } catch (SQLException sqe) {
-                        log.error("approvedH: " + sqe);
-                        System.exit(1);
-                    }
-                }
-            });
-            th2.start();
-
-            //log.info("INIT Loading pairs: " + (System.currentTimeMillis()-t1));
-
-            //INTRO_PREF_IMAGES = Integer.parseInt(
-            //                         ConfigUtil.runtimeProperty("intro.pref.images"));
-
-
-            //final Connection vconn = conn; not much diff either way
+            final Connection conn_static = conn; // for threads
             Thread viewThread = new Thread(new Runnable() {
                 public void run() {
                     try {
@@ -1166,8 +1120,6 @@ log.info("Sigma v/h done");
             try {
                 //latch.await();
                 //log.info("Latch achieved: Join app pr loads");
-                th1.join();
-                th2.join();
                 viewThread.join();
                 nnThread.join();
                 log.info("Joined app pr loads");
@@ -1177,13 +1129,13 @@ log.info("Sigma v/h done");
             }
             System.out.println("wait done");
 
-            log.info("Loaded in " + (System.currentTimeMillis() - t1));
+            log.info("ServletData loaded in " + (System.currentTimeMillis() - t1));
 /*
             log.info("topPairs: v, h: " + topPairsV.size() + ", " +
                                           topPairsH.size());
 */
 
-            // summarize 
+            // summarize
 
             StringBuilder sb = new StringBuilder("\n\n------ CONFIG\n\n");
 
@@ -1216,7 +1168,7 @@ log.info("Sigma v/h done");
                     vsize = pics.size();
                 }
 
-                sb.append("\tSize ").append(hsize+vsize)
+                sb.append("\tPics ").append(hsize+vsize)
                       .append(" V ").append(vsize)
                       .append(" H ").append(hsize)
                       .append("\n");
@@ -1233,12 +1185,7 @@ log.info("Sigma v/h done");
               //.append("People: ").append(people.size())
               .append("\n\n");
 
-            int pv = approvedV.size();
-            int ph = approvedH.size();
-            sb.append("Pairs: ").append(pv + ph)
-              .append(" V: ").append(pv)
-              .append(" H: ").append(ph)
-              .append("  ").append(PairDao.tablesAvailable())
+            sb.append("Pairs: ").append(PairDao.tablesAvailable())
               .append("\n\n");
 
             sb.append("pairtop_nn tags (V/H): ")
@@ -1268,7 +1215,7 @@ log.info("Sigma v/h done");
 
 /*
             sb.append("-- kwd maps\n");
-            Map<String, IndexHolder> m = 
+            Map<String, IndexHolder> m =
                                        new TreeMap<String, IndexHolder>(views);
             Set<Map.Entry<String, IndexHolder>> es = m.entrySet();
             for (Map.Entry pair : es) {
@@ -1355,7 +1302,7 @@ conn.commit();
                 lhtp.value_l.add(lh.value_l.get(i));
             } // TODO - animals, vegetables
         }
-        log.info("FFFFFFFACE " + start + "-> (" + 
+        log.info("FFFFFFFACE " + start + "-> (" +
                 lht.size() + " + " + lhtp.size() + ")");
 
         if (lhtp.size() > 0) {

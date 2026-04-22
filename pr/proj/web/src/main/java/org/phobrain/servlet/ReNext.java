@@ -6,26 +6,24 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  ReNext - web.xml=renext - mnbpair.html
- **     Selecting pics from pr.approved_pair for review.
- **
- **  The cmd is (one of each in [] req'd):
- **
- **    'pr[vh][q][fr][0+]'
- **
- **    vh - orientation
- **    q  - quality/d0, other opts forgotten/unused
- **    fr - forward/reverse, only f used long time
- **    0+ - pr.approved_pair.status, typically 0 or 8.
- **    opts after - kwd selection, others forgotten
- **
- */
+//  ReNext - web.xml=renext - mnbpair.html
+//     Selecting pics from pr.approved_pair for review.
+//
+//  The cmd is (one of each in [] req'd):
+//
+//    'pr[vh][q][fr][0+]'
+//
+//    vh - orientation
+//    q  - quality/d0, other opts forgotten/unused
+//    fr - forward/reverse, only f used long time
+//    0+ - pr.approved_pair.status, typically 0 or 8.
+//    opts after - kwd selection, others forgotten
 
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.MiscUtil;
 import org.phobrain.util.HashCount;
 import org.phobrain.util.ListHolder;
+//import org.phobrain.util.FileRec;
 
 import org.phobrain.db.util.DBUtil;
 import org.phobrain.db.dao.DaoBase;
@@ -71,11 +69,11 @@ import java.io.PrintWriter;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -87,9 +85,7 @@ public class ReNext extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(ReNext.class);
 
-    private static final GetEngine engine = GetEngine.getEngine();
-
-    protected static final ServletData data = ServletData.get();
+    private static final long serialVersionUID = 1L;
 
     private String graphDir = null; // relic
 
@@ -138,18 +134,15 @@ public class ReNext extends HttpServlet {
         out.close();
     }
 
-    private static class KV implements Comparable {
+    private static class KV implements Comparable<KV> {
 
         String key;
         long value;
         double dbl; // so far value^x
 
         @Override
-        public int compareTo(Object oo) {
-            KV o = (KV) oo;
-            if (this.value > o.value) return 1;
-            if (this.value < o.value) return -1;
-            return 0;
+        public int compareTo(KV o) {
+            return Long.compare(this.value, o.value);
         }
     }
 
@@ -183,7 +176,7 @@ public class ReNext extends HttpServlet {
 
     private void addV(VectorPair v, int val) {
 
-        Double d = new Integer(val).doubleValue();
+        Double d = Integer.valueOf(val).doubleValue();
 
         v.v1.add(d);
         if (v.v1.size() > V1_SIZE) {
@@ -312,15 +305,14 @@ BufferedReader buffered = new BufferedReader(decoder);
         return pm;
     }
 
-    private static class FileRec implements Comparable {
+    private static class PicFileRec implements Comparable<PicFileRec> {
         //int arch;
         //int seq;
         //String id;
         //long sum_d0;
         Picture p;
 
-        //FileRec(String id, long sum_d0) {
-        FileRec(Picture p) {
+        PicFileRec(Picture p) {
             this.p = p;
             //this.id = id;
             //int as[] = IndexHolder.getArchSeq(id);
@@ -329,9 +321,7 @@ BufferedReader buffered = new BufferedReader(decoder);
             //this.sum_d0 = sum_d0;
         }
         @Override
-        public int compareTo(Object o) {
-
-            FileRec fr = (FileRec) o;
+        public int compareTo(PicFileRec fr) {
 
             if (p.d0Sum < fr.p.d0Sum) return -1;
             if (p.d0Sum > fr.p.d0Sum) return 1;
@@ -872,11 +862,11 @@ log.info("S " + s.nTogs);
                 Map<Integer, List<String>> picLists;
                 boolean vertical;
                 if (session.kwdChoice.charAt(1) == 'v') {
-                    picLists = data.picListsV;
+                    picLists = ServletData.picListsV;
                     vertical = true;
                 } else if (session.kwdChoice.charAt(1) == 'h') {
                     vertical = false;
-                    picLists = data.picListsH;
+                    picLists = ServletData.picListsH;
                 } else {
                     log.error("No v|h: Parsing v|h " + session.kwdChoice);
                     res.sendError(500, "Internal Error. Call Help.");
@@ -898,13 +888,13 @@ log.info("S " + s.nTogs);
                     res.sendError(500, "Internal Error. Call Help.");
                     return;
                 }
-                List<FileRec> fileList = new ArrayList<>();
+                List<PicFileRec> fileList = new ArrayList<>();
                 for (String id : picList) {
                     Picture p = PictureDao.getPictureById(conn, id);
                     if (p.d0Sum == -1) {
                         log.info("d0Sum -1: " + p.id);
                     }
-                    fileList.add(new FileRec(p));
+                    fileList.add(new PicFileRec(p));
                 }
                 Collections.sort(fileList);
                 log.info("view " + view + "/" + (vertical ? "v" : "h") +
@@ -912,7 +902,7 @@ log.info("S " + s.nTogs);
                          fileList.get(0).p.d0Sum + " -> " +
                          fileList.get(fileList.size()-1).p.d0Sum);
 
-                for (FileRec fr : fileList) {
+                for (PicFileRec fr : fileList) {
 //log.info("ID " + id);
                     Keywords k = KeywordsDao.getKeywordsByIdCoder(conn,
                                                           fr.p.id, "m");

@@ -37,10 +37,10 @@ public class BrowserDao extends DaoBase {
 
     private static final Logger log = LoggerFactory.getLogger(BrowserDao.class);
 
-    final static String SQL_INSERT_BROWSER = 
+    final static String SQL_INSERT_BROWSER =
                     "INSERT INTO browser_version (version, session_tag) VALUES (?, ?)";
 
-    public static Browser insertBrowser(Connection conn, String version) 
+    public static Browser insertBrowser(Connection conn, String version)
             throws SQLException {
 
         Browser b = new Browser();
@@ -53,7 +53,7 @@ public class BrowserDao extends DaoBase {
             PreparedStatement ps = null;
             ResultSet generatedKeys = null;
             try {
-                ps = conn.prepareStatement(SQL_INSERT_BROWSER, 
+                ps = conn.prepareStatement(SQL_INSERT_BROWSER,
                                            Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, version);
                 ps.setString(2, b.sessionTag);
@@ -86,10 +86,10 @@ public class BrowserDao extends DaoBase {
         return b;
     }
 
-    final static String SQL_UPDATE_BROWSER = 
+    final static String SQL_UPDATE_BROWSER =
                     "UPDATE browser_version SET session_tag = ? WHERE id = ?";
 
-    public static void updateLegacyTag(Connection conn, Browser b) 
+    public static void updateLegacyTag(Connection conn, Browser b)
             throws SQLException {
 
         int rows = -1;
@@ -131,16 +131,16 @@ public class BrowserDao extends DaoBase {
         return b;
     }
 
-    final static String SQL_GET_BY_ID = 
+    final static String SQL_GET_BY_ID =
                     "SELECT " + RECORD_FIELDS + BROWSER_FIELDS +
                     " FROM browser_version WHERE id = ?";
 
-    public static Browser getBrowserById(Connection conn, long id) 
+    public static Browser getBrowserById(Connection conn, long id)
             throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(SQL_GET_BY_ID, 
+            ps = conn.prepareStatement(SQL_GET_BY_ID,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, id);
@@ -157,17 +157,17 @@ public class BrowserDao extends DaoBase {
         }
     }
 
-    final static String SQL_GET_BY_SESSION = 
+    final static String SQL_GET_BY_SESSION =
                     "SELECT " + RECORD_FIELDS + BROWSER_FIELDS +
                     " FROM browser_version WHERE session_tag = ?";
 
-    public static Browser getBrowserBySession(Connection conn, 
-                                              String sessionTag) 
+    public static Browser getBrowserBySession(Connection conn,
+                                              String sessionTag)
             throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(SQL_GET_BY_SESSION, 
+            ps = conn.prepareStatement(SQL_GET_BY_SESSION,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, sessionTag);
@@ -185,18 +185,18 @@ public class BrowserDao extends DaoBase {
     }
 
 
-    final static String SQL_GET_BY_VERSION = 
+    final static String SQL_GET_BY_VERSION =
                 "SELECT " + RECORD_FIELDS + BROWSER_FIELDS +
                 " FROM browser_version WHERE version like '@%' ORDER BY id ASC";
 
-    public static List<Browser> getBrowsersByVersion(Connection conn, 
-                                                     String version) 
+    public static List<Browser> getBrowsersByVersion(Connection conn,
+                                                     String version)
             throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             String s = SQL_GET_BY_VERSION.replace("@", version);
-            ps = conn.prepareStatement(s, 
+            ps = conn.prepareStatement(s,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             rs = ps.executeQuery();
@@ -215,17 +215,17 @@ public class BrowserDao extends DaoBase {
         }
     }
 
-    final static String SQL_GET_BROWSERS = 
+    final static String SQL_GET_BROWSERS =
                     "SELECT " + RECORD_FIELDS + BROWSER_FIELDS +
                     " FROM browser_version ORDER BY id ASC";
-    
-    public static List<Browser> getBrowsers(Connection conn) 
+
+    public static List<Browser> getBrowsers(Connection conn)
             throws SQLException {
 
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(SQL_GET_BROWSERS, 
+            ps = conn.prepareStatement(SQL_GET_BROWSERS,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             rs = ps.executeQuery();

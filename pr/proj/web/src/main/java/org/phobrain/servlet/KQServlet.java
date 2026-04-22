@@ -55,20 +55,20 @@ import java.sql.SQLException;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class KQServlet extends HttpServlet {
 
-    private static final Logger log = LoggerFactory.getLogger(KQServlet.class);
+    private static final long serialVersionUID = 1L;
 
-    protected static final ServletData data = ServletData.get();
+    private static final Logger log = LoggerFactory.getLogger(KQServlet.class);
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -77,7 +77,7 @@ public class KQServlet extends HttpServlet {
                    ConfigUtil.runtimeProperty("graph.dir");
         File folder = new File(graphDir);
         if (!folder.isDirectory()) {
-            log.error("CONFIG: graph.dir [" + graphDir + 
+            log.error("CONFIG: graph.dir [" + graphDir +
                                        "] IS NOT A DIRECTORY - EXITING");
             System.exit(1);
         }
@@ -115,16 +115,13 @@ public class KQServlet extends HttpServlet {
         out.close();
     }
 
-    private static class KV implements Comparable {
+    private static class KV implements Comparable<KV> {
         String key;
         int value;
         double dbl; // so far value^x
         @Override
-        public int compareTo(Object oo) {
-            KV o = (KV) oo;
-            if (this.value > o.value) return 1;
-            if (this.value < o.value) return -1;
-            return 0;
+        public int compareTo(KV o) {
+            return Integer.compare(this.value, o.value);
         }
     }
 

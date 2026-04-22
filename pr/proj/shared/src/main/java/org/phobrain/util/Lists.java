@@ -19,7 +19,9 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Lists implements Serializable {
+public class Lists { // implements Serializable
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(Lists.class);
 
@@ -38,7 +40,7 @@ public class Lists implements Serializable {
         }
         if (min < 0) range -= 2 * min;
         else range += 2 * min;
-        
+
         range++;
         List<Long> ll = new ArrayList<>(l.size());
         for (long i : l) {

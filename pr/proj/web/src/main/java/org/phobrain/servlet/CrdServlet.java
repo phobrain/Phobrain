@@ -6,10 +6,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  Used for disabled DNA animation.
- **
- */
+//  IGNORE - Used for disabled DNA animation.
 
 import org.phobrain.util.ConfigUtil;
 
@@ -39,11 +36,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
 
 import javax.naming.NamingException;
 
@@ -52,6 +49,8 @@ import org.slf4j.LoggerFactory;
 
 @WebServlet("/pr/crd")
 public class CrdServlet extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static final int NATOMS = 95;
 

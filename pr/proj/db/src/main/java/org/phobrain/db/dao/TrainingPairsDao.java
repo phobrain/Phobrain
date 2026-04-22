@@ -90,8 +90,8 @@ public class TrainingPairsDao extends DaoBase {
         if (sortPos != null) {
             String sortCol = "p_d0";
 
-            ap.sortVal = PairDao.getVal(conn, ap.id1, ap.id2, 
-                                          (ap.vertical ? "v" : "h"), 
+            ap.sortVal = PairDao.getVal(conn, ap.id1, ap.id2,
+                                          (ap.vertical ? "v" : "h"),
                                           sortCol, true/*default 0*/);
             if (ap.sortVal == 0) {
                 sortZeroCt++;
@@ -105,13 +105,13 @@ public class TrainingPairsDao extends DaoBase {
         return ap;
     }
 
-    private static boolean indexArchSeq(Map<String, ApprovedPair> map, 
+    private static boolean indexArchSeq(Map<String, ApprovedPair> map,
                                                     ApprovedPair ap) {
 
         String[] ids = ap.id1.split("\\|");
 
         if (ids.length != 2) {
-            log.error("BAD ID0: id1|id2 expected: " + ap.id1 + " got len " + 
+            log.error("BAD ID0: id1|id2 expected: " + ap.id1 + " got len " +
                                                             ids.length);
             return true;
         }
@@ -157,8 +157,8 @@ public class TrainingPairsDao extends DaoBase {
     private static List<ApprovedPair> lap_1 = null;
     private static List<ApprovedPair> lap_2 = null;
 
-    private static void do_it(Connection conn, 
-            Boolean huh, Object target_1, String orient, 
+    private static void do_it(Connection conn,
+            Boolean huh, Object target_1, String orient,
             Object use_pos, Object use_neg, Object excludes)
             throws SQLException {
             log.info("STuBB");
@@ -245,7 +245,7 @@ public class TrainingPairsDao extends DaoBase {
                 public void run() {
                     try {
                         lap_1 = ApprovalDao.getAllApprovedPairs(conns[0],
-                                                1, orient, null, 
+                                                1, orient, null,
                                                 false, null, true, null);
                     } catch (Exception e) {
                         log.error("AP/1's: " + e);
@@ -258,8 +258,8 @@ public class TrainingPairsDao extends DaoBase {
             Thread t3 = new Thread() {
                 public void run() {
                     try {
-                        lap_2 = ApprovalDao.getAllApprovedPairs(conns[1], 
-                                                2, orient, null, 
+                        lap_2 = ApprovalDao.getAllApprovedPairs(conns[1],
+                                                2, orient, null,
                                                 false, null, true, null);
                     } catch (Exception e) {
                         log.error("AP/2's: " + e);
@@ -289,7 +289,7 @@ public class TrainingPairsDao extends DaoBase {
             t3.join();
             t4.join();
 
-            log.info("=== queries done in ms " + 
+            log.info("=== queries done in ms " +
                                     (System.currentTimeMillis()-t0));
 
             if (seen == null  ||  lap_1 == null  ||  lap_2 == null) {
@@ -304,7 +304,7 @@ public class TrainingPairsDao extends DaoBase {
 
             // split into manual/bulk
 
-            Set<String> missing_id = new HashSet<>(); 
+            Set<String> missing_id = new HashSet<>();
             Set<String> orient_mismatch = new HashSet<>(); // compound
 
             int approved_random_sel = 0;
@@ -314,7 +314,7 @@ public class TrainingPairsDao extends DaoBase {
             //Timestamp ref_ts = new Timestamp(dt.getTime());
 
             for (ApprovedPair ap : lap_1) {
-                ap = procPair(conns[0], ap, 
+                ap = procPair(conns[0], ap,
                         missing_id, orient_mismatch, null); // null=no sort
                 if (ap == null) {
                     continue;
@@ -343,7 +343,7 @@ public class TrainingPairsDao extends DaoBase {
             Timestamp inceptionDate = new Timestamp(dt.getTime());
 
             for (ApprovedPair ap : lap_2) {
-                ap = procPair(conns[0], ap, 
+                ap = procPair(conns[0], ap,
                         missing_id, orient_mismatch, null); //HACK -? false); // false==d0d
                 if (ap == null) {
                     continue;
@@ -370,7 +370,7 @@ public class TrainingPairsDao extends DaoBase {
             }
 
             log.info("Orient (?) mismatches: " + orient_mismatch.size());
-            
+
             /*
             if ("bv".equals(orient)) {
                 orient = "v";
@@ -413,7 +413,7 @@ public class TrainingPairsDao extends DaoBase {
             }
 
             int tot_neg = initial_rejects.size() +
-                          manual_2.size() + 
+                          manual_2.size() +
                           bulk_2.size();
 
             Map<String, ApprovedPair> archseq_neg = new HashMap<>();
@@ -454,7 +454,7 @@ public class TrainingPairsDao extends DaoBase {
                     ApprovedPair neg = archseq_neg.get(key);
 
                     if (pos == null  ||  neg == null) {
-                        throw new SQLException("Missing key from pos/neg: " + 
+                        throw new SQLException("Missing key from pos/neg: " +
                                                         key);
                     }
                     fixIds(pos);
@@ -485,7 +485,7 @@ public class TrainingPairsDao extends DaoBase {
                 mid_initial_rej = initial_rejects.size() / 2;
 
                 mid = initial_rejects.get(mid_initial_rej);
-                log.info("Initial mid: " + mid_initial_rej + " t=" + 
+                log.info("Initial mid: " + mid_initial_rej + " t=" +
                                             mid.createTime);
                 int prev = 0;
                 int next = 0;
@@ -507,24 +507,24 @@ public class TrainingPairsDao extends DaoBase {
                 if (prev + next > 0) {
                     if (prev <= next) {
                         mid_initial_rej += next + 1;
-                        log.info("Going to next by " + (next+1) + ": " + 
+                        log.info("Going to next by " + (next+1) + ": " +
                               mid_initial_rej);
                     } else {
-                        log.info("Going to next by " + (next+1) + ": " + 
+                        log.info("Going to next by " + (next+1) + ": " +
                               mid_initial_rej);
                         mid_initial_rej -= (prev + 1);
-                        log.info("Going to prev by " + (prev+1) + ": " + 
+                        log.info("Going to prev by " + (prev+1) + ": " +
                               mid_initial_rej);
                     }
-                    if (mid_initial_rej < 0  ||  mid_initial_rej > 
+                    if (mid_initial_rej < 0  ||  mid_initial_rej >
                                                  initial_rejects.size()-1) {
                         log.error("Ran off with the goat.");
                         throw new SQLException("Some kinda problem.");
                     }
-                    
+
                     mid = initial_rejects.get(mid_initial_rej);
                 }
-                log.info("= Split initial_reject to 2x" + mid_initial_rej + 
+                log.info("= Split initial_reject to 2x" + mid_initial_rej +
                          " using time: " + mid.createTime);
 
                 for (int i=0; i<manual_2.size(); i++) {
@@ -543,12 +543,12 @@ public class TrainingPairsDao extends DaoBase {
                 }
 
                 log.info("Resulting split: status=2:");
-                log.info("manual: " + manual_2_split + "|" + 
+                log.info("manual: " + manual_2_split + "|" +
                                      (manual_2.size()-manual_2_split));
-                log.info("bulk: " + bulk_2_split + "|" + 
+                log.info("bulk: " + bulk_2_split + "|" +
                                  (bulk_2.size()-bulk_2_split));
-                log.info("total: " + (manual_2_split + bulk_2_split) + "|" + 
-                                   (manual_2.size() - manual_2_split + 
+                log.info("total: " + (manual_2_split + bulk_2_split) + "|" +
+                                   (manual_2.size() - manual_2_split +
                                     bulk_2.size() - bulk_2_split));
 
                 for (int i=0; i<manual_1.size(); i++) {
@@ -567,18 +567,18 @@ public class TrainingPairsDao extends DaoBase {
                 }
 
                 log.info("Resulting split: status=1:");
-                log.info("manual: " + manual_1_split + "|" + 
+                log.info("manual: " + manual_1_split + "|" +
                                     (manual_1.size()-manual_1_split));
-                log.info("bulk: " + bulk_1_split + "|" + 
+                log.info("bulk: " + bulk_1_split + "|" +
                                  (bulk_1.size()-bulk_1_split));
-                log.info("total: " + (manual_1_split + bulk_1_split) + "|" + 
-                                 (manual_1.size() - manual_1_split + 
+                log.info("total: " + (manual_1_split + bulk_1_split) + "|" +
+                                 (manual_1.size() - manual_1_split +
                                   bulk_1.size() - bulk_1_split));
             }
 
             // see if any multi-edit archive:sequence's are split
             // between neg and pos.
-            
+
 
             log.info("---- summary");
 
@@ -589,26 +589,26 @@ public class TrainingPairsDao extends DaoBase {
             log.info("Positive: " + (manual_1.size() + bulk_1.size()) +
                  "\n\tmanual " + manual_1.size() + " bulk " + bulk_1.size() +
                  "\n\trandom/shown " + approved_random_sel);
-            int tot_rej_review = manual_2.size() + 
+            int tot_rej_review = manual_2.size() +
                                  bulk_2.size();
             log.info("Negative: " + tot_neg);
             log.info("\tinitial_rejects: " + initial_rejects.size());
             log.info("\trej in review: " + tot_rej_review +
-                    "\n\t\tmanual " + manual_2.size() + 
+                    "\n\t\tmanual " + manual_2.size() +
                     "\n\t\tbulk " + bulk_2.size());
             /*
             pout("\trandom/shown " + (disapproved_random + initial_rej_random) +
-                     " init " + initial_rej_random + 
+                     " init " + initial_rej_random +
                      "  disapp " + disapproved_random);
                      */
 /*
             pout("Cut time: " + ref_ts + "\n" +
                     "\tintial rejects: " +
-                      pre_cut_initial_rejects + "|" + 
+                      pre_cut_initial_rejects + "|" +
                         (initial_rejects.size() - pre_cut_initial_rejects));
             pout("\tpost cut rejects: " + post_cut_rejects + "|" +
                       (tot_rej_review - post_cut_rejects));
-            pout("\ttotal neg: " + (pre_cut_initial_rejects + 
+            pout("\ttotal neg: " + (pre_cut_initial_rejects +
                                        post_cut_rejects) + "|" +
                                       (initial_rejects.size() + tot_rej_review -
                                        pre_cut_initial_rejects +
@@ -616,10 +616,10 @@ public class TrainingPairsDao extends DaoBase {
             pout("\ttotal pos: " + pre_cut_1s + "|" + post_cut_1s);
 */
 
-                    
+
             int ok_pos = manual_1.size() + bulk_1.size();
 
-            log.info("Totals: ok_pos: " + ok_pos + 
+            log.info("Totals: ok_pos: " + ok_pos +
                        " tot_neg: " + tot_neg);
 
             // targets
@@ -669,7 +669,7 @@ public class TrainingPairsDao extends DaoBase {
 
 log.info("TODO - add pos predictions - scaling back neg for now");
                 int t = use_neg;
-                
+
                 //PlanA use_neg = (int)(1.6667 * use_pos);
                 //PlanB use_neg = (int)(0.90909 * use_pos);
                 //PlanC use_neg = (int)(0.625 * use_pos);
@@ -687,7 +687,7 @@ log.info("TODO - add pos predictions - scaling back neg for now");
             //   test neg = X
             //  => 1.3333X pos, 2X neg
             //  => pos_neg: 1.333 / 2 = .6667
-            int X = (int) (use_pos / 1.333); 
+            int X = (int) (use_pos / 1.333);
             train_pos_targ = X;
             train_neg_targ = X;
             test_pos_targ = (int) (X / 3.0);

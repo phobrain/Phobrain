@@ -12,7 +12,7 @@ import java.util.Comparator;
 
 import java.sql.Timestamp;
 
-public class Picture implements Comparable {
+public class Picture implements Comparable<Picture> {
 
     public long        xid;
     public Timestamp   createTime;
@@ -112,10 +112,9 @@ public class Picture implements Comparable {
     //public static class PictureCompare implements Comparator {
 
         @Override
-        public int compareTo(Object o2) {
+        public int compareTo(Picture p2) {
 
             Picture p1 = this; //(Picture) o1;
-            Picture p2 = (Picture) o2;
 
             if (p1.equals(p2)) {
                 return 0;

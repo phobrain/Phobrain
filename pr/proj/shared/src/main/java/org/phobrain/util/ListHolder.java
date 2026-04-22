@@ -22,7 +22,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 
-public class ListHolder extends Lists implements Serializable {
+public class ListHolder extends Lists { // implements Serializable
+
+    private static final long serialVersionUID = 1L;
 
     public List<String> id2_l = new ArrayList<>();
     public List<Long> value_l = new ArrayList<>();
@@ -33,8 +35,8 @@ public class ListHolder extends Lists implements Serializable {
     public ListHolder copy() {
 
         ListHolder ret = new ListHolder();
-        ret.id2_l = new ArrayList(this.id2_l);
-        ret.value_l = new ArrayList(this.value_l);
+        ret.id2_l = new ArrayList<>(this.id2_l);
+        ret.value_l = new ArrayList<>(this.value_l);
         return ret;
     }
 

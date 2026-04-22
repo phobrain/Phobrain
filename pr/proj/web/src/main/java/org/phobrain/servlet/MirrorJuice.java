@@ -8,8 +8,9 @@ package org.phobrain.servlet;
 
 /**
  **  MirrorJuice - common routines for 'mind mirroring' with photo pairs.
+ **             Extended by FeelingMirror.
  **             Starting as a merge of FeelEngine back into GetEngine.
- **             'Silver' and 'MirrorSilver' not appealing.
+ **             'Silver' and 'MirrorSilver' not as-appealing name candidates.
  */
 
 import org.phobrain.util.ConfigUtil;
@@ -98,7 +99,7 @@ public abstract class MirrorJuice {
     **      HistoryPairDao.getLastPairs(conn, browserID, 10);
     **      FeelingPairDao.getLastFeelings(conn, browserID, 10);
     **      getSeen(conn, browserID);
-    **      addSeen(Connection conn, long browserID, String orient, String... ids) 
+    **      addSeen(Connection conn, long browserID, String orient, String... ids)
     **      getOrderInSession(Connection conn, long browserID)
     **      HistoryPairDao.countPairs(conn, browserID);
     **      HistoryPairDao.countPairs(conn, browserID, "v");
@@ -117,7 +118,7 @@ public abstract class MirrorJuice {
 
     // override if avail
     boolean haveFlow() { return false; }
-    List<Screen> modelMatch(Connection conn, UserProfile up, int viewNum, String orient, 
+    List<Screen> modelMatch(Connection conn, UserProfile up, int viewNum, String orient,
                                         Session session, List<String> ids, ListHolder[] lhs)
             throws SQLException {
         return null;
@@ -896,9 +897,9 @@ public abstract class MirrorJuice {
 
     private static String statusDir = null;
 
-    protected static final ServletData data = ServletData.get();
-
     protected MirrorJuice() {
+
+        ServletData.get(); // instantiates for static methods
 
         Connection conn = null;
         try {
@@ -1151,7 +1152,7 @@ public abstract class MirrorJuice {
         if (seenids.seen == null  ||  seenids.seen.size() == 0) {
             return 0;
         }
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         if (picSet == null  ||  picSet.size() == 0) {
             return -1;
         }
@@ -1176,7 +1177,7 @@ public abstract class MirrorJuice {
 
         browserLastList.remove(session.browserID);// clear Plus history
 
-        List<String> l = data.getPicList(viewNum, orient);;
+        List<String> l = ServletData.getPicList(viewNum, orient);;
         if (l == null  ||  l.size() == 0) {
             throw new RuntimeException(
                      "chooseRandomImage: List size 0 for viewNum " + viewNum);
@@ -1608,7 +1609,7 @@ public abstract class MirrorJuice {
             }
             log.info("d0 baseLimit -> " + baseLimit);
         } else if (up.speedUp  ||  up.restlessMouse) {
-            baseLimit *= (1.25 + up.skew);// MAGIC
+            baseLimit = MiscUtil.lossyMult(baseLimit, 1.25 + up.skew); // MAGIC
             //log.info("baseLimit -> " + baseLimit);
         }
 /*
@@ -1656,7 +1657,7 @@ assume list is sorted.. couldn't go too wrong
                 continue;
             }
             if (orient != null  &&
-                "v".equals(orient)  !=  data.verticals.contains(id2)) {
+                "v".equals(orient)  !=  ServletData.verticals.contains(id2)) {
 // STILL NEEDED?
                 continue;
             }
@@ -1755,7 +1756,7 @@ assume list is sorted.. couldn't go too wrong
     }
 
     private ListHolder filterList(StringBuilder pref, HistoryPair last,
-                                  int viewNum, String kwdCoder,
+                                  int viewNum, // String kwdCoder,
                                   ListHolder lh, ListHolder altLh,
                                   ListHolder bakLh, boolean copyIf)
             throws SQLException {
@@ -1780,9 +1781,9 @@ assume list is sorted.. couldn't go too wrong
         if (copyIf) {
             // make modifiable copies
             lh2 = new ListHolder();
-            lh2.id2_l = new ArrayList(lh.id2_l);
+            lh2.id2_l = new ArrayList<>(lh.id2_l);
             if (lh.value_l != null) {
-                lh2.value_l = new ArrayList(lh.value_l);
+                lh2.value_l = new ArrayList<>(lh.value_l);
             }
 
             log.info("filterList copied for view-only " + lh2.size());
@@ -1816,7 +1817,7 @@ assume list is sorted.. couldn't go too wrong
 
         int okCt = 0;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         SeenIds seenIds = getSeen(conn, session);
 
@@ -1861,7 +1862,7 @@ assume list is sorted.. couldn't go too wrong
     // single screen - unit==1 on UserProfile
     private PictureResponse chooseFromList(Connection conn,
                                      Session session, UserProfile up,
-                                     int viewNum, String kwdCoder,
+                                     int viewNum, // String kwdCoder,
                                      String lastId, ListHolder lh,
                                      String type, boolean copyIf)
             throws SQLException {
@@ -1886,7 +1887,7 @@ assume list is sorted.. couldn't go too wrong
         }
         ListHolder bakLh = new ListHolder();
         StringBuilder pref = new StringBuilder();
-        ListHolder lh2 = filterList(pref, up.last, viewNum, kwdCoder,
+        ListHolder lh2 = filterList(pref, up.last, viewNum, // kwdCoder,
                                     lh, null, bakLh, copyIf);
 
         PictureResponse pr = new PictureResponse();
@@ -2016,7 +2017,7 @@ assume list is sorted.. couldn't go too wrong
 
         int nToGet = 200;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         ListHolder lh = PairTopDao.getPairtopSymm(conn, "col",
                                            orient, lastId, cols[0],
@@ -2189,7 +2190,7 @@ assume list is sorted.. couldn't go too wrong
         Map<Long, List<String>> diffSort = new TreeMap<>();
         Map<Long, List<String>> fallback = new TreeMap<>();
 
-        Set<String> view = data.getPicSet(viewNum, orient);
+        Set<String> view = ServletData.getPicSet(viewNum, orient);
 
         SeenIds seenIds = getSeen(conn, session);
 
@@ -2247,9 +2248,9 @@ assume list is sorted.. couldn't go too wrong
         ListHolder lh2 = new ListHolder();
         int needed = total / 4;
         log.info("max/min " + max + "/" + min + " needed " + needed);
-        for (Map.Entry pair : diffSort.entrySet()) { // TreeMap goes in ascending order
+        for (Map.Entry<Long, List<String>> pair : diffSort.entrySet()) { // TreeMap goes in ascending order
             long diff = (long) pair.getKey();
-            List<String> ids = (List<String>) pair.getValue();
+            List<String> ids = MiscUtil.objectToListString(pair.getValue());
             //log.info("diff " + diff + " ct " + ids.size());
 
             if (needed > 0) {
@@ -2300,7 +2301,7 @@ assume list is sorted.. couldn't go too wrong
                     continue;
                 }
                 if (orient != null  &&
-                    "v".equals(orient) != data.verticals.contains(id2)) {
+                    "v".equals(orient) != ServletData.verticals.contains(id2)) {
                     continue;
                 }
 
@@ -2342,9 +2343,9 @@ assume list is sorted.. couldn't go too wrong
             lh2.value_l.clear();
             needed = total / 4;
 
-            for (Map.Entry pair : diffSort.entrySet()) { // ascending order
-                long diff = (int) pair.getKey();
-                List<String> ids = (List<String>) pair.getValue();
+            for (Map.Entry<Long, List<String>> pair : diffSort.entrySet()) { // ascending order
+                long diff = pair.getKey();
+                List<String> ids = MiscUtil.objectToListString(pair.getValue());
                 log.info("bakdiff " + diff + " ct " + ids.size());
 
                 if (needed > 0) {
@@ -2354,12 +2355,12 @@ assume list is sorted.. couldn't go too wrong
                     }
                     needed -= ids.size();
                 } else {
-                     List<String> fids = fallback.get(diff);
-                     if (fids == null) {
-                         fallback.put(diff, ids);
-                     } else {
-                         fids.addAll(ids);
-                     }
+                    List<String> fids = fallback.get(diff);
+                    if (fids == null) {
+                        fallback.put(diff, ids);
+                    } else {
+                        fids.addAll(ids);
+                    }
                 }
             }
             lh2.value_l = invertDistribution(lh2.value_l);
@@ -2380,8 +2381,9 @@ assume list is sorted.. couldn't go too wrong
         // wipe and repop
 
         id_l.clear();
-        for (Map.Entry pair : fallback.entrySet()) {
-            id_l.addAll((List<String>) pair.getValue());
+        for (Map.Entry<Long, List<String>> pair : fallback.entrySet()) {
+            List<String> ids = MiscUtil.objectToListString(pair.getValue());
+            id_l.addAll(ids);
         }
         if (bak_id_l != null) {
             bak_id_l.clear();
@@ -2537,7 +2539,7 @@ assume list is sorted.. couldn't go too wrong
 
         SeenIds seenIds = getSeen(conn, session);
 
-        List<String> picList = data.getPicList(viewNum, orient);
+        List<String> picList = ServletData.getPicList(viewNum, orient);
 
         if (picList == null  ||  picList.size() == 0) {
             log.error("View " + viewNum + "/" + orient +": no pics");
@@ -2732,7 +2734,7 @@ assume list is sorted.. couldn't go too wrong
         log.info("get2ndPrPosScreen: " + id1 + " method " + initPr.method);
 
         if (picSet == null) {
-            picSet = data.getPicSet(viewNum, orient);
+            picSet = ServletData.getPicSet(viewNum, orient);
         }
         SeenIds seenIds = getSeen(conn, session);
 
@@ -2769,7 +2771,7 @@ assume list is sorted.. couldn't go too wrong
             lh2 = PictureDao.matchVector(conn, orient,
                                     2, id1,
                                     func,
-                                    data.getViewArchives(viewNum),
+                                    ServletData.getViewArchives(viewNum),
                                     limit, picSet, seenIds);
         }
 
@@ -2852,7 +2854,7 @@ assume list is sorted.. couldn't go too wrong
         final int depth = 400;
 
         if (tag == null) {
-            List<String> tagL = data.getPairtopNNTags("v".equals(orient));
+            List<String> tagL = ServletData.getPairtopNNTags("v".equals(orient));
             tag = tagL.get(rand.nextInt(tagL.size()));
             log.info("get2ndPairtopScreen: random tag: " + tag);
         } else {
@@ -2860,7 +2862,7 @@ assume list is sorted.. couldn't go too wrong
         }
 
         if (picSet == null) {
-            picSet = data.getPicSet(viewNum, orient);
+            picSet = ServletData.getPicSet(viewNum, orient);
         }
 
         int try1 = 0;
@@ -2944,7 +2946,7 @@ assume list is sorted.. couldn't go too wrong
         final int depth = 400;
 
         if (tag == null) {
-            List<String> tagL = data.getPairtopNNTags("v".equals(orient));
+            List<String> tagL = ServletData.getPairtopNNTags("v".equals(orient));
             tag = tagL.get(rand.nextInt(tagL.size()));
             log.info("get2ndPairtopScreen: random tag: " + tag);
         } else {
@@ -2952,7 +2954,7 @@ assume list is sorted.. couldn't go too wrong
         }
 
         if (picSet == null) {
-            picSet = data.getPicSet(viewNum, orient);
+            picSet = ServletData.getPicSet(viewNum, orient);
         }
 
         int try1 = 0;
@@ -3194,7 +3196,7 @@ assume list is sorted.. couldn't go too wrong
             return null;
         }
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         // find closest radius to prev
 
@@ -3362,7 +3364,7 @@ assume list is sorted.. couldn't go too wrong
                   angleColumn + " " + distColumn +
                   " d " + prevD + " out " + out);
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
 
         // handle missing pr.pairs_[vh]
@@ -3565,7 +3567,7 @@ assume list is sorted.. couldn't go too wrong
         String id_prev = ids.get(1);
         Picture p1 = PictureDao.getPictureById(conn, id_prev);
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         String colorCol = mapUPRatioToColor(up);
         ListHolder lh = PairTopDao.getPairtopSymm(conn, "col",
                                            orient, id_prev, colorCol,
@@ -3796,7 +3798,7 @@ assume list is sorted.. couldn't go too wrong
                              " sz " + size +
                              " LH " + lh.size());
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         SeenIds seenIds = getSeen(conn, session);
 
@@ -3930,7 +3932,7 @@ assume list is sorted.. couldn't go too wrong
             lh = PictureDao.matchVector(conn, orient,
                                     screenId, matchId,
                                     func,
-                                    data.getViewArchives(viewNum),
+                                    ServletData.getViewArchives(viewNum),
                                     limit, picSet, seenIds);
             if (lh == null) {
                 return null;
@@ -4185,7 +4187,7 @@ assume list is sorted.. couldn't go too wrong
         UserProfile up = new UserProfile(conn, session.browserID, 2/*screens*/,
                                          null /* last */);
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
         //seenIds.exclude.add(prevId); // remember to remove?
 
@@ -4245,7 +4247,7 @@ assume list is sorted.. couldn't go too wrong
         lh = PictureDao.matchVector(conn, orient,
                                     screen, clickedId,
                                     func,
-                                    data.getViewArchives(viewNum),
+                                    ServletData.getViewArchives(viewNum),
                                     50, picSet, seenIds);
         if (lh != null) {
 
@@ -4295,7 +4297,7 @@ assume list is sorted.. couldn't go too wrong
                     continue;
                 }
                 if (orient != null  &&
-                    "v".equals(orient) != data.verticals.contains(id)) {
+                    "v".equals(orient) != ServletData.verticals.contains(id)) {
                     continue;
                 }
                 //int as[] = ListHolder.getArchSeq(id);
@@ -4336,7 +4338,7 @@ assume list is sorted.. couldn't go too wrong
 
         long t1 = System.currentTimeMillis();
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         String type = null;
         String column = null;
@@ -4769,7 +4771,7 @@ assume list is sorted.. couldn't go too wrong
 
         String id = initPr.p.id;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         log.info("Got first (opt " + option + "): " + id + " " + initPr.method +
                  " orient " + orient + " depth " + depth);
@@ -4908,7 +4910,7 @@ assume list is sorted.. couldn't go too wrong
 
         String id = initPr.p.id;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         log.info("getColorComboScreensPic2: (opt " + option + "): match " +
                  id + " " + initPr.method +
@@ -5721,15 +5723,15 @@ personal-pair ml
 
         // get geom nbr lists for each pic
 
-        List<String> picList = data.getPicList(viewNum, orient);
+        List<String> picList = ServletData.getPicList(viewNum, orient);
         int effectiveSize = picList.size();
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         ListHolder lhs[] =
             PictureDao.matchVectors(conn, orient, ids, funcDims,
-                                    data.getViewArchives(viewNum),
+                                    ServletData.getViewArchives(viewNum),
                                     PAIRVEC_SZ, picSet, seenIds);
 
         if (lhs == null) {
@@ -5844,9 +5846,9 @@ personal-pair ml
             log.info("Pairs seen: " + seen + " browser " + session.browserID);
         }
 
-        List<String> picList = data.getPicList(viewNum, orient);
+        List<String> picList = ServletData.getPicList(viewNum, orient);
         int effectiveSize = picList.size();
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         // get geom nbr lists for each pic
         ListHolder lhs[] = null;
@@ -5881,7 +5883,7 @@ personal-pair ml
         SeenIds seenIds = getSeen(conn, session);
 
         lhs = PictureDao.matchVectors(conn, orient, ids, func, type, dim,
-                                    data.getViewArchives(viewNum),
+                                    ServletData.getViewArchives(viewNum),
                                     50, picSet, seenIds);
 
         if (lhs == null) {
@@ -5964,7 +5966,7 @@ personal-pair ml
 
             return handleColorScreens(conn, viewNum, orient,
                                             session, up,
-                                            "d0def", 2, ids);
+                                            "d0def", ids);
         }
 
         String stack = MiscUtil.getStack(7);
@@ -5984,7 +5986,7 @@ personal-pair ml
         }
         String id = ids.get(which_id);
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
 
         int skipped_seen = 0;// for LOCAL
@@ -5995,7 +5997,7 @@ personal-pair ml
 
 
         if (posColumn == null) {
-            List<List<String>> pairs_cols = data.getPairsNNCols(
+            List<List<String>> pairs_cols = ServletData.getPairsNNCols(
                                                             "v".equals(orient));
             List<String> cols = pairs_cols.get(1);// a_
             int n = (int)(up.skew * cols.size());
@@ -6213,7 +6215,7 @@ personal-pair ml
         }
 
         String NEG_COL = "a_d0";
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         Set<String> seenPairs1 = null;
         Set<String> seenPairs2 = null;
@@ -6379,7 +6381,7 @@ personal-pair ml
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
                                             String opt,
-                                            int n, List<String> ids,
+                                            List<String> ids,
                                             int which)
             throws SQLException {
 
@@ -6437,7 +6439,7 @@ personal-pair ml
 
         String tag = ss[1];
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         int len = 400;// using 50 in pairtop_nn TODO: rmv depth tinkering?
 
@@ -6537,7 +6539,7 @@ personal-pair ml
                                             String caller,
                                                 // caller not used, was a pic1->pic2 func (d0 or color),
                                                 //      like l2rfunc below
-                                            int n, List<String> ids)
+                                            List<String> ids)
             throws SQLException {
 
         long t0 = System.currentTimeMillis();
@@ -6584,298 +6586,8 @@ personal-pair ml
         }
         log.warn("handleColorScreens: just can't: going linear");
 
-        return linearScreenSearch(conn, viewNum, orient, session, n);
+        return linearScreenSearch(conn, viewNum, orient, session, ids.size());
     }
-
-    private List<Screen> OLDhandleColorScreens(Connection conn,
-                                            int viewNum, String orient,
-                                            Session session, UserProfile up,
-                                            int option,
-                                            int n, List<String> ids)
-            throws SQLException {
-
-        long t0 = System.currentTimeMillis();
-
-        // old version, no pairtops loaded by now so delete
-        //      (or repurpose the logic)
-        //      when committed to the new .. TODO
-
-        // make these different since initOppColumn is reused
-        // for first try in the hybrid case
-        String initOppColumn = "b9";
-        String secondColorCol = "b8";
-
-        double ratio = -1.0;
-        if (up.last != null) {
-            // MAGIC
-            ratio = (double) Math.abs(up.last.userTime - up.avgUserTime)
-                                         / up.maxDeltaUserTime;
-        }
-        log.info("colorscreens ratio " + ratio);
-
-        if (up.last != null) {
-            if (up.longerThanSecondLastUserTime) {
-                if (ratio > 0.8) {
-                    initOppColumn = "b9";
-                    secondColorCol = "b8";
-                } else if (ratio > 0.7) {
-                    initOppColumn = "b8";
-                    secondColorCol = "b9";
-                } else if (ratio > 0.6) {
-                    initOppColumn = "b7";
-                    secondColorCol = "b8";
-                } else if (ratio > 0.5) {
-                    initOppColumn = "b7";
-                    secondColorCol = "b9";
-                } else if (ratio > 0.4) {
-                    initOppColumn = "b6";
-                    secondColorCol = "b7";
-                } else if (ratio > 0.35) {
-                    initOppColumn = "b6";
-                    secondColorCol = "b5";
-                } else if (ratio > 0.3) {
-                    initOppColumn = "b5";
-                    secondColorCol = "b6";
-                } else if (ratio > 0.26) {
-                    initOppColumn = "b0";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.24) {
-                    initOppColumn = "b1";
-                    secondColorCol = "b5";
-                } else if (ratio > 0.22) {
-                    initOppColumn = "b1";
-                    secondColorCol = "b6";
-                } else if (ratio > 0.2) {
-                    initOppColumn = "b5";
-                    secondColorCol = "b8";
-                } else if (ratio > 0.18) {
-                    initOppColumn = "b2";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.16) {
-                    initOppColumn = "b4";
-                    secondColorCol = "b7";
-                } else if (ratio > 0.1) {
-                    initOppColumn = "b5";
-                    secondColorCol = "b9";
-                } else {
-                    initOppColumn = "b4";
-                    secondColorCol = "b5";
-                }
-            } else {
-                if (ratio > 0.8) {
-                    initOppColumn = "b1";
-                    secondColorCol = "b2";
-                } else if (ratio > 0.7) {
-                    initOppColumn = "b2";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.6) {
-                    initOppColumn = "b2";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.5) {
-                    initOppColumn = "b0";
-                    secondColorCol = "b4"; // accelerate
-                } else if (ratio > 0.4) {
-                    initOppColumn = "b5";
-                    secondColorCol = "b6";
-                } else if (ratio > 0.35) {
-                    initOppColumn = "b6";
-                    secondColorCol = "b7";
-                } else if (ratio > 0.3) {
-                    initOppColumn = "b0";
-                    secondColorCol = "b8";
-                } else if (ratio > 0.26) {
-                    initOppColumn = "b1";
-                    secondColorCol = "b9";
-                } else if (ratio > 0.24) {
-                    initOppColumn = "b9";
-                    secondColorCol = "b5";
-                } else if (ratio > 0.22) {
-                    initOppColumn = "b8";
-                    secondColorCol = "b6";
-                } else if (ratio > 0.2) {
-                    initOppColumn = "b7";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.18) {
-                    initOppColumn = "b6";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.16) {
-                    initOppColumn = "b5";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.14) {
-                    initOppColumn = "b1";
-                    secondColorCol = "b9";
-                } else if (ratio > 0.13) {
-                    initOppColumn = "b2";
-                    secondColorCol = "b6";
-                } else if (ratio > 0.12) {
-                    initOppColumn = "b1";
-                    secondColorCol = "b4";
-                } else if (ratio > 0.11) {
-                    initOppColumn = "b0";
-                    secondColorCol = "b7";
-                } else if (ratio > 0.1) {
-                    initOppColumn = "b8";
-                    secondColorCol = "b5";
-                } else {
-                    initOppColumn = "b0";
-                    secondColorCol = "b9";
-                }
-            }
-        }
-
-        if (option == -1) { // TODO - switch to approach that uses weights
-            log.info("Color, d0");
-            secondColorCol = "a_d0";
-        }
-
-        if (ratio < 0.0) {
-            log.warn("ADJUST ratio to 1.0");
-            ratio = 1.0;
-        }
-        log.info("Color " + (option == 0 ? "opposite" : "same") +
-                  " " + ratio + " " +
-                  initOppColumn + " " + secondColorCol);
-
-        int skipped_seen = 0;// for LOCAL
-
-        final String try_ord[] = { "b9", "b8", "b7", "b6", "b5",
-                             "b4", "b2", "b1", "b0"  };
-        String try_col[] = new String[try_ord.length];
-        try_col[0] = initOppColumn;
-        int next_col = 1;
-        for (int i=0;i<try_ord.length && next_col<try_col.length;i++) {
-            if (try_ord[i].equals(initOppColumn)) {
-                continue;
-            }
-            try_col[next_col++] = try_ord[i];
-        }
-
-        PictureResponse pr = new PictureResponse();
-
-        List<String> picList = data.getPicList(viewNum, orient);
-        int effectiveSize = picList.size();
-        int seen = 0;
-        if (up.last != null) {
-            seen = up.last.orderInSession;
-        } else {
-            seen = countPairs(conn, session.browserID, orient);
-        }
-
-        int len = 400;
-        if (seen > 0.8 * effectiveSize) { // MAGIC
-            len = 1600;
-        } else if (seen > 0.6 * effectiveSize) {
-            len = 800;
-        }
-        log.info("effective " + effectiveSize + " seen " + seen + " len " + len);
-
-        Set<String> picSet = data.getPicSet(viewNum, orient);
-
-        int failedWithNoTry = 0;
-
-        // fall back on far-from-left one
-
-        failedWithNoTry = 0;
-
-        int depth = 200;
-        if (orient != null) {
-            depth *= 2;
-        }
-        if (option == 0) { // opposite
-            depth *= 2;
-        }
-        if (seen > 0.8 * effectiveSize) { // MAGIC
-            depth += depth / 2;
-        }
-
-        SeenIds seenIds = getSeen(conn, session);
-
-        for (String column : try_col) {
-            ListHolder lh = null;
-            if ("np".equals(column)) {
-                log.info("Try far d0 on id1: " + ids.get(1));
-                lh = PairDao.getPairs(conn, ids.get(1), orient, "n_d0",
-                                            true, "ASC", len, null, picSet);
-            } else {
-                log.info("Try far " + column + " len " + len +
-                         " depth " + depth);
-                lh = PairTopDao.getPairtopSymm(conn, "col",
-                                                orient, ids.get(0), column,
-                                                false, "DESC", len, picSet);
-            }
-            if (lh != null) {
-                log.info("Got " + lh.size());
-            } else {
-                log.info("Got null");
-            }
-
-            for (String id2 : lh.id2_l) {
-
-                if (seenIds.contains(id2)) {
-                    continue;
-                }
-
-                pr.p = PictureDao.getPictureById(conn, id2);
-                if (pr.p == null) {
-                    log.info("No version for unseen seq " + id2);
-                    continue;
-                }
-
-                pr.method = "sopp2/" + column;
-
-                List<Screen> scl;
-                if (option < 0) {
-                    scl = get2ndPairtopScreen(conn,
-                                                    session, up,
-                                                    viewNum, orient,
-                                                    t0, null, /*tag*/
-                                                    pr, picSet);
-
-                } else if (up.last.orderInSession % 2 == 0) {
-
-                    scl = getColorComboScreensPic2(conn,
-                                                viewNum, orient,
-                                                session, up,
-                                                option, n, depth,
-                                                secondColorCol, column, pr);
-
-                } else {
-
-                    scl = getColorScreensPic2(conn,
-                                                viewNum, orient,
-                                                session, up,
-                                                option, n, depth,
-                                                secondColorCol, pr);
-                }
-
-                if (scl == null) {
-
-                    failedWithNoTry++;
-                    if (failedWithNoTry > 5) { // MAGIC
-                        log.info("Giving up on lh");
-                        break;
-                    }
-
-                } else if (scl.size() == 0) {
-                    failedWithNoTry = 0;
-                } else {
-                    return scl;
-                }
-                depth *= 1.25;// MAGIC
-            }
-
-            if (failedWithNoTry > 5) { // MAGIC
-                log.info("Giving up after not trying");
-                break;
-            }
-            len *= 1.25; // MAGIC
-        }
-        log.info("OLDhandleColorScreens Failed - going linear");
-
-        return linearScreenSearch(conn, viewNum, orient, session, n);
-    }
-
-
 
     private Picture[] picsFromIds(Connection conn, List<String> ids)
             throws SQLException {
@@ -6949,7 +6661,7 @@ personal-pair ml
 
     private List<Screen> dotMappedNNs(Connection conn,
                                       int viewNum, String orient,
-                                      String kwdCoder,
+                                      // String kwdCoder,
                                       Session session, UserProfile up,
                                       List<String> ids,
                                       int screenId1, int screenId2)
@@ -6962,7 +6674,7 @@ personal-pair ml
 
         checkScreens("dotMappedNNs", screenId1, screenId2);
 
-        List<String> tagL = data.getPairtopNNTags("v".equals(orient));
+        List<String> tagL = ServletData.getPairtopNNTags("v".equals(orient));
         int option = up.dotMap(tagL.size());
         String tag = tagL.get(option);
 
@@ -6970,7 +6682,7 @@ personal-pair ml
                             " option " + option + "/" + tag);
 
         return handlePhiScreens(conn, viewNum, orient, session, up,
-                                      "pt " + tag, 2, ids, -1);
+                                      "pt " + tag, ids, -1);
     }
 
 
@@ -6983,7 +6695,7 @@ personal-pair ml
 
         String method = "rpt:" + pt_fname_substr.length;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         log.info("handleRandomPairtopNNFiles: n: " +
                 pt_fname_substr.length + " skew " + up.skew + " " +
@@ -7087,7 +6799,7 @@ personal-pair ml
     private List<Screen> doSigmaMixed(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            int sigma, int n, List<String> ids)
+                                            int sigma, List<String> ids)
                 throws SQLException {
 
         String func1 = null;
@@ -7131,19 +6843,19 @@ personal-pair ml
     private List<Screen> doSigmaPairNet(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            int sigma, int n, List<String> ids)
+                                            int sigma, List<String> ids)
                 throws SQLException {
 
         // copy for shuffle
 
-        String siggo = data.getSigma("v".equals(orient), sigma);
+        String siggo = ServletData.getSigma("v".equals(orient), sigma);
 
         if (siggo == null) {
             log.warn("doSigmaPairNet: fallback since no phogit.properties sigma cmd " +
                         "(or missing table support) sigma=" + sigma + " " + orient);
 
             return doSigmaMixed(conn, viewNum, orient, session, up,
-                                        sigma, n, ids);
+                                        sigma, ids);
         }
 
         log.info("doSigmaPairNet: " + sigma + orient + ": " + siggo);
@@ -7177,7 +6889,7 @@ personal-pair ml
                 log.info(tags.size() > 1 ? "RAND " : "" +
                                 "pairtop tag: " + tag);
                 List<Screen> ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                                            "pt " + tag, n, ids, -1);
+                                                            "pt " + tag, ids, -1);
                 if (ret != null) {
                     return ret;
                 }
@@ -7199,7 +6911,7 @@ personal-pair ml
                 if (sig_fields.length == 2) {
                     log.info("match: single tag " + sig_fields[1]);
                     List<Screen> ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                            "pt " + sig_fields[1], n, ids, -1);
+                                            "pt " + sig_fields[1], ids, -1);
                     if (ret != null) {
                         return ret;
                     }
@@ -7209,7 +6921,7 @@ personal-pair ml
 
                     for (int i=1;i<sig_fields.length;i++) {
                         List<Screen> ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                            "pt " + sig_fields[i], n, ids, -1);
+                                            "pt " + sig_fields[i], ids, -1);
                         if (ret != null) {
                             return ret;
                         }
@@ -7450,7 +7162,7 @@ personal-pair ml
 
         HistoryPair last = up.last;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         // get pics for vecs
@@ -7671,7 +7383,7 @@ personal-pair ml
             end = p2;
         }
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         // indexed vgg16_N:   512,64,16,4,2
@@ -7909,7 +7621,7 @@ personal-pair ml
         int ndots = last.dotCount;
         DotHistory dh = last.dotHistory;
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         // choose a func
@@ -7987,7 +7699,7 @@ personal-pair ml
         ListHolder lh = PictureDao.matchVector(conn, orient,
                                     screen, idDrawnOn,
                                     func,
-                                    data.getViewArchives(viewNum),
+                                    ServletData.getViewArchives(viewNum),
                                     limit, picSet, seenIds);
 
         if (lh == null  ||  lh.size() < 2) {
@@ -8378,7 +8090,7 @@ personal-pair ml
                                         boolean stroke)
             throws SQLException {
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         // parallel == search on each pic at once first
@@ -8502,9 +8214,8 @@ personal-pair ml
     }
     private List<Screen> oldDrawDots(Connection conn, int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            int n, List<String> ids,
-                                            int screenId1, int screenId2,
-                                            String kwdCoder)
+                                            List<String> ids,
+                                            int screenId1, int screenId2)
             throws SQLException {
 
         HistoryPair last = up.last;
@@ -8597,7 +8308,7 @@ personal-pair ml
             // match just one pic by the fastest method,
             //      inspired by db delay on pair table after idle
 
-            List<String> pairtop_nn_tags = data.getPairtopNNTags(
+            List<String> pairtop_nn_tags = ServletData.getPairtopNNTags(
                                                     "v".equals(orient));
 
             //log.info("=====%%= FAST " + Arrays.toString(pairtop_nn_tags.toArray()));
@@ -8619,7 +8330,7 @@ personal-pair ml
                 //log.info("=====%%= TRY " + t + " -> " + tag);
 
                 ret = handlePhiScreens(conn, viewNum, orient, session, up,
-                                                "pt " + tag, n, ids, which);
+                                                "pt " + tag, ids, which);
                 if (ret != null) {
                     //log.info("=====%%= TRY->GOT " + t + " -> " + tag);
                     return ret;
@@ -8667,7 +8378,7 @@ personal-pair ml
 
                 // drop thru no break;
 
-            case 1:
+            case 1:  // falling thru from 0 [lint/ok]
             case 2:
 
                 // default: dotMappedNNs unless excuse for d0 (dots == drawn by user)
@@ -8708,7 +8419,7 @@ personal-pair ml
                 } else if (PairTopDao.hasTable("nn", orient)) {
 
                     ret = dotMappedNNs(conn, viewNum, orient,
-                                                kwdCoder,
+                                                // kwdCoder,
                                                 session, up, ids,
                                                 screenId1, screenId2);
                 }
@@ -8729,14 +8440,14 @@ personal-pair ml
                 ret = handleColorScreens(conn,
                                             viewNum, orient, session, up,
                                             "d0",
-                                            n, ids);
+                                           ids);
 
                 //  case 4 same as case 3 except 2nd pic also based on color-match
                 //  to 1st, can be a diff color alg
                 // ret = handleColorScreens(conn,
                 //                             viewNum, orient, session, up,
                 //                             13, // 13=?  IGNORED, see TODO above
-                //                             n, ids);
+                //                             ids);
 
                 break;
 
@@ -8792,19 +8503,19 @@ personal-pair ml
     **  getScreens - main entry point
     */
     public List<Screen> getScreens(Connection conn,
+                                    Session session,
                                     int viewNum, String orient,
-                                    String kwdCoder, Session session,
-                                    int option, String cmdMod,
-                                    int n, List<String> ids,
+                                    List<String> ids, // prev pair, if any
                                     int screenId1, int screenId2,
-                                    int lastBig, HistoryPair last)
+                                    int lastBig, HistoryPair last,
+                                    int option, String cmdMod)
             throws Exception {
 
         checkScreens("getScreens", screenId1, screenId2);
 
         long t0 = System.currentTimeMillis();
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         if (picSet == null) {
             log.error("Picset null for view " + viewNum + "." + orient);
             throw new Exception("Picset null for view " + viewNum + "." + orient);
@@ -8847,7 +8558,7 @@ personal-pair ml
             return handleRandomScreens(conn, viewNum, orient, session, up);
         }
 
-        List<String> picList = data.getPicList(viewNum, orient);
+        List<String> picList = ServletData.getPicList(viewNum, orient);
         if (!session.repeatPics) {
 
             int showOrient = ("v".equals(orient) ? seenIds.vertical : seenIds.horizontal);
@@ -8983,14 +8694,14 @@ personal-pair ml
             if (ret == null) {
                 ret = handleColorScreens(conn, viewNum, orient,
                                             session, up,
-                                            "yplus", n, ids);
+                                            "yplus", ids);
             }
             break;
 
           case 3:  // green '+', see KEYWORDS boolean - TODO-ish keywords not used
 
             ret = handleKeywordScreens(conn, viewNum, orient,
-                                            session, up, n, ids);
+                                            session, up, ids);
             if (ret == null) {
                 log.info("Kwds no - fallback a_d0");
                 ret = handlePrPosScreens(conn, viewNum, orient, session, up,
@@ -9023,19 +8734,16 @@ personal-pair ml
             }
             log.warn("DOTS/10: vectors failed and the past takes over");
 
-            ret = oldDrawDots(conn, viewNum, orient, session, up, n, ids,
-                                screenId1, screenId2, kwdCoder);
+            ret = oldDrawDots(conn, viewNum, orient, session, up, ids,
+                                screenId1, screenId2);
             break;
 
           case 12:
 
             // not used? replaces old in-memory kwd-based join
-            // ret = handleApprovedPair12(conn,
-            //                              viewNum, orient, session, up,
-
-            ret = handleApprovedPair0(conn, "case12",
-                                            viewNum, orient, session, up,
-                                            ids);
+            // ret = handleApprovedPair12(conn, viewNum, orient, session, up,
+            // ret = handleApprovedPair0(conn, "case12", viewNum, orient, session, up, ids);
+            log.warn("case 12 not used, was handleApprovedPair0");
             break;
 
           case 13:
@@ -9081,14 +8789,14 @@ personal-pair ml
             int sigma = option - 20;
             ret = doSigmaPairNet(conn, viewNum, orient,
                                        session, up,
-                                       sigma, n, ids);
+                                       sigma, ids);
             break;
 
           case 26:
 
             // Sigma x = random PairNet/'NN'
 
-            ret = biasedNNScreens(conn, viewNum, orient, kwdCoder,
+            ret = biasedNNScreens(conn, viewNum, orient, // kwdCoder,
                                         session, up,
                                         ids, rand.nextDouble());
             break;
@@ -9099,7 +8807,7 @@ personal-pair ml
 
             ret = flipEmDanno(conn, viewNum, orient, session, up, ids);
             if (ret == null) {
-                ret = biasedNNScreens(conn, viewNum, orient, kwdCoder,
+                ret = biasedNNScreens(conn, viewNum, orient, // kwdCoder,
                                             session, up,
                                             ids, rand.nextDouble());
             }
@@ -9129,6 +8837,7 @@ personal-pair ml
         log.info("\n======== GOT " + up.skew + "\nGOT " + screenSummary(ret));
         higSleep(conn, session, option, ids, t0, up, ret);
 
+/*
         if (KEYWORDS) {
 
             // log any keyword match
@@ -9146,6 +8855,7 @@ personal-pair ml
                 DBUtil.kwdCompare(conn, kwdCoder, ret.get(1).id_s, ret.get(0).id_s);
             log.info(pnStr + lrStr);
         }
+*/
 
         return ret;
     }
@@ -9160,7 +8870,7 @@ personal-pair ml
 
         long t0 = System.currentTimeMillis();
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         PictureResponse pr1 = (PictureResponse) screens.get(0).pr;
         PictureResponse pr2 = (PictureResponse) screens.get(1).pr;
@@ -9348,7 +9058,7 @@ personal-pair ml
             d0BadCache.put(session.browserID, cache);
         }
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         PairDao.getD0Bad(conn, orient, picSet, seenIds, cache.list);
@@ -9360,7 +9070,7 @@ personal-pair ml
 
         public List<Screen> getScreens(int option, Connection conn,
                                     int viewNum, String orient,
-                                    String kwdCoder,
+                                    // String kwdCoder,
                                     Session session, UserProfile up,
                                     List<String> ids)
             throws SQLException;
@@ -9379,7 +9089,7 @@ personal-pair ml
         @Override
         public List<Screen> getScreens(int option, Connection conn,
                                         int viewNum, String orient,
-                                        String kwdCoder,
+                                        // String kwdCoder,
                                         Session session, UserProfile up,
                                         List<String> ids)
             throws SQLException {
@@ -9471,8 +9181,8 @@ personal-pair ml
             }
         }
 
-        final List<String> pairtop_nn_tags = new ArrayList(
-                             data.getPairtopNNTags("v".equals(orient)));
+        final List<String> pairtop_nn_tags = new ArrayList<>(
+                             ServletData.getPairtopNNTags("v".equals(orient)));
 
         int n_grps = 2;
         if (up.skew > 0.5) { // MAGIC
@@ -9497,7 +9207,7 @@ personal-pair ml
 
             List<Screen> ret = handlePhiScreens(conn,
                                                     viewNum, orient, session, up,
-                                                    "pt " + tag, 2, ids, -1);
+                                                    "pt " + tag, ids, -1);
             if (ret != null) {
                 return ret;
             }
@@ -9517,7 +9227,7 @@ personal-pair ml
 
     private List<Screen> biasedNNScreens(Connection conn,
                                             int viewNum, String orient,
-                                            String kwdCoder,
+                                            // String kwdCoder,
                                             Session session, UserProfile up,
                                             List<String> ids, double bias)
             throws SQLException {
@@ -9525,7 +9235,7 @@ personal-pair ml
         // For counting:
         // pair_[hv].[p_,n_,a_]
         final List<List<String>> pairs_nn_cols =
-                                        data.getPairsNNCols("v".equals(orient));
+                                        ServletData.getPairsNNCols("v".equals(orient));
 
         if (pairs_nn_cols == null) {
             return null;
@@ -9544,7 +9254,7 @@ personal-pair ml
             }
         }
 
-        List<String> pairtop_nn_tags = data.getPairtopNNTags("v".equals(orient));
+        List<String> pairtop_nn_tags = ServletData.getPairtopNNTags("v".equals(orient));
 
         // num_random_options (weight) assigned for some
         // mix of random pairtop_[vh]
@@ -9587,7 +9297,7 @@ personal-pair ml
 
                 ret = handlePhiScreens(conn,
                                         viewNum, orient, session, up,
-                                        "pt " + tag, 2, ids, -1);
+                                        "pt " + tag, ids, -1);
             } else {
 
                 log.info("\n== n_ptop..n-2 (random/asym): " + opt);
@@ -9781,7 +9491,7 @@ personal-pair ml
                                             String id, int screen)
             throws SQLException {
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         boolean a_d0 = false;
         String source = null;
@@ -10098,199 +9808,6 @@ x++;
     }
 
 
-
-    private List<Screen> handleApprovedPair0(Connection conn, String caller,
-                                            int viewNum, String orient,
-                                            Session session, UserProfile up,
-                                            List<String> ids)
-            throws SQLException {
-
-        // try to avoid exposing approved prs, slow anyway
-        log.warn("handleApprovedPair0 - caller " + caller);
-
-        final boolean best = true;
-
-        Set<String> picSet = data.getPicSet(viewNum, orient);
-        SeenIds seenIds = getSeen(conn, session);
-
-        double ratio = 0.0;
-        double rat2 = 0.0;
-        if (up.last != null  &&  up.avgUserTime > 0) {
-            ratio = (double) up.last.userTime / up.avgUserTime;
-            ratio = conditionRatio(ratio);
-            rat2 = (double) up.deltaUserTime / up.avgUserTime;
-            rat2 = conditionRatio(rat2);
-        }
-
-        int limit = session.curator == null ? 500 : -1;
-
-        ListHolder lh = PairDao.getPosPairsParallel(conn, orient, session.curator, "a_d0",
-                                                    ids, best, 200, picSet);
-
-        PictureResponse pr = new PictureResponse();
-
-        Set<String> seenAps = new HashSet<>();
-
-        while (lh.size() > 0) {
-            pr.p = chooseFromDistribution(conn, "appr/0", session, up, lh, 0,
-                                                orient);
-            if (pr.p == null) {
-                log.info("Exhausted w/ limit " + limit);
-                break;
-            }
-            String id = pr.p.id;
-
-            List<ApprovedPair> apl = ApprovalDao.getApprovedPairsWithPic(
-                                                    conn, id, // null,
-                                                    picSet);
-            if (apl.size() == 0) {
-                // next pic matching one of orig pair
-                continue;
-            }
-
-            int zeroct = 0;
-
-            String method = "a_d0";
-
-            // sometimes throw in a reverse sort
-            if (up.last != null  &&  up.last.userTime < 6000  &&
-                up.skew > 0.68) {  // MAGIC, 1.0 > skew > .333
-
-                method = "a_d0";
-
-                log.info("**************\n********\n******** Worst?");
-
-                for (ApprovedPair ap : apl) {
-                    if (seenAps.contains(ap.idP)) {
-                        continue;
-                    }
-                    seenAps.add(ap.idP);
-                    ap.sortVal = PairDao.getVal(conn, id, ap.otherId, orient,
-                                                      "a_d0", true);
-                    if (ap.sortVal == 0) {
-                        zeroct++;
-                    }
-                }
-                Collections.sort(apl);
-
-            } else {
-
-                for (ApprovedPair ap : apl) {
-                    if (seenAps.contains(ap.idP)) {
-                        continue;
-                    }
-                    seenAps.add(ap.idP);
-                    ap.sortVal = PairDao.getVal(conn, id, ap.otherId, orient,
-                                                      "a_d0", true /* def 0*/);
-                    if (ap.sortVal == 0) {
-                        zeroct++;
-                    }
-                }
-                Collections.sort(apl, Collections.reverseOrder());
-            }
-
-            log.info("Sorted ap's: " + method + ": " +
-                     apl.get(0).sortVal + ".." +
-                     apl.get(apl.size()-1).sortVal +
-                     " zeroes: " + zeroct);
-
-            for (int ix=0;ix<apl.size();ix++) {
-
-                ApprovedPair ap = apl.get(ix);
-
-                List<Screen> scl = tryApprovedPair(conn,
-                                                    viewNum, orient, session,
-                                                    picSet, ap, seenIds, "ap/d0");
-                if (scl != null) {
-                    log.info("Got linear sorted approved pair " + ix + " " +
-                                 screenSummary(scl));
-                    return scl;
-                }
-            }
-            log.info("no ap's matching " + id);
-        }
-        log.info("handleApprovedPair0 exhausted - go linear");
-        return linearSearchApprovedPairs(conn,
-                                            viewNum, orient, session, up,
-                                            picSet, seenIds,
-                                            ratio, rat2);
-    }
-
-    private List<Screen> linearSearchApprovedPairs(Connection conn,
-                                            int viewNum, String orient,
-                                            Session session, UserProfile up,
-                                            Set<String> picSet, SeenIds seenIds,
-                                            double ratio, double rat2)
-            throws SQLException {
-
-        //boolean first = up.longerThanSecondLastUserTime;
-        //boolean forward = up.longerThanAverageUserTime;
-
-        List<ApprovedPair> allpr = null;
-        if ("v".equals(orient)) {
-            allpr = data.approvedV;
-        } else {
-            allpr = data.approvedH;
-        }
-
-        int mid = (int)(ratio * rat2 * allpr.size());
-        if (mid < 0) {
-            mid *= -1;
-        }
-        mid = mid % allpr.size();
-
-        log.info("handleApprovedPair0 'linear' search " + orient +
-                    " size " + allpr.size() +
-                    " picSet size " + (picSet == null ? 0 : picSet.size()) +
-                    " seenIds.seen " + (seenIds.seen == null ? "null" : "yes") +
-                    " mid " + mid);
-
-        int x=0;
-        for (int i=0;i<allpr.size();i++) {
-            boolean seen = false;
-            int ix = mid - i;
-            if (ix > -1) {
-                seen = true;
-                ApprovedPair ap = allpr.get(ix);
-                x++;
-                List<Screen> scl = tryApprovedPair(conn,
-                                                    viewNum, orient, session,
-                                                    picSet, ap, seenIds, "ap0/lin/" + x);
-                if (scl != null) {
-                    log.info("Got linear approved pair " + ix + " " +
-                                 screenSummary(scl));
-                    return scl;
-                }
-            }
-            if (i > 0) {
-                ix = mid + i;
-                if (ix < allpr.size()) {
-                    seen = true;
-                    x++;
-                    ApprovedPair ap = allpr.get(ix);
-                    List<Screen> scl = tryApprovedPair(conn,
-                                                        viewNum, orient, session,
-                                                        picSet, ap, seenIds,
-                                                       "ap0/lin/" + x);
-                    if (scl != null) {
-                        log.info("Got linear approved pair " + ix + " " +
-                                 screenSummary(scl));
-                        return scl;
-                    }
-                }
-            }
-            if (!seen) {
-                break;
-            }
-        }
-        log.info("handleApprovedPair linear search done: " +
-                  x + "/" + allpr.size() +
-                 " signaling option done/ODONE");
-
-        return new ArrayList<>();
-    }
-
-
     private List<Screen> tryOutAP(Connection conn,
                                                 String orient,
                                                 Session session,
@@ -10358,8 +9875,8 @@ x++;
 
             HistoryPair hp = history.get(i);
 
-            userTimes.add(new Integer(hp.userTime).doubleValue());
-            netTimes.add(new Integer(hp.bigTime ).doubleValue());
+            userTimes.add((double) hp.userTime);
+            netTimes.add((double)  hp.bigTime);
                                       // -1,-2 ok
 
             //clickTimes.add(new Integer(hp.clickTime).doubleValue());
@@ -10500,7 +10017,7 @@ x++;
             target = BASE_UP_SLEEP;
             if (netLatency > NET_LATENCY_CUT) {  // MAGIC
                 log.info("HIG cut target " + target);
-                target /= Math.sqrt(netLatency - NET_LATENCY_CUT);
+                target = MiscUtil.lossySqrtDivide(target, netLatency - NET_LATENCY_CUT);
             }
             final_target = target + totDiff;// e.g. longer for denser
         } else {
@@ -10511,7 +10028,7 @@ x++;
             target = BASE_DOWN_SLEEP;
             if (netLatency > NET_LATENCY_CUT) {  // MAGIC
                 log.info("HIG cut target " + target);
-                target /= Math.sqrt(netLatency - NET_LATENCY_CUT);
+                target = MiscUtil.lossySqrtDivide(target, netLatency - NET_LATENCY_CUT);
             }
             final_target = target - totDiff;
         }
@@ -10584,7 +10101,7 @@ x++;
             return null;
         }
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         double ratio = 0.5;
         if (up.last != null  &&  up.avgUserTime > 0) {
@@ -10710,7 +10227,7 @@ x++;
 
             throws SQLException {
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
 
         //boolean first = up.longerThanSecondLastUserTime;
         //boolean forward = up.longerThanAverageUserTime;
@@ -10803,7 +10320,7 @@ x++;
         List<ApprovedPair> apl2 = new ArrayList<>();
         for (ApprovedPair ap : approvedPairs) {
             if (orient != null  &&
-                "v".equals(orient) != data.verticals.contains(ap.otherId)) {
+                "v".equals(orient) != ServletData.verticals.contains(ap.otherId)) {
                 continue;
             }
             if (seenIds.contains(ap.otherId)) {
@@ -10887,10 +10404,10 @@ x++;
     private List<Screen> handleKeywordScreens(Connection conn,
                                             int viewNum, String orient,
                                             Session session, UserProfile up,
-                                            int n, List<String> ids)
+                                            List<String> ids)
             throws SQLException {
 
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         SeenIds seenIds = getSeen(conn, session);
 
         if (up.last.rateTime != null  &&  up.last.createTime != null) { // HACK
@@ -11073,7 +10590,7 @@ x++;
             log.warn("No keyword match list for for " + id1);
             return null;
         }
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         ListHolder lh2 = intersectSet(lh, null, picSet);
         log.info(id1 + " List size " + lh2.size());
 

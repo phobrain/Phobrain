@@ -7,7 +7,7 @@ package org.phobrain.db.dao;
  **/
 
 /**
- **  KeywordsDao - keywords not in use but could come back 
+ **  KeywordsDao - keywords not in use but could come back
  **                 with nn classification.
  **/
 
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class KeywordsDao extends DaoBase {
 
-    private static final Logger log = 
+    private static final Logger log =
                                      LoggerFactory.getLogger(KeywordsDao.class);
 
     private final static String RECORD_FIELDS =
@@ -48,7 +48,7 @@ public class KeywordsDao extends DaoBase {
     private final static String SQL_INSERT_KEYWORDS =
         "INSERT INTO ##keywords (" + KEYWORDS_FIELDS + ") VALUES (?, ?, ?, ?)";
 
-    public static void insertKeywords(Connection conn, Keywords k) 
+    public static void insertKeywords(Connection conn, Keywords k)
                 throws SQLException {
 
         PreparedStatement ps = null;
@@ -82,8 +82,8 @@ public class KeywordsDao extends DaoBase {
         " OR keywords LIKE '@ %' OR keywords LIKE '% @' " +
         " OR keywords = '@' ";
 
-    public static List<String> getIdsCoderKwd(Connection conn, 
-                                              String coder, String kwd) 
+    public static List<String> getIdsCoderKwd(Connection conn,
+                                              String coder, String kwd)
             throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -154,7 +154,7 @@ public class KeywordsDao extends DaoBase {
         " FROM ##keywords " +
         "WHERE id = ? AND coder = ?";
 
-    public static Keywords getKeywordsByIdCoder(Connection conn, 
+    public static Keywords getKeywordsByIdCoder(Connection conn,
                           String id, String coder)
             throws SQLException {
 

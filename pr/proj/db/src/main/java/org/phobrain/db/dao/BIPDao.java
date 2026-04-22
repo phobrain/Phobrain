@@ -36,7 +36,7 @@ public class BIPDao extends DaoBase { // Browser IP Dao
     private final static String SQL_INSERT =
         "INSERT INTO pr.browser_ip (browser_version, ip) VALUES (?, ?)";
 
-    public static void insertIP(Connection conn, long browserID, String ip) 
+    public static void insertIP(Connection conn, long browserID, String ip)
                 throws SQLException {
 
         PreparedStatement ps = null;
@@ -57,7 +57,7 @@ public class BIPDao extends DaoBase { // Browser IP Dao
         "SELECT ip FROM pr.browser_ip WHERE browser_version = ? ORDER BY id DESC LIMIT 1";
 
     public static String getLastIP(Connection conn, long browserID)
-                throws SQLException { 
+                throws SQLException {
 
         PreparedStatement ps = null;
         ResultSet rs = null;

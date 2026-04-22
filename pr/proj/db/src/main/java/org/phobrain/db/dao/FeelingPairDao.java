@@ -67,7 +67,7 @@ public class FeelingPairDao extends DaoBase {
         "  atom_impact, impact_factor, big_stime)" +
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    public static void insertPair(Connection conn, HistoryPair hp) 
+    public static void insertPair(Connection conn, HistoryPair hp)
                                                   throws SQLException {
 
         log.info("insertPair: " + hp);
@@ -108,7 +108,7 @@ public class FeelingPairDao extends DaoBase {
                 hp.id = generatedKeys.getLong(1);
                 log.info("insertPair: INSERTED " + hp);
                 return;
-            } 
+            }
             throw new SQLException( "Creating feeling_pair failed, no ID obtained.");
 
         } finally {
@@ -122,7 +122,7 @@ public class FeelingPairDao extends DaoBase {
         "SELECT count(*) FROM pr.feeling_pair" +
         " WHERE create_time > now() - interval '5 seconds'";
 
-    public static int getCount(Connection conn) 
+    public static int getCount(Connection conn)
                           throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -151,7 +151,7 @@ public class FeelingPairDao extends DaoBase {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(SQL_IDS_SEEN, 
+            ps = conn.prepareStatement(SQL_IDS_SEEN,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
@@ -178,7 +178,7 @@ public class FeelingPairDao extends DaoBase {
     /**
      *  Set { id1_id2 }
      */
-    public static Set<String> getPairsWithMethod(Connection conn, 
+    public static Set<String> getPairsWithMethod(Connection conn,
                                                   boolean like,
                                                   String method)
             throws SQLException {
@@ -193,7 +193,7 @@ public class FeelingPairDao extends DaoBase {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            ps = conn.prepareStatement(query, 
+            ps = conn.prepareStatement(query,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             rs = ps.executeQuery();
@@ -211,7 +211,7 @@ public class FeelingPairDao extends DaoBase {
         }
     }
 
-    public static HistoryPair getLastPair(Connection conn, 
+    public static HistoryPair getLastPair(Connection conn,
                                                   long browserID)
               throws SQLException {
         long feelingID = getLastID(conn, browserID);
@@ -230,7 +230,7 @@ public class FeelingPairDao extends DaoBase {
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_LAST_FEELING_ID, 
+            ps = conn.prepareStatement(SQL_GET_LAST_FEELING_ID,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
@@ -250,7 +250,7 @@ public class FeelingPairDao extends DaoBase {
         }
     }
 
-    private static HistoryPair pairFromResultSet(ResultSet rs) 
+    private static HistoryPair pairFromResultSet(ResultSet rs)
             throws SQLException {
 
         HistoryPair hp = new HistoryPair();
@@ -261,7 +261,7 @@ public class FeelingPairDao extends DaoBase {
         hp.browserID = rs.getLong(3);
         hp.callCount = rs.getInt(4);
         hp.orderInSession = rs.getInt(5);
- 
+
         hp.id1 = rs.getString(6);
         hp.archive1 = rs.getInt(7);
         hp.fileName1 = rs.getString(8);
@@ -330,7 +330,7 @@ public class FeelingPairDao extends DaoBase {
         return hp;
     }
 
-    private static HistoryPair pairIDBothFromResultSet(ResultSet rs) 
+    private static HistoryPair pairIDBothFromResultSet(ResultSet rs)
             throws SQLException {
 
         HistoryPair hp = new HistoryPair();
@@ -355,14 +355,14 @@ public class FeelingPairDao extends DaoBase {
           FEELING_PAIR_FIELDS +
         " FROM pr.feeling_pair WHERE id = ?";
 
-    public static HistoryPair getPairByID(Connection conn, 
-                                                 long feelingID) 
+    public static HistoryPair getPairByID(Connection conn,
+                                                 long feelingID)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_FEELING_PAIR_BY_ID, 
+            ps = conn.prepareStatement(SQL_GET_FEELING_PAIR_BY_ID,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, feelingID);
@@ -379,21 +379,21 @@ public class FeelingPairDao extends DaoBase {
         }
     }
 
- 
+
     private final static String SQL_GET_FEELING_PAIRS_BY_IDS =
         "SELECT create_time, id1, archive1, file_name1, " +
         " id2, archive2, file_name2, vertical " +
         " FROM pr.feeling_pair_ids_both WHERE id1 = ? AND id2 = ?";
 
-    public static HistoryPair getPairByIDsAndTime(Connection conn, 
-                                                 String id1, String id2, 
-                                                 long t) 
+    public static HistoryPair getPairByIDsAndTime(Connection conn,
+                                                 String id1, String id2,
+                                                 long t)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_FEELING_PAIRS_BY_IDS, 
+            ps = conn.prepareStatement(SQL_GET_FEELING_PAIRS_BY_IDS,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id1);
@@ -424,14 +424,14 @@ public class FeelingPairDao extends DaoBase {
         }
     }
 
-    public static List<HistoryPair> getPairsByIDs(Connection conn, 
-                                                 String id1, String id2) 
+    public static List<HistoryPair> getPairsByIDs(Connection conn,
+                                                 String id1, String id2)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_FEELING_PAIRS_BY_IDS, 
+            ps = conn.prepareStatement(SQL_GET_FEELING_PAIRS_BY_IDS,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, id1);
@@ -458,14 +458,14 @@ public class FeelingPairDao extends DaoBase {
           FEELING_PAIR_FIELDS +
         " FROM pr.feeling_pair WHERE browser_id = ? ORDER BY id DESC LIMIT ?";
 
-    public static List<HistoryPair> getLastPairs(Connection conn, 
-                                                long browserID, int n) 
+    public static List<HistoryPair> getLastPairs(Connection conn,
+                                                long browserID, int n)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_LAST_FEELINGS, 
+            ps = conn.prepareStatement(SQL_GET_LAST_FEELINGS,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
@@ -488,13 +488,13 @@ public class FeelingPairDao extends DaoBase {
     private final static String SQL_COUNT_BROWSER_FEELINGS =
         "SELECT COUNT(*)  FROM pr.feeling_pair WHERE browser_id = ?";
 
-    public static int countPairs(Connection conn, long browserID) 
+    public static int countPairs(Connection conn, long browserID)
               throws SQLException {
         return countPairs(conn, browserID, null);
     }
 
-    public static int countPairs(Connection conn, long browserID, 
-                                                     String orient) 
+    public static int countPairs(Connection conn, long browserID,
+                                                     String orient)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -531,14 +531,14 @@ public class FeelingPairDao extends DaoBase {
           FEELING_PAIR_FIELDS +
         " FROM pr.feeling_pair WHERE browser_id = ? ORDER BY id ASC";
 
-    public static List<HistoryPair> getAllPairs(Connection conn, 
-                                                   long browserID) 
+    public static List<HistoryPair> getAllPairs(Connection conn,
+                                                   long browserID)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_ALL_FEELINGS, 
+            ps = conn.prepareStatement(SQL_GET_ALL_FEELINGS,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setLong(1, browserID);
@@ -562,7 +562,7 @@ public class FeelingPairDao extends DaoBase {
         " WHERE browser_id = ? AND id1 = ? AND id2 = ?";
 
     public static boolean checkSeen(Connection conn, long browserID,
-                                    String id1, String id2) 
+                                    String id1, String id2)
               throws SQLException {
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -606,7 +606,7 @@ public class FeelingPairDao extends DaoBase {
                         " WHERE id = ?";
 
     /*
-    **  updatePair - add user response: 
+    **  updatePair - add user response:
     **                      rating [u u n a a]
     **                      drawing that was done after rating it
     **                              that triggered next HistoryPair.
@@ -718,7 +718,7 @@ public class FeelingPairDao extends DaoBase {
 
             int rows = ps.executeUpdate();
             if (rows != 1) {
-                throw new SQLException("updatePair update rows != 1: " + 
+                throw new SQLException("updatePair update rows != 1: " +
                                        rows);
             }
         } catch (SQLException sqe) {

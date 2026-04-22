@@ -30,10 +30,10 @@ public class PicPicKwdDao extends DaoBase {
         " coder, id1, id2, closeness ";
 
     private final static String SQL_INSERT_PICPIC_KWD =
-        "INSERT INTO pic_pic_kwd (" + PICPIC_KWD_FIELDS + 
+        "INSERT INTO pic_pic_kwd (" + PICPIC_KWD_FIELDS +
                                 ") VALUES (?, ?, ?, ?)";
 
-    public static void insertPicPicKwd(Connection conn, PicPicKwd ppk) 
+    public static void insertPicPicKwd(Connection conn, PicPicKwd ppk)
                 throws SQLException {
 
         if (ppk.id1.equals(ppk.id2)) {
@@ -66,7 +66,7 @@ public class PicPicKwdDao extends DaoBase {
         "SELECT " + PICPIC_KWD_FIELDS + " FROM pic_pic_kwd " +
         "WHERE coder = ? AND id1 = ? ORDER BY closeness @ #";
 
-    public static List<PicPicKwd> getPicPicKwdByCoderAndId1(Connection conn, 
+    public static List<PicPicKwd> getPicPicKwdByCoderAndId1(Connection conn,
                           int coder, String id1, String dir, int limit)
                           throws SQLException {
 //log.info("getPicPicKwdByCoderAndId1 " + id1 + " " + coder);

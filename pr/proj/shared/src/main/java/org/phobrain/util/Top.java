@@ -116,23 +116,15 @@ public abstract class Top extends Stdio { // implements Serializable {
         }
     }
 
-    public class SortVal implements Comparable {
+    public class SortVal implements Comparable<SortVal> {
 
         int order;
         double val;
 
         @Override
-        public int compareTo(Object obj) {
-
-            if (!(obj instanceof SortVal)) {
-                throw new RuntimeException("Bad obj!");
-            }
-            SortVal o = (SortVal) obj;
+        public int compareTo(SortVal o) {
 
             return Double.compare(val, o.val);
-            //if (val < o.val) return -1;
-            //if (val > o.val) return 1;
-            //return 0;
         }
     }
 
@@ -166,8 +158,8 @@ public abstract class Top extends Stdio { // implements Serializable {
 
             if (Double.isNaN(val)) {
 
-                err("Top(tag " + tag + 
-                    "): NaN for sortVals[ix=" + ix + 
+                err("Top(tag " + tag +
+                    "): NaN for sortVals[ix=" + ix +
                     " of " + sortVals.length + "].val");
 
             }

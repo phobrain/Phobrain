@@ -39,10 +39,10 @@ import java.io.BufferedReader;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -189,8 +189,8 @@ public class ServletUtil {
                     }
                 }
                 if (fields.length != 2) {
-                    adminStatus.append("ERROR: ADMIN IP (" + 
-                                adminFile +"): bad line: [" + 
+                    adminStatus.append("ERROR: ADMIN IP (" +
+                                adminFile +"): bad line: [" +
                                 line +"]: fields=" + fields.length)
                                .append("\n\n");
                     continue;

@@ -532,8 +532,8 @@ public class ColorUtil extends Stdio {
             String[] ss = setIterator.next().split("/");
             hc.add(ss[0]);
         }
-        // v's 2023_07, at arch37: 
-        //      flips: 1463986 of 606828101 (0%) 
+        // v's 2023_07, at arch37:
+        //      flips: 1463986 of 606828101 (0%)
         //              ids in flips: 10660 (26%)
         //      ids seem well-distributed across archives/cameras
         pout("ColorUtil.cdE2k unique ids in flips: " + flipIds.size() +

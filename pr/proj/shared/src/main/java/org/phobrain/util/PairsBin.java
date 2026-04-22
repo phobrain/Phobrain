@@ -8,7 +8,7 @@ package org.phobrain.util;
 
 /**
  **  PairsBin - Load a 1D array of float32 and access it as NxN,
- **             from .pairs file written by numpy using byteswap() 
+ **             from .pairs file written by numpy using byteswap()
  **             to match java big-endian format:
  **
  **                 pred.byteswap().tofile(path)
@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 //////////////////////////////////
-// Possibilities not used in 2023 
+// Possibilities not used in 2023
 //    since slow
 //import java.io.RandomAccessFile;
 //
@@ -53,7 +53,9 @@ import java.util.Collections;
 //import xerial.larray.mmap.MMapBuffer;
 //import xerial.larray.mmap.MMapMode;
 
-public class PairsBin extends Stdio implements Serializable {
+public class PairsBin extends Stdio { //implements Serializable
+
+    private static final long serialVersionUID = 1L;
 
     final double FACTOR =  1.0e7;
 
@@ -206,7 +208,7 @@ public class PairsBin extends Stdio implements Serializable {
 
     public String toString() {
         return "PairsBin: npics " + npics +
-                " file(s) " + String.join(",", fnames) + 
+                " file(s) " + String.join(",", fnames) +
                 " factor " + FACTOR;
     }
 
@@ -227,8 +229,8 @@ public class PairsBin extends Stdio implements Serializable {
     **      ret[0..3]:
     **          sum_d0_l
     **          sum_d0_r
-    **          avg_ok_d0 
-    **          avg_bad_d0 
+    **          avg_ok_d0
+    **          avg_bad_d0
     */
 
     //final int CUT_BAD = 200000;
@@ -236,7 +238,7 @@ public class PairsBin extends Stdio implements Serializable {
     public void getD0SumsLR(int ipic, String id, double[] ret) {
 
         if (ipic >= npics) {
-            err("getD0SumsLR: ipic out of range: " + 
+            err("getD0SumsLR: ipic out of range: " +
                     ipic + " " + id + "n" +
                     toString());
         }
@@ -268,27 +270,22 @@ public class PairsBin extends Stdio implements Serializable {
      **     From predtool.py writeTopFile().
      */
 
-    private static class SortVal implements Comparable {
+    private static class SortVal implements Comparable<SortVal> {
 
         int order;
         double val;
 
         @Override
-        public int compareTo(Object obj) {
+        public int compareTo(SortVal o) {
 
-            SortVal o = (SortVal) obj;
-            //if (!(o instanceof SortVal)) {
-
-            if (val < o.val) return -1;
-            if (val > o.val) return 1;
-            return 0;
+            return Double.compare(val, o.val);
         }
     }
 
     /*
-    **  writeTop() - .. 
+    **  writeTop() - ..
     */
-    public int writeTop(PrintStream out, int nprocs, List<String> ids, 
+    public int writeTop(PrintStream out, int nprocs, List<String> ids,
                             String tag, int pairsPic, int pairsPicArch)
             throws Exception {
 
@@ -329,7 +326,7 @@ public class PairsBin extends Stdio implements Serializable {
                             writePicTop(out, tag, ipic, ids, sortVals, usedPairs, pairsPic, pairsPicArch);
                         }
                     } catch (Exception e) {
-                        err("PairsBin " + start + 
+                        err("PairsBin " + start +
                                     ".." + end + ": " + e);
                     }
                 }
@@ -342,9 +339,9 @@ public class PairsBin extends Stdio implements Serializable {
 
         long dt = (System.currentTimeMillis() - t0) / 1000;
 
-        pout("PairsBin.writeTop done: " + usedPairs.size() + " pairs in " + 
-                dt + " sec, rate " + 
-                (usedPairs.size()/dt) + "/sec, " + 
+        pout("PairsBin.writeTop done: " + usedPairs.size() + " pairs in " +
+                dt + " sec, rate " +
+                (usedPairs.size()/dt) + "/sec, " +
                 (npics/dt) + " pics/sec");
 
         return usedPairs.size();
@@ -389,7 +386,7 @@ public class PairsBin extends Stdio implements Serializable {
                             List<String> ids,
                             SortVal[] sortVals,
                             Set<String> usedPairs,
-                            int pairs_pic, int pairs_archive) 
+                            int pairs_pic, int pairs_archive)
             throws Exception {
 
         String id1 = ids.get(ipic);
@@ -443,10 +440,10 @@ public class PairsBin extends Stdio implements Serializable {
         }
     }
 
-    private void writePicTop(PrintStream out, 
-                            String tag, 
-                            int ipic, 
-                            List<String> ids, 
+    private void writePicTop(PrintStream out,
+                            String tag,
+                            int ipic,
+                            List<String> ids,
                             SortVal[] sortVals,
                             Set<String> usedPairs,
                             int pairsPic, int pairsPicArch)
@@ -454,7 +451,7 @@ public class PairsBin extends Stdio implements Serializable {
 
         if (ids.size() != npics) {
             err("PairsBin.writePicTop(): expected npics=" + npics +
-                        " ids, got " + ids.size() + "\n" + 
+                        " ids, got " + ids.size() + "\n" +
                         toString());
         }
 
@@ -475,7 +472,7 @@ public class PairsBin extends Stdio implements Serializable {
         }
         Arrays.sort(sortVals, Collections.reverseOrder());
 
-        writeSorted(out, tag, ipic, true, // [id1 X, val] 
+        writeSorted(out, tag, ipic, true, // [id1 X, val]
                     ids, sortVals, usedPairs, pairsPic, pairsPicArch);
 
         // for fname1 on right: j, i
@@ -491,11 +488,11 @@ public class PairsBin extends Stdio implements Serializable {
         }
         Arrays.sort(sortVals, Collections.reverseOrder());
 
-        writeSorted(out, tag, ipic, false, // [X, id1, val] 
+        writeSorted(out, tag, ipic, false, // [X, id1, val]
                     ids, sortVals, usedPairs, pairsPic, pairsPicArch);
     }
 
-    private void init(boolean allocate) 
+    private void init(boolean allocate)
             throws Exception {
 
         if (fnames.size() != 1) {
@@ -519,22 +516,22 @@ public class PairsBin extends Stdio implements Serializable {
 
         if (file.length() != pairBytes.longValue()) {
             err("PairsBin.init: File size for npics, fname " + npics + " " +
-                        fname + ", " + 
-                        ":\n\texpected: " + pairBytes.longValue() + 
+                        fname + ", " +
+                        ":\n\texpected: " + pairBytes.longValue() +
                         " \n\tgot:      " + file.length());
         }
 
         int nprocs = MiscUtil.getProcs();
         int perproc = npics / nprocs;
 
-        pout("PairsBin.init: reading " + 
-                npics_sq + " pairs for " + 
-                npics + " pics, using " + 
-                nprocs + " threads, " + 
+        pout("PairsBin.init: reading " +
+                npics_sq + " pairs for " +
+                npics + " pics, using " +
+                nprocs + " threads, " +
                 perproc + " pics==rows/thread");
 
         long t0 = System.currentTimeMillis();
- 
+
         if (allocate) {
             d0 = new double[npics][];
             pout("Allocated d0 for npics=" + npics +
@@ -577,7 +574,7 @@ public class PairsBin extends Stdio implements Serializable {
                         if (skip > 0) {
                             int ped = in.skipBytes((int)skip);
                             if (ped != (int)skip) {
-                                err("Thread " + iprocc + ": skipping final " + skip + 
+                                err("Thread " + iprocc + ": skipping final " + skip +
                                         " after " + skips + " skips: " + ped);
                             }
                         }
@@ -596,19 +593,19 @@ public class PairsBin extends Stdio implements Serializable {
                                         ", ct val: " + ct + ", " + f);
                                 }
 
-                                double td = (1.0 - (double) f) * FACTOR;
+                                double td = (1.0 - f) * FACTOR;
 
                                 if (td < 0.0) {
-                                    err("range error in " + fname + 
+                                    err("range error in " + fname +
                                         ", td < 0: " + td);
                                 }
 
                                 if (td > Double.MAX_VALUE) {
                                     err("range error in " + fname +
-                                        ", val too high for factor " + FACTOR + 
+                                        ", val too high for factor " + FACTOR +
                                         ": " + f + "-> " + td);
                                 }
-                                d0ipic[jpic] = (double) td;
+                                d0ipic[jpic] = td;
                             }
                             if (allocate) {
                                 d0[ipic] = d0ipic;
@@ -632,11 +629,11 @@ public class PairsBin extends Stdio implements Serializable {
         double dt = (System.currentTimeMillis() - t0) / 1000;
 
         pout("PairsBin: loaded " + mbytes + " MB with " +
-                npics_sq + " pairs in " + 
+                npics_sq + " pairs in " +
                 dt + " sec, rate " + ((int)(mbytes / dt)) + " MB/s");
     }
 
-    /* 
+    /*
     ** for test:
 
         pout("First:");

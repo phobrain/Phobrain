@@ -28,7 +28,7 @@ import java.io.EOFException;
 
 import javax.naming.InvalidNameException;
 
-public class FileRec extends Stdio implements Comparable {
+public class FileRec extends Stdio implements Comparable<FileRec> {
 
     public int ct;
 
@@ -49,9 +49,7 @@ public class FileRec extends Stdio implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-
-        FileRec fr = (FileRec) o;
+    public int compareTo(FileRec fr) {
 
         if (id == null  &&  fr.id == null) {
 
@@ -149,7 +147,7 @@ public class FileRec extends Stdio implements Comparable {
             int ix = fnameBody.indexOf(":");
             if (ix != -1) {
 
-                // file base name is already 
+                // file base name is already
                 //  the actual id of pic
 
                 a = fnameBody.substring(0, ix);
@@ -239,7 +237,7 @@ public class FileRec extends Stdio implements Comparable {
                 err("Nothing read: " + toString());
             }
             this.histogram = l.stream().mapToDouble(d -> d).toArray();
-            
+
         } catch (Exception e) {
 
             pout("-- Error reading array: " + e);

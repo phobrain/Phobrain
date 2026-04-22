@@ -6,7 +6,7 @@ package org.phobrain.util;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/** 
+/**
  **  KwdUtil - not in use since switching to wordless imagenet usage;
  **  keywords might be brought back in a non-manual or contributed
  **  context, so leaving in place.
@@ -32,26 +32,26 @@ public class KwdUtil extends Stdio {
 
     private static final String[] keepSame = {
             // having that English or accident thing
-            "stairs", "steps", "shorts", "xmas", "christmas", 
+            "stairs", "steps", "shorts", "xmas", "christmas",
             "lens", "gas", "penis", "debris", "eucalyptus",
             "eyelashes", "jesus", "tennis", "walrus", "circus",
-            "branches", "cactus", "chaps", "trellis", "blinds", 
+            "branches", "cactus", "chaps", "trellis", "blinds",
             "cross", "pants", "mantis", "canvas", "dreadlocks", "initials",
-            // -- singular distinguished from plural - 
+            // -- singular distinguished from plural -
             //    silly to flatten any plural? TODO
-            "clouds", "wire_clouds", "street_clouds", "aerial_clouds", 
-            "faces", "knees", "eyes", "arms", "hands", "fingers", 
+            "clouds", "wire_clouds", "street_clouds", "aerial_clouds",
+            "faces", "knees", "eyes", "arms", "hands", "fingers",
             "workers", "bushes", "flowers", "tree_flowers", "trees",
-            "bars", "stripes", "lights", "flags", 
+            "bars", "stripes", "lights", "flags",
             "buildings", "windows", "columns", "roofs",
-            "shadows", "building_shadows", 
-            "towers", "spires", "girders", "cranes", 
+            "shadows", "building_shadows",
+            "towers", "spires", "girders", "cranes",
             "wires", "sky_wires", "guy_wires",
-            "chairs", "cracks", "horns", "boats", 
+            "chairs", "cracks", "horns", "boats",
             "circles", "arrays", "curves", "triangles",
-            "reflections", "tracks", 
+            "reflections", "tracks",
             "dogs", "cats", "birds",
-            "shadow_clocks", "chain_link_slats", 
+            "shadow_clocks", "chain_link_slats",
     };
     private static final Set<String> keepSameSet = new HashSet<>(
                                           Arrays.asList(keepSame));
@@ -69,7 +69,7 @@ public class KwdUtil extends Stdio {
             word.endsWith("thes")  ||
             word.endsWith("leaves")  ||
             word.endsWith("ies")) { // panties
- 
+
            return word;
 
         }
@@ -79,10 +79,10 @@ public class KwdUtil extends Stdio {
 
     private static final String[] face_types = {
             "face", "faces", "profile", "whiteface", "eyebrow",
-            "eyebrows", "tongue", "nose", "lip", "lips", "eye", 
+            "eyebrows", "tongue", "nose", "lip", "lips", "eye",
             "eyes", "face_paint", "makeup", "eyelashes", "teeth",
-            "beard", "skull", "kiss", "mask", "smile", 
-            "smiles", "mask", "masks", "eat", "eyes_closed", 
+            "beard", "skull", "kiss", "mask", "smile",
+            "smiles", "mask", "masks", "eat", "eyes_closed",
             "animal_face", "animal_faces", "mustache", "hold_phone",
             "sing", "michael_jackson",
             "Jerry_Garcia", "Hitchcock", "Frida_Kahlo"
@@ -103,12 +103,12 @@ public class KwdUtil extends Stdio {
     {
         String[] l = { "horse", "zebra", "cow", "goat", "pig", "dog",
                        "cat", "lizard", "snake", "alligator", "crocodile",
-                       "lion", "leapord", "jaguar", "big_cat", "fox", 
-                       "coyote", "wolf", "squirrel", "monkey", "ape", 
-                       "baboon", "gorilla", "moose", "llama", "bear", "deer", 
-                       "gazelle", "giraffe", "hyena", "rhino", "rat", 
-                       "mouse", "armadillo", "walrus", "seal", "elephant", 
-                       "dragon", "unicorn", "ride_animal", "stuffed_animal", 
+                       "lion", "leapord", "jaguar", "big_cat", "fox",
+                       "coyote", "wolf", "squirrel", "monkey", "ape",
+                       "baboon", "gorilla", "moose", "llama", "bear", "deer",
+                       "gazelle", "giraffe", "hyena", "rhino", "rat",
+                       "mouse", "armadillo", "walrus", "seal", "elephant",
+                       "dragon", "unicorn", "ride_animal", "stuffed_animal",
                        "animal_face", "camel", "otter", "elk", "reindeer",
                        "bat", "rabbit"
         };
@@ -158,25 +158,25 @@ public class KwdUtil extends Stdio {
 
     private static final String[] warm_types = { // except face_types
             "woman", "man", "women", "men", "girl",
-            "boy", "people", "person", "crowd", "baby", 
-            "costume", "musician", "child", "children", "vagrant", 
+            "boy", "people", "person", "crowd", "baby",
+            "costume", "musician", "child", "children", "vagrant",
             "couple", "performer", "black_leather", "drag", "nun", "wig",
             "play_music", "dog", "cat", "animal", "hand",
             "hands", "penis", "jesus", "knees", "arm",
             "arms", "leg", "legs", "foot", "feet",
-            "worker", "workers", "finger", "fingers", "mannequin", 
+            "worker", "workers", "finger", "fingers", "mannequin",
             "skin", "lie", "bird", "skeleton", "police", "figure",
-            "parade", "pair", "trio", "doll", "kneel", 
-            "photographer", "hair", "lean_person", "horse", "dragon", 
+            "parade", "pair", "trio", "doll", "kneel",
+            "photographer", "hair", "lean_person", "horse", "dragon",
             "shorts", "dress", "pose", "stuffed_animal", "rabbit",
-            "devil", "tattoo", "dancer", "crouch", "boots", 
+            "devil", "tattoo", "dancer", "crouch", "boots",
             "butt", "bear", "virgin_mary", "reach", "man_on_crane",
-            "hold_hands", "embrace", "clown", "cell_phone", 
-            "hands_up", "cow", "fur", "bone", "bones", 
-            "angel", "arms_open", "red_hair", "ride_animal", "necktie", 
-            "street_vendor", "bikini", "barking", "arms_crossed", "wave_hand", 
-            "stockings", "pig", "squat", "day_dead", "cowboy", 
-            "back_person", "stride", "shirt", "elephant", "breast", 
+            "hold_hands", "embrace", "clown", "cell_phone",
+            "hands_up", "cow", "fur", "bone", "bones",
+            "angel", "arms_open", "red_hair", "ride_animal", "necktie",
+            "street_vendor", "bikini", "barking", "arms_crossed", "wave_hand",
+            "stockings", "pig", "squat", "day_dead", "cowboy",
+            "back_person", "stride", "shirt", "elephant", "breast",
             "street_performer", "shadow_person", "scarf", "long_hair",
             "santa_claus", "lion", "hand_hip", "family", "elbow",
             "elbows", "deity", "deer", "blonde", "shoulder",
@@ -186,7 +186,7 @@ public class KwdUtil extends Stdio {
             "pregnant", "jump", "interview", "dreadlock", "dreadlocks",
             "cartoon", "cook", "body_paint", "actor", "turban",
             "teen", "udder", "row_people", "penguin", "parrot",
-            "painter", "giraffe", "goat", "fireman", "duck", 
+            "painter", "giraffe", "goat", "fireman", "duck",
             "buddha", "belly_dancer", "hat", "big_hat", "helmet", "zebra",
             "vendor", "tie_shoelaces", "sweatshirt", "statue_liberty","snowman",
             "skater", "shaman", "redhead", "party", "mother",
@@ -194,13 +194,13 @@ public class KwdUtil extends Stdio {
             "barefoot", "apron", "yoga", "street_artist", "squirrel",
             "shake_hands", "seagull", "sailor", "puppet", "priest",
             "pray", "point_finger", "piercings", "pants", "on_phone",
-            "old_person", "naked", "coat", "swim", "primate", 
-            "mouse", "sock", "socks", "skirt", 
+            "old_person", "naked", "coat", "swim", "primate",
+            "mouse", "sock", "socks", "skirt",
             "juggler", "jeans", "llama", "head_back", "hands_open",
-            "handcuffs", "gorilla", "fist", "fairy", 
+            "handcuffs", "gorilla", "fist", "fairy",
             "eagle", "dalmation", "bondage", "bat_person",
             "acrobat", "werewolf", "weaver", "underwear", "uniform",
-            "traditional_clothes", "superwoman", "spider_man", 
+            "traditional_clothes", "superwoman", "spider_man",
             "spider", "nataraj", "meditation", "hitchcock", "heels",
             "handbag", "purse", "headdress", "drummer", "cowgirl",
             "indian", "frog", "people_street", "bee", "butterfly",
@@ -262,7 +262,7 @@ public class KwdUtil extends Stdio {
         }
 
 
-        // complicated 
+        // complicated
 
         // bridges
 
@@ -276,7 +276,7 @@ public class KwdUtil extends Stdio {
         if (flat.startsWith("banana")  ||  flat.startsWith("apple")) {
             ret.add("fruit");
             ret.add("food");
-        } else if (flat.startsWith("corn")  ||  
+        } else if (flat.startsWith("corn")  ||
                    flat.startsWith("onion")  ||
                    flat.startsWith("potato")  ||
                    flat.startsWith("cabbage")  ||
@@ -294,7 +294,7 @@ public class KwdUtil extends Stdio {
                    flat.contains("tofu")) {
             ret.add("prepared_food");
             ret.add("food");
-        } else if (flat.contains("fruit")  ||  
+        } else if (flat.contains("fruit")  ||
                    flat.contains("vegetable") ||
                    flat.contains("rice") ||
                    flat.contains("meat") ||
@@ -316,7 +316,7 @@ public class KwdUtil extends Stdio {
             } else if (birds.contains(flat)) {
                 ret.add("birds");
             }
-        } 
+        }
 
         if (!"animal".equals(flat)  &&  !"animals".equals(flat)) {
             if (animal.contains(flat)) {
@@ -329,7 +329,7 @@ public class KwdUtil extends Stdio {
                 flat.startsWith("jaguar")) {
 
                 ret.add("big_cat");
-            } 
+            }
         }
 
         if (ret.size() > 1) {
@@ -373,7 +373,7 @@ public class KwdUtil extends Stdio {
             ret.add("worker");
         } else if (flat.endsWith("_tower")) {
             ret.add("tower");
-        } 
+        }
 
         return ret;
     }
@@ -383,7 +383,7 @@ public class KwdUtil extends Stdio {
         // leaving in 'vanishing' for now
         // 'blackwhite' semi fits :-)
 
-        if ((flat.startsWith("juxtapose")  &&  
+        if ((flat.startsWith("juxtapose")  &&
              !flat.equals("juxtapose_color")) ||
             flat.startsWith("angular")  ||
             flat.startsWith("cross")  ||
@@ -392,10 +392,10 @@ public class KwdUtil extends Stdio {
             flat.startsWith("array")  ||
             flat.startsWith("curve")  ||
             flat.contains("geom")     ||
-            "round".equals(flat)      || "sinuous".equals(flat)     ||  
+            "round".equals(flat)      || "sinuous".equals(flat)     ||
             "square".equals(flat)     ||  "parallel".equals(flat)   ||
-            "radiate".equals(flat)    ||  "texture".equals(flat)    ||  
-            "mesh".equals(flat)       || "matrix".equals(flat)      ||  
+            "radiate".equals(flat)    ||  "texture".equals(flat)    ||
+            "mesh".equals(flat)       || "matrix".equals(flat)      ||
             "triangle".equals(flat)   || "triangles".equals(flat)   ||
             "zig_zag".equals(flat)    ||  "volume".equals(flat)     ||
             "pattern".equals(flat)    ||  "spiral".equals(flat)     ||
@@ -424,7 +424,7 @@ public class KwdUtil extends Stdio {
                      .replace("barbed_fence", "barbed-wire_fence");
             if ("icecream".equals(kwd)) {
                 k2.add("ice-cream");
-            } else if ("city_scape".equals(kwd)  ||  
+            } else if ("city_scape".equals(kwd)  ||
                        "street_scape".equals(kwd)) {
                 k2.add(kwd.replace("_", ""));
             } else if ("barber_shop".equals(kwd)) {
@@ -510,7 +510,7 @@ public class KwdUtil extends Stdio {
                     case '5':
                         k2.add("few"); break;
                     default:
-                        err("Ya call-a dis 'lownum_'?? " + kwd);               
+                        err("Ya call-a dis 'lownum_'?? " + kwd);
                 }
             } else {
                 k2.add(kwd);
@@ -521,7 +521,7 @@ public class KwdUtil extends Stdio {
 
     private static int l1, l2, l3;
 
-    public static Map<String, double[]> makeVectorMap(String fname, 
+    public static Map<String, double[]> makeVectorMap(String fname,
                                                       List<String> kwds)
             throws Exception {
 
@@ -531,7 +531,7 @@ public class KwdUtil extends Stdio {
              " vectors: " + vectorMap.size());
 
         // munge for vector lexicon
-        
+
         l1 = 0; l2 = 0; l3 = 0;
         Map<String, double[]> ret = new HashMap<>();
         List<String> missing = new ArrayList<>();
@@ -579,12 +579,12 @@ public class KwdUtil extends Stdio {
                 double[] v = vectorMap.get(wd);
                 if (v == null) {
                     // upper 1st letter
-                    v = vectorMap.get(Character.toUpperCase(wd.charAt(0)) + 
+                    v = vectorMap.get(Character.toUpperCase(wd.charAt(0)) +
                                       wd.substring(1));
-                } 
+                }
                 if (v == null) {
                     v = vectorMap.get(wd.toUpperCase());
-                } 
+                }
                 if (v == null) {
                     pout("No vec for: " + kwd + "/" + wd);
                     return null;
@@ -593,7 +593,7 @@ public class KwdUtil extends Stdio {
             }
             return ret;
         }
-        ret = vectorMap.get(Character.toUpperCase(kwd.charAt(0)) + 
+        ret = vectorMap.get(Character.toUpperCase(kwd.charAt(0)) +
                             kwd.substring(1));
         if (ret != null) {
             l2++;
@@ -610,7 +610,7 @@ public class KwdUtil extends Stdio {
 
     private static double[] addVec(double[] d1, double[] d2) {
         if (d1.length != d2.length) {
-            throw new RuntimeException("Vec len mismatch: " + 
+            throw new RuntimeException("Vec len mismatch: " +
                                        d1.length + "/" + d2.length);
         }
         double[] ret = new double[d1.length];

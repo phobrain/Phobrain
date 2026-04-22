@@ -8,7 +8,7 @@ package org.phobrain.util;
 
 import java.lang.Comparable;
 
-class IdValInt implements Comparable {
+class IdValInt implements Comparable<IdValInt> {
     String id;
     int value;
 
@@ -18,10 +18,7 @@ class IdValInt implements Comparable {
     }
 
     @Override
-    public int compareTo(Object oo) {
-        IdValInt o = (IdValInt) oo;
-        if (this.value > o.value) return 1;
-        if (this.value < o.value) return -1;
-        return 0;
+    public int compareTo(IdValInt o) {
+        return Integer.compare(value, o.value);
     }
 }

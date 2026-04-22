@@ -49,6 +49,34 @@ public class MiscUtil extends Stdio {
     }
 */
 
+    public static int lossyMult(double i, double d) {
+        return (int) (i * d);
+    }
+    public static long lossySqrtDivide(double i, double toroot) {
+        double d = Math.sqrt(toroot);
+        if (d == 0.0) {
+            return (long) i / 2; // crazy
+        }
+        return (long) (i / d);
+    }
+
+
+    public static List<String> objectToListString(Object o)
+            throws ClassCastException {
+        if (o instanceof List<?> l) {
+            List<String> ret = new ArrayList<>();
+            for (Object oo : l) {
+                if (oo instanceof String s) {
+                    ret.add(s);
+                } else {
+                    throw new ClassCastException("non-String in List");
+                }
+            }
+            return ret;
+        }
+        throw new ClassCastException("Object is not a List");
+    }
+
     public static String getPhobrainLocal() {
 
         String local = System.getenv("PHOBRAIN_LOCAL");
@@ -269,7 +297,7 @@ ignoring secondary numbers
 
         try {
             float f = Float.parseFloat(s);
-            f *= 1000.0d;
+            f *= 1000.0f;
             return Math.round(f);
         } catch (NumberFormatException nfe) {
             throw new NumberFormatException("Bad fracDim: " + s  + ": " + nfe);
@@ -356,13 +384,13 @@ ignoring secondary numbers
             }
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException(
-                        "parseIntList: elt " + ix + 
+                        "parseIntList: elt " + ix +
                         " [" + ss[ix] + "]: " + nfe);
         }
 
         if (errs > 0) {
             throw new IllegalArgumentException(
-                        "parseIntList: errs " + errs + 
+                        "parseIntList: errs " + errs +
                         " [" + s + "] NaNs=" + nans.toString());
         }
 
@@ -372,7 +400,7 @@ ignoring secondary numbers
     // sacrifice 16510910
     public final static String NULL_BASE64 = "____";
 
-    public static int base64ToInt(String s) 
+    public static int base64ToInt(String s)
             throws IllegalArgumentException {
 
         if (s == null) {
@@ -594,13 +622,13 @@ ignoring secondary numbers
                 OperatingSystemMXBean.class);
 
             double jvmLoad = osBean.getProcessCpuLoad();
-            double sysLoad = osBean.getSystemCpuLoad();
+            double sysLoad = osBean.getCpuLoad();
 
             if (sysLoad == 0.0) {
 
                 try { Thread.sleep(1000); } catch (Exception ignore) {}
 
-                sysLoad = osBean.getSystemCpuLoad();
+                sysLoad = osBean.getCpuLoad();
 
                 if (sysLoad == 0.0) {
                     pout("-- getProcs: sysload twice 0.0");
@@ -786,7 +814,7 @@ ignoring secondary numbers
 
     /*
     **  listImageFiles - this is the initial Sorting Hat for deciding
-    **      the orientation of photos on import: 
+    **      the orientation of photos on import:
     **
     **          'v' / vertical / portrait orientation
     **          'h' / vertical / landscape orientation
@@ -841,8 +869,8 @@ ignoring secondary numbers
 
             out = new PrintStream(fout);
 
-            pout("MiscUtil.listImageFiles: writing " + archives.length + 
-                        " archive" + (archives.length > 1 ? "s" : "") + 
+            pout("MiscUtil.listImageFiles: writing " + archives.length +
+                        " archive" + (archives.length > 1 ? "s" : "") +
                         " to " + outfile);
 
             int max_procs = getProcs();
@@ -891,15 +919,25 @@ ignoring secondary numbers
 
             } // archive dirs
         } catch (Exception e) {
-            e.printStackTrace();       
+            e.printStackTrace();
             err(" " + e);
         } finally {
 
             try { out.close(); } catch (Exception ignore) {}
         }
 
-        pout("MiscUtil.listImageFiles: Archive dirs: " + ndirs + 
+        pout("MiscUtil.listImageFiles: Archive dirs: " + ndirs +
                 //"  Files: " + nfiles + " v " + nv + " h " + nh +
                 "  T=" + ((System.currentTimeMillis()-t0)/1000) + " sec");
     }
+
+    public void reverseByteOrderDouble(double[] arr) {
+
+        for (int i=0; i<arr.length; i++) {
+            long longBits = Double.doubleToLongBits(arr[i]);
+            long reversedBits = Long.reverseBytes(longBits);
+            arr[i] = Double.longBitsToDouble(reversedBits);
+        }
+    }
+
 }

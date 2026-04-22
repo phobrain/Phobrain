@@ -6,15 +6,12 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  CommentServlet - a good thing in principle, but this one w/out
- **    human verification is just a robo-probe/spam collector,
- **    in light of log4j bugs. Switched from log4j a while back,
- **    maybe have changed hosting since, fingers crossed but nothing
- **    goes from web site back into the distribution except edited
- **    html, which is diffed first.
- **
- */
+//  CommentServlet - a good thing in principle, but this one w/out
+//    human verification is just a robo-probe/spam collector,
+//    in light of log4j bugs. Switched from log4j a while back,
+//    maybe have changed hosting since, fingers crossed but nothing
+//    goes from web site back into the distribution except edited
+//    html, which is diffed first.
 
 import org.phobrain.util.ConfigUtil;
 
@@ -40,18 +37,20 @@ import java.io.FileWriter;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet("/pr/home/comment")
 public class CommentServlet extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static String commentFile = null;
 

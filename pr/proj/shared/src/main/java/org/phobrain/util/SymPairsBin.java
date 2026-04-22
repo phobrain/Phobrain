@@ -35,6 +35,8 @@ import java.util.Collections;
 
 public class SymPairsBin extends Top implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     final double FACTOR =  1.0e7;
 
     public SymPairsBin(List<String> ids) {
@@ -187,7 +189,7 @@ public class SymPairsBin extends Top implements Serializable {
         // row
         double[] row = getRow(ipic);
         for (double val : row) {
-            sum += (double) val;
+            sum += val;
         }
 
         // column
@@ -202,7 +204,7 @@ public class SymPairsBin extends Top implements Serializable {
                         ": ipic " + ipic + " irow " + irow);
             }
 
-            sum += (double) row[rowi];
+            sum += row[rowi];
         }
 
         return sum;

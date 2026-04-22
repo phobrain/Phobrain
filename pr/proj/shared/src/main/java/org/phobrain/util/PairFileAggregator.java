@@ -31,22 +31,22 @@ public class PairFileAggregator extends Stdio {
     private List<File> dirs = new ArrayList<>();
     private List<Integer> fileIndexes = new ArrayList<>();
 
-    private final boolean add; 
+    private final boolean add;
     private final double cutoff; // if add==true
 
     //  the file-reading part is a singleton for all Aggregators' files.
 
     private PairFilesReader reader = PairFilesReader.getReader();
 
-    public PairFileAggregator(String id, 
-                              List<File> indirs, boolean add, double cutoff) 
+    public PairFileAggregator(String id,
+                              List<File> indirs, boolean add, double cutoff)
             throws Exception {
 
         if (add) {
             pout("PairFileAggregator: '" + id + "' pos: " +
                  " dirlist size " + indirs.size());
         } else {
-            pout("PairFileAggregator: '" + id + "' negs w/ cutoff " + cutoff + 
+            pout("PairFileAggregator: '" + id + "' negs w/ cutoff " + cutoff +
                  " dirlist size " + indirs.size());
         }
 
@@ -58,7 +58,7 @@ public class PairFileAggregator extends Stdio {
 
         for (File dir : indirs) {
             if (!dir.isDirectory()) {
-                throw new Exception("PairFileAggregator." + id + 
+                throw new Exception("PairFileAggregator." + id +
                                         ": Not a dir: " + dir);
             }
             dirs.add(dir);
@@ -67,7 +67,7 @@ public class PairFileAggregator extends Stdio {
             for (String s : tt) {
                 if (s.endsWith(".pairs")) {
                     String fname = path + s;
-                    
+
                     fileIndexes.add(reader.indexFile(fname));
                 }
             }
@@ -76,8 +76,8 @@ public class PairFileAggregator extends Stdio {
         finish();
     }
 
-    public PairFileAggregator(String id, 
-                              String path, boolean add, double cutoff) 
+    public PairFileAggregator(String id,
+                              String path, boolean add, double cutoff)
             throws Exception {
 
         this.id = id;
@@ -119,7 +119,7 @@ public class PairFileAggregator extends Stdio {
                                 " dirs " + dirs.size() +
                                 " files: " + fileIndexes.size());
         } else {
-            pout("Aggregator: % val12, val21 over " + cutoff + 
+            pout("Aggregator: % val12, val21 over " + cutoff +
                                 " dirs " + dirs.size() +
                                 " files: " + fileIndexes.size());
         }
@@ -131,7 +131,7 @@ public class PairFileAggregator extends Stdio {
       *             to increment line, with lineNum and id's checked .
       */
 
-    public double[] readLine() throws Exception { 
+    public double[] readLine() throws Exception {
 
         int ndone = 0;
 
@@ -146,7 +146,7 @@ public class PairFileAggregator extends Stdio {
                 arr[0] += t[0];
                 arr[1] += t[1];
             }
-             
+
             // normalize by file count
             arr[0] /= fileIndexes.size();
             arr[1] /= fileIndexes.size();
@@ -165,10 +165,10 @@ public class PairFileAggregator extends Stdio {
                 }
             }
 
-            arr[0] = (double) (100 * arr[0]) / fileIndexes.size();
-            arr[1] = (double) (100 * arr[1]) / fileIndexes.size();
+            arr[0] = (100 * arr[0]) / fileIndexes.size();
+            arr[1] = (100 * arr[1]) / fileIndexes.size();
 
-        } 
+        }
 
         return arr;
     }

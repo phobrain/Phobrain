@@ -53,7 +53,7 @@ public class UserDao extends DaoBase {
             if (generatedKeys.next()) {
                 u.id = generatedKeys.getLong(1);
                 return u.id;
-            } 
+            }
             throw new SQLException( "Creating user failed, no ID obtained.");
 
         } finally {
@@ -86,7 +86,7 @@ public class UserDao extends DaoBase {
             u.id = rs.getLong(1);
             u.createTime = rs.getTimestamp(2);
             u.accessTime = rs.getTimestamp(6);
-            
+
             return u;
 
         } finally {
@@ -94,7 +94,7 @@ public class UserDao extends DaoBase {
             closeSQL(ps);
         }
     }
- 
+
     private final static String SQL_UPDATE_USER_ACCESS =
         "UPDATE pr.pr_user SET access_time = NOW() WHERE id = ?";
 

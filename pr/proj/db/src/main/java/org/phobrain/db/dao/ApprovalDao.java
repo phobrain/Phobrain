@@ -172,21 +172,21 @@ public class ApprovalDao extends DaoBase {
                 closeSQL(rs);
                 closeSQL(ps);
                 if (ap.status == status) {
-                    log.info("insert: status " + status + " exists for " + 
+                    log.info("insert: status " + status + " exists for " +
                               ap.id1 + " " + ap.id2 +
                               " curator " + otherCurator);
-                
+
                     if (status == 0) {
                         // if old enough, promote
-                        if (create_time.getTime() < 
-                                        System.currentTimeMillis() - 
+                        if (create_time.getTime() <
+                                        System.currentTimeMillis() -
                                         TimeUnit.HOURS.toMillis(4)) {
 
                             log.info("Converting insert/0 -> 1 on " +
-                                     "already-inserted/status=0 from " + 
+                                     "already-inserted/status=0 from " +
                                      otherCurator + ": " +
                                      ap.curator + " " + ap.id1 + " " + ap.id2);
-                               return update(conn, ap.curator, 1, 
+                               return update(conn, ap.curator, 1,
                                                    ap.id1, ap.id2);
                         }
                         log.info("insert: ignoring 0 on 0" +
@@ -198,24 +198,24 @@ public class ApprovalDao extends DaoBase {
                     return null;
                 }
                 if (status == 1  &&  ap.status == 0) {
-                    log.info("insert 0: ignoring status 1" + 
+                    log.info("insert 0: ignoring status 1" +
                                      " " + ap.id1 + " " + ap.id2);
                     return null;
                 }
                 if (status != 2  && (ap.status == 0  ||  ap.status == 1)) {
                     log.info("Converting insert " + ap.status +
-                              " on already-inserted status " + status + 
+                              " on already-inserted status " + status +
                               " to status 1" +
                               " insert curator: " + otherCurator + ": " +
                               ap.curator + " " + ap.id1 + " " + ap.id2);
                     return update(conn, ap.curator, 1, ap.id1, ap.id2);
                 }
                 log.info("Converting insert on already-inserted " +
-                              " status " + status + 
+                              " status " + status +
                               " to status " + ap.status +
                               " insert curator: " + otherCurator + ": " +
                               ap.curator + " " + ap.id1 + " " + ap.id2);
-                String msg = update(conn, ap.curator, ap.status, 
+                String msg = update(conn, ap.curator, ap.status,
                                           ap.id1, ap.id2);
                 if ((status == 1  ||  status == 2)  &&
                     (ap.status == 1  ||  ap.status == 2)) {
@@ -223,7 +223,7 @@ public class ApprovalDao extends DaoBase {
                     if (msg == null) {
                         return "Flipped " + status + "->" + ap.status;
                     }
-                    return msg + " (Flip attempt " + 
+                    return msg + " (Flip attempt " +
                                     status + "->" + ap.status + ")";
                 }
             }
@@ -261,24 +261,24 @@ public class ApprovalDao extends DaoBase {
         }
     }
 
-    // Assuming only used on a basic non-trim db, 
+    // Assuming only used on a basic non-trim db,
     // even w/ trim in effect on other tables, since
     // used for curation. Might turn out to be
     // used in trim-only situation, be aware.
     private static final String SQL_GET_APPROVED_PAIR =
-        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, + 
+        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, +
           "  r, g, b, ll, rgb_radius, lab_contrast, density," +
           " d0, match_people" +
           " FROM pr.approved_pair" +
           " WHERE id1 = ? AND id2 = ? ";
 
-    public static ApprovedPair getApprovedPair(Connection conn, 
+    public static ApprovedPair getApprovedPair(Connection conn,
                                                 String id1, String id2)
             throws SQLException {
         return getApprovedPair(conn, 1, id1, id1);
     }
 
-    private static ApprovedPair truncPairFromRs(ResultSet rs) 
+    private static ApprovedPair truncPairFromRs(ResultSet rs)
             throws SQLException {
 
         String id1 = rs.getString(4);
@@ -346,19 +346,19 @@ public class ApprovalDao extends DaoBase {
 
     // likewise update is a non-trim thing for now
 
-    private final static String SQL_UPDATE = 
+    private final static String SQL_UPDATE =
         "UPDATE pr.approved_pair SET status = ? WHERE id1 = ? AND id2 = ?";
 
-    private final static String SQL_UPDATE_UPPER = 
+    private final static String SQL_UPDATE_UPPER =
         "UPDATE pr.approved_pair SET status = ?, curator = upper(curator)" +
         "  WHERE id1 = ? AND id2 = ?";
 
-    private final static String SQL_UPDATE_LOWER = 
+    private final static String SQL_UPDATE_LOWER =
         "UPDATE pr.approved_pair SET status = ?, curator = lower(curator)" +
         "  WHERE id1 = ? AND id2 = ?";
 
     public static String update(Connection conn, String curator, int status,
-                                               String id1, String id2) 
+                                               String id1, String id2)
             throws SQLException {
 
         if (CURATOR_PREFIX == null) {
@@ -390,8 +390,8 @@ public class ApprovalDao extends DaoBase {
                 !"ripplay".equals(curator)) {
 
                 log.warn("Skipping non-owner/non-<prefix>/ripplay update: " +
-                            "[CURATOR_PREFIX " + CURATOR_PREFIX + "] " + 
-                             curator + " updating " + s + " " + 
+                            "[CURATOR_PREFIX " + CURATOR_PREFIX + "] " +
+                             curator + " updating " + s + " " +
                              id1 + " " + id2);
 
                 return "Owned by " + s;
@@ -431,7 +431,7 @@ public class ApprovalDao extends DaoBase {
                 log.error(msg);
                 return msg;
             }
-            log.info("Updated to status " + status + ": " + id1 + " " + id2 + 
+            log.info("Updated to status " + status + ": " + id1 + " " + id2 +
                                              (uppercase ? "/Upper" : ""));
             if (status != 1) {
                 return null;
@@ -454,9 +454,9 @@ public class ApprovalDao extends DaoBase {
                 return null;
             }
 
-            log.info("Adding virgin flipped version as 8: " + 
+            log.info("Adding virgin flipped version as 8: " +
                      id2 + " " + id1 + " " + (uppercase ? "/Upper" : ""));
-            
+
             ApprovedPair ap = getApprovedPair(conn, id1, id2);
             if (ap == null) {
                 log.error("Skipping reverse add since [??] no original approved pair: " + id1 + " " + id2);
@@ -487,10 +487,10 @@ public class ApprovalDao extends DaoBase {
     }
 
     // curation so non-trim
-    private final static String SQL_DELETE = 
+    private final static String SQL_DELETE =
         "DELETE FROM pr.approved_pair WHERE id1 = ? AND id2 = ?";
 
-    private static ApprovedPair pairFromRs(ResultSet rs) 
+    private static ApprovedPair pairFromRs(ResultSet rs)
             throws SQLException {
 
         String id1 = rs.getString(5);
@@ -527,9 +527,9 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
     }
 
 
-    private static String addWheres(String query, 
-                                    Integer status, 
-                                    String orient, 
+    private static String addWheres(String query,
+                                    Integer status,
+                                    String orient,
                                     Boolean curatorUpper)
             throws SQLException {
 
@@ -582,7 +582,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
     public static List<ApprovedPair> getAllApprovedPairs(Connection conn,
                            Integer status, String orient, Boolean curatorUpper,
                            boolean d0, Boolean first, Boolean forward,
-                           Set<String> select) 
+                           Set<String> select)
             throws SQLException {
 
         if (select != null  &&  select.size() == 0) {
@@ -643,7 +643,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
             }
             //log.info("Q [" + query + "]: " + ret.size() + " skipped " + skipped);
-            
+
             return ret;
 
         } finally {
@@ -661,7 +661,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
     public static List<ApprovedPair> getAllApprovedPairsByTime(Connection conn,
                            Integer status, String orient, Boolean curatorUpper,
-                           boolean forward, Set<String> select) 
+                           boolean forward, Set<String> select)
             throws SQLException {
 
         if (select != null  &&  select.size() == 0) {
@@ -702,7 +702,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
             }
             //log.info("Q [" + query + "]: " + ret.size() + " skipped " + skipped);
-            
+
             return ret;
 
         } finally {
@@ -726,7 +726,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
             ps.setString(3, ap.id2);
             int rows = ps.executeUpdate();
             if (rows < 1) {
-                throw new SQLException("updateHasVertical update rows < 1: " + 
+                throw new SQLException("updateHasVertical update rows < 1: " +
                                         rows);
             }
         } finally {
@@ -782,7 +782,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
             ps.setString(9, ap.id2);
             int rows = ps.executeUpdate();
             if (rows < 1) {
-                throw new SQLException("updateColorVals update rows < 1: " + 
+                throw new SQLException("updateColorVals update rows < 1: " +
                                             rows);
             }
         } finally {
@@ -795,12 +795,12 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
         "UPDATE pr.approved_pair SET d0 = ?, match_people = ?" +
         " WHERE id1 = ? AND id2 = ?";
 
-    public static void updateApprovedPairsD0(Connection conn) 
+    public static void updateApprovedPairsD0(Connection conn)
             throws SQLException {
 
         long t0 = System.currentTimeMillis();
 
-        List<ApprovedPair> all = getAllApprovedPairs(conn, 
+        List<ApprovedPair> all = getAllApprovedPairs(conn,
                            null, null, null,  // no WHERE
                            false, null, null, // no ORDER BY
                            null); // no view restriction
@@ -827,7 +827,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
             for (ApprovedPair ap : all) {
                 try {
                     ap.d0 = PairDao.getVal(conn, ap.id1, ap.id2,
-                                         (ap.vertical ? "v" : "h"), 
+                                         (ap.vertical ? "v" : "h"),
                                          "d0p", true /*default 0*/);
                     if (ap.d0 == 0) {
                         d00ct++;
@@ -855,7 +855,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                 Picture p1 = PictureDao.getPictureById(conn, ap.id1);
                 Picture p2 = PictureDao.getPictureById(conn, ap.id2);
                 if (p1 == null  ||  p2 == null) {
-                    log.warn("Skipping: No pic(s): fix?: " + 
+                    log.warn("Skipping: No pic(s): fix?: " +
                              ap.id1 + " " + ap.id2);
                     continue;
                 }
@@ -866,8 +866,8 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                 ps.setString(4, ap.id2);
                 int rows = ps.executeUpdate();
                 if (rows < 1) {
-                    throw new SQLException("updateD0: update rows < 1: " + 
-                                            rows + ": " + 
+                    throw new SQLException("updateD0: update rows < 1: " +
+                                            rows + ": " +
                                             ap.id1 + " " + ap.id2);
                 }
             }
@@ -883,16 +883,16 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
     // trim seems right
     private static final String SQL_GET_APPROVED_PAIRS =
-        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, + 
+        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, +
           "  r, g, b, ll, rgb_radius, lab_contrast, density," +
           "  d0, match_people" +
           " FROM ##approved_pair WHERE status = 1 AND" +
           "   ((id1 = 'ZZ') OR (id2 = 'ZZ')) QQ " +
           " ORDER BY create_time ASC";
 
-    public static List<ApprovedPair> getApprovedPairsWithPic(Connection conn, 
-                            String id, // Boolean hasKwd, 
-                            Set<String> select) 
+    public static List<ApprovedPair> getApprovedPairsWithPic(Connection conn,
+                            String id, // Boolean hasKwd,
+                            Set<String> select)
             throws SQLException {
 
         String query = chooseDB(SQL_GET_APPROVED_PAIRS)
@@ -943,7 +943,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
             }
             //log.info("Q [" + query + "]: " + ret.size() + " skipped " + skipped);
-            
+
             return ret;
 
         } finally {
@@ -955,7 +955,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
     // TODO - just get id's
     // trim for now.. used?
     private static final String SQL_GET_APPROVED_PAIRS_2 =
-        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, + 
+        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, +
           "  r, g, b, ll, rgb_radius, lab_contrast, density," +
           "  d0, match_people" +
           " FROM ##approved_pair WHERE status = 1 AND" +
@@ -963,23 +963,23 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
     // trim for now.. used?
     private static final String SQL_GET_APPROVED_PAIRS_3 =
-        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, + 
+        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, +
           "  r, g, b, ll, rgb_radius, lab_contrast, density," +
           "  d0, match_people" +
           " FROM ##approved_pair WHERE status = 1 AND" +
           "   ((id1 IN (ZZ)) OR (id2 IN (ZZ))) AND" +
           "   (id1 not in (AA)) AND (id2 NOT IN (AA))  QQ ";
 
-    public static List<ApprovedPair> getSecondOrderPairs(Connection conn, 
-                            List<String> ids, // Boolean hasKwd, 
-                            Set<String> select) 
+    public static List<ApprovedPair> getSecondOrderPairs(Connection conn,
+                            List<String> ids, // Boolean hasKwd,
+                            Set<String> select)
             throws SQLException {
 
         String id1 = ids.get(0);
         String id2 = ids.get(1);
 
         String idClause = "'" + id1 + "','" + id2 + "'";
-        
+
         String query = chooseDB(SQL_GET_APPROVED_PAIRS_2)
                                 .replaceAll("ZZ", idClause);
         query = query.replace("QQ", "");
@@ -1067,7 +1067,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                 ApprovedPair ap = truncPairFromRs(rs);
 
                 if (select != null) {
-                    if (!select.contains(ap.id1)  ||  
+                    if (!select.contains(ap.id1)  ||
                         !select.contains(ap.id2)) {
                         skipped++;
                         continue;
@@ -1076,7 +1076,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                 ret.add(ap);
             }
             //log.info("Q3 [" + query + "]: " + ret.size() + " skipped " + skipped);
-            
+
             return ret;
         } finally {
             closeSQL(rs);
@@ -1084,9 +1084,9 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
         }
     }
 
-    // trim for now.. 
+    // trim for now..
     private static final String SQL_GET_RANDOM_APPROVED_PAIR =
-        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, + 
+        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, +
           " r, g, b, ll, rgb_radius, lab_contrast, density," +
         " d0, match_people" +
         " FROM ##approved_pair WHERE status = 1 AND vertical = ?" +
@@ -1095,7 +1095,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
         " LIMIT 50";
 
     // TODO make tries depend on relative size of view, or better do in mem
-    public static ApprovedPair getRandomApprovedPair(Connection conn, 
+    public static ApprovedPair getRandomApprovedPair(Connection conn,
                                                      Set<String> select0,
                                                      String orient)
             throws SQLException {
@@ -1151,7 +1151,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                 rs.close();
             }
             log.info("got nothing, skipped " + skipped);
-            
+
             return null;
 
         } finally {
@@ -1162,15 +1162,15 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
     // trim for now.. used?
     static final String SQL_JOIN_LISTS =
-        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, + 
+        "SELECT create_time, curator, status, id1, id2, vertical," + // has_kwd, +
           " r, g, b, ll, rgb_radius, lab_contrast, density," +
         " d0, match_people" +
         " FROM ##approved_pair WHERE status = 1 AND " +
         " id1 IN (AA) AND id2 IN (BB)";
 
     public static List<ApprovedPair> getApprovedPairsBySets(Connection conn,
-                                            List<String> id1List, 
-                                            List<String> id2List) 
+                                            List<String> id1List,
+                                            List<String> id2List)
             throws SQLException {
 
         if (id1List.size() == 0  ||  id2List.size() == 0) {
@@ -1210,7 +1210,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
             closeSQL(rs);
             closeSQL(ps);
         }
-        log.info("getApprovedPairsBySets(" + id1List.size() + ", " + 
+        log.info("getApprovedPairsBySets(" + id1List.size() + ", " +
                   id2List.size() + ") -> " + ret.size());
         return ret;
     }
@@ -1235,13 +1235,13 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
         for (ApprovedPair seenpair : seen) {
 
             // original pair
-            ApprovedPair ap = getApprovedPair(conn, seenpair.id1, seenpair.id2); 
+            ApprovedPair ap = getApprovedPair(conn, seenpair.id1, seenpair.id2);
             if (ap != null  &&  ap.status == 1) {
                 orig_is_1++;
                 continue;
             }
 
-            // reject, check flipped version 
+            // reject, check flipped version
 
             String id1 = seenpair.id2;
             String id2 = seenpair.id1;
@@ -1262,8 +1262,8 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
             Picture pic1, pic2;
             try {
                 // could optimize here
-                pic1 = PictureDao.getPictureById(conn, id1); 
-                pic2 = PictureDao.getPictureById(conn, id2); 
+                pic1 = PictureDao.getPictureById(conn, id1);
+                pic2 = PictureDao.getPictureById(conn, id2);
                 if (pic1 == null  ||  pic2 == null) {
                     skipped_orient++;
                     continue;
@@ -1275,7 +1275,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
             //String[] pairIds = new String[2];
             //MiscUtil.ID.sortIds(pairIds, id1, id2);
-            
+
 /*
             boolean hasKwd = false;
 
@@ -1353,7 +1353,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
 
             // .. or already in use, e.g. from bulk kwd add
             if (any(conn, ap.id2, ap.id1)) {
-                already_in_app++; 
+                already_in_app++;
                 continue;
             }
 
@@ -1371,7 +1371,7 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                 }
             } catch (SQLException sqe) {
                 no_pic++;
-                continue; 
+                continue;
             }
 
             //String[] pairIds = new String[];
@@ -1508,9 +1508,9 @@ log.error("ID2 " + id2 + " " + rs.getString(6));
                            " already_in_app: " + already_in_app +
                            " mismatches!: " + skipped_orient);
         log.info("INSERTED addFlips1 " +
-                 " vert: " + vert + "/" + tot_v + 
-                 " (" + ( (100*vert)/tot_v) + "%) " + 
-                 " horiz: " + horiz + "/" + tot_h + 
+                 " vert: " + vert + "/" + tot_v +
+                 " (" + ( (100*vert)/tot_v) + "%) " +
+                 " horiz: " + horiz + "/" + tot_h +
                  " (" + ( (100*horiz)/tot_h) + "%)");
     }
 

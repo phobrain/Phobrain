@@ -13,7 +13,7 @@ package org.phobrain.util;
 
 import javax.naming.InvalidNameException;
 
-public class ID implements Comparable {
+public class ID implements Comparable<ID> {
 
     final public static String SPLIT_STR = "/";
 
@@ -43,9 +43,8 @@ public class ID implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        ID idx = (ID) o;
-        return compare(this, idx);
+    public int compareTo(ID o) {
+        return compare(this, o);
     }
 
     public static int compare(ID id, ID idx) {
@@ -152,7 +151,7 @@ public class ID implements Comparable {
         for (; start<s.length(); start++) {
             if (s.charAt(start) != '0') {
                 break;
-            } 
+            }
         }
         if (start == s.length()) {
             throw new InvalidNameException(

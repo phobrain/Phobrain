@@ -6,12 +6,9 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  GetSession - establish Session for continuity/nonrepetition of pics.
- **     With constant identity (e.g. across devices) would become a
- **     login service.
- **
- */
+//  GetSession - establish Session for continuity/nonrepetition of pics.
+//     With constant identity (e.g. across devices) would become a
+//     login service.
 
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.AtomSpec;
@@ -44,16 +41,18 @@ import javax.sql.DataSource;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GetSession extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(GetSession.class);
 
@@ -91,7 +90,8 @@ public class GetSession extends HttpServlet {
 */
 
     private static final GetEngine pairEngine = GetEngine.getEngine();
-    private static final FeelEngine feelEngine = FeelEngine.getEngine();
+    //private static final FeelEngine feelEngine = FeelEngine.getEngine();
+    private static final FeelingMirror feelEngine = FeelingMirror.getMirror();
 
     @Override
     public void init (ServletConfig config) throws ServletException {
@@ -470,7 +470,8 @@ screenCode = "1";
                                                     viewNum, orient,
                                                     null, // prev ids
                                                     1, 2, // screenIds
-                                                    -1, null);
+                                                    0, null, // lastBig, HistoryPair last,
+                                                    -1, null); // option, cmdMod
                     } else {
                         screens = pairEngine.getScreens(conn,
                                                     viewNum, orient, kwdCoder,

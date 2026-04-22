@@ -6,10 +6,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  Status - web.xml=status - mju.html (CHANGE FOR PRIVACY)
- **
- */
+//  Status - web.xml=status - mju.html (CHANGE FOR PRIVACY)
 
 import org.phobrain.util.ConfigUtil;
 
@@ -32,11 +29,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
 
 import javax.naming.NamingException;
 
@@ -49,6 +46,8 @@ import org.slf4j.LoggerFactory;
 
 @WebServlet("/pr/mnb")
 public class Status extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(Status.class);
 
@@ -150,7 +149,7 @@ public class Status extends HttpServlet {
 
         int i = b.version.indexOf("k=");
         if (i != -1) {
-            
+
             String kwdCoder = b.version.substring(i+2, i+3);
             if (!"blm0".contains(kwdCoder)) {
                 log.error("Bad kwdCoder: "+ kwdCoder);
@@ -211,7 +210,7 @@ public class Status extends HttpServlet {
 
     private static class BrowserReport {
 
-        final private static SimpleDateFormat format = 
+        final private static SimpleDateFormat format =
                          new SimpleDateFormat("MM-dd-yyy HH:mm:ss");
 
         public String      id;

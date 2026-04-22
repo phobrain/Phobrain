@@ -6,10 +6,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  GetFext - web interface for FeelEngine.
- **
- */
+//  GetFext - web interface for FeelingMirror
 
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.MathUtil;
@@ -36,12 +33,6 @@ import org.phobrain.db.record.Picture;
 import org.phobrain.db.record.PictureMap;
 import org.phobrain.db.record.PictureResponse;
 import org.phobrain.db.util.DBUtil;
-
-import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-//import org.nd4j.linalg.io.ClassPathResource;
 
 import java.util.Random;
 import java.util.Collections;
@@ -81,20 +72,22 @@ import java.util.concurrent.TimeUnit;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.AsyncContext;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //@WebServlet(urlPatterns={"/getfext"}, asyncSupported=true)
 public class GetFext extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private double TAP_MAX = 0.0;
 /*
@@ -122,7 +115,9 @@ public class GetFext extends HttpServlet {
 
     private static final Random rand = new Random();
 
-    private static final FeelEngine engine = FeelEngine.getEngine();
+    // TODO: allow >1 'feeling training' user
+    // private static final FeelEngine engine = FeelEngine.getEngine();
+    private static final FeelingMirror engine = FeelingMirror.getMirror();
 
     private static String IMAGE_DIR;
     private static boolean WEBP = false;  // on load, replace dbase pr..picture.fileName
@@ -218,7 +213,7 @@ public class GetFext extends HttpServlet {
 
         String fakefname = URLEncoder.encode("resize_" +
                                              rand.nextInt(99) + "_" +
-                                             rand.nextInt(20) + ".jpg");
+                                             rand.nextInt(20) + ".jpg", "UTF-8");
         // cacheing
 
         long lastModified = System.currentTimeMillis() -
@@ -285,7 +280,6 @@ public class GetFext extends HttpServlet {
                 buffer.clear();
             }
             response.getOutputStream().flush();
-            outputChannel.close();
 
         }
 
@@ -572,13 +566,13 @@ String toggleTStr = "tmp";
             return;
         }
         if (r == 4) {
-            log.error("engine.getNeuralMatch  DISABLED - fix it yourself");
+            log.error("getNeuralMatch  DISABLED - TODO");
             response.sendError(500, "Disabled neural single-pic match option");
             return;
         }
 
         boolean sendCurrent = (r==0);
-        
+
         int viewTime = -1;
         int viewTime2 = -1;
         int clickTime = -1; // drawing dots
@@ -648,7 +642,7 @@ String toggleTStr = "tmp";
 
                 dialogDotsBlocked = getInt(request, "ddb", sessionTag);
                 ratingAlerts = getInt(request, "raa", sessionTag);
-            
+
             }
 
         } catch (Exception e) {
@@ -966,7 +960,7 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
                     // if (r == 4)  pr = engine.getNeuralMatch(conn, viewNum, orient, session,
                     //                              last, nbr_screen.id_s,
                     //                              nbr_screenId);
-                    // else if (r == 5) 
+                    // else if (r == 5)
 
                     if (r == 5) {
                         pr = engine.replacePicOnClick(conn, viewNum, orient, session,
@@ -1191,9 +1185,10 @@ log.error("SINGLE-SCREEN r=" + r + " - WAS SKIPPED CODE");
 
                     screens = engine.getScreens(conn, session, viewNum, orient,
                                                         ids, screenId1, screenId2,
-                                                        lastBig, last);
+                                                        lastBig, last,
+                                                        10, null); // 10 == drew dots
                 } catch (Exception e) {
-                    log.error("Engine: " + e.getMessage(), e);
+                    log.error("Mirror: " + e.getMessage(), e);
                     throw e;
                 }
                 if (screens == null) {

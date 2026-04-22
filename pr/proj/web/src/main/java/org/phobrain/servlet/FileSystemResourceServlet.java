@@ -12,10 +12,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: CC-BY-SA-4.0
  **/
 
-/**
- **  Simple file server.
- **
- */
+//  Simple file server.
 
 import org.phobrain.util.ConfigUtil;
 
@@ -35,17 +32,19 @@ import java.io.UnsupportedEncodingException;
 
 import java.nio.charset.StandardCharsets;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet("/pr/home/*")
 public class FileSystemResourceServlet extends StaticResourceServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(
                                             FileSystemResourceServlet.class);

@@ -14,6 +14,7 @@ package org.phobrain.db.dao;
 
 import org.phobrain.util.ListHolder;
 import org.phobrain.util.ID;
+import org.phobrain.util.MiscUtil;
 import org.phobrain.util.MiscUtil.SeenIds;
 
 import javax.naming.InvalidNameException;
@@ -68,8 +69,8 @@ inserts done via table build/load
     private static final String SQL_UPDATE_FIELD =
         "UPDATE ##pairs_00 SET @ = ? WHERE id1 = ? AND id2 = ?";
 
-    public static void updatePair(Connection conn, 
-                                  String id1, String id2, 
+    public static void updatePair(Connection conn,
+                                  String id1, String id2,
                                   String orient, String column, int val)
             throws SQLException {
 
@@ -140,13 +141,13 @@ inserts done via table build/load
 
     /*
     **  tblChek: return false if no problem
-    **              if problem: 
+    **              if problem:
     **                      throw msg if asked
     **                      or log and return true
     */
-    private static boolean tblChek(String caller, 
-                                    boolean vertical, 
-                                    boolean throwit) 
+    private static boolean tblChek(String caller,
+                                    boolean vertical,
+                                    boolean throwit)
             throws SQLException {
 
         // don't want no trouble
@@ -157,9 +158,9 @@ inserts done via table build/load
         // now you done it
 
         final String CONTRACT_MSG = "Table does not exist";
-        String err = 
-                caller + 
-                ": " + CONTRACT_MSG + ": pr.pairs_" + 
+        String err =
+                caller +
+                ": " + CONTRACT_MSG + ": pr.pairs_" +
                 (vertical ? "v" : "h");
 
         if (throwit) {
@@ -201,7 +202,7 @@ inserts done via table build/load
     **      Expected to init have_v/have_h in ServletData
     **      init phase.
     */
-    public static synchronized List<List<String>> getPairNNCols(Connection conn, 
+    public static synchronized List<List<String>> getPairNNCols(Connection conn,
                                                     boolean vertical)
             throws SQLException {
 
@@ -220,7 +221,7 @@ inserts done via table build/load
         ret.add(n_xxx);
         ret.add(a_xxx);
 
-        String query = SQL_GET_COLS.replaceAll("XX", 
+        String query = SQL_GET_COLS.replaceAll("XX",
                                     vertical ? "pairs_v" : "pairs_h");
 
         PreparedStatement ps = null;
@@ -263,7 +264,7 @@ inserts done via table build/load
     private static final String SQL_GET_VAL =
         "SELECT @ FROM ##pairs_00 WHERE id1 = ? AND id2 = ?";
 
-    public static long getVal(Connection conn, String id1, String id2, 
+    public static long getVal(Connection conn, String id1, String id2,
                                               String orient, String col)
             throws SQLException {
 
@@ -321,7 +322,7 @@ kwds out for now
     }
 */
 
-    public static long getVal(Connection conn, String id1, String id2, 
+    public static long getVal(Connection conn, String id1, String id2,
                                               String orient, String col,
                                               boolean def0)
             throws SQLException {
@@ -369,8 +370,8 @@ kwds out for now
                                           ": defaulting to 0");
             return 0;
         }
-        throw new SQLException("No result for " + col + "/" + orient + ": " + 
-                                id1 + " " + id2 + 
+        throw new SQLException("No result for " + col + "/" + orient + ": " +
+                                id1 + " " + id2 +
                                 " query: (" + query + ") " +
                                 " sorted: " + sorted[0] + " " + sorted[1]);
     }
@@ -378,8 +379,8 @@ kwds out for now
     private static final String SQL_GET_LIST =
         "SELECT id1, id2, @ FROM ##pairs_00 WHERE ";
 
-    public static ListHolder getCollectionVals(Connection conn, 
-                                              String sort_id, 
+    public static ListHolder getCollectionVals(Connection conn,
+                                              String sort_id,
                                               Collection<String> ids,
                                               String orient, String col,
                                               String ascdesc)
@@ -427,20 +428,20 @@ kwds out for now
         }
         int phrases = 1; // count from 1
         if (sb1.length() > 0) {
-            query += "(id1 = '" + sort_id + "' AND id2 in (" + 
+            query += "(id1 = '" + sort_id + "' AND id2 in (" +
                                                sb1.toString() + ")) ";
             phrases++;
             if (sb2.length() > 0) {
-                query += " OR (id2 = '" + sort_id + "' AND id1 in (" + 
+                query += " OR (id2 = '" + sort_id + "' AND id1 in (" +
                                                sb2.toString() + ")) ";
                 phrases++;
             }
         } else if (sb2.length() > 0) {
-            query += " (id2 = '" + sort_id + "' AND id1 in (" + 
+            query += " (id2 = '" + sort_id + "' AND id1 in (" +
                                                 sb2.toString() + ")) ";
             phrases++;
         } else {
-            throw new SQLException("No ids to query, given " + 
+            throw new SQLException("No ids to query, given " +
                                     String.join("", ids));
         }
         query += " ORDER BY " + col + " " + ascdesc;
@@ -551,17 +552,17 @@ kwds out for now
 
 
     private static final String SQL_GET_PAIRS_BY_D0_12 =
-        "SELECT id1, id2, a_d012" + 
+        "SELECT id1, id2, a_d012" +
         " FROM ##pairs_00 " +
         " ORDER BY a_d012 # " +
         " LIMIT @";
     private static final String SQL_GET_PAIRS_BY_D0_21 =
-        "SELECT id2, id1, a_d021" + 
+        "SELECT id2, id1, a_d021" +
         " FROM ##pairs_00 " +
         " ORDER BY a_d021 # " +
         " LIMIT @";
 
-    public static List<Pair> getPairsByD0(Connection conn, String orient, boolean top, int limit, 
+    public static List<Pair> getPairsByD0(Connection conn, String orient, boolean top, int limit,
                             Set<String> exclude1, Set<String> exclude2)
             throws SQLException {
 
@@ -664,14 +665,14 @@ kwds out for now
     }
 
     private static final String SQL_GET_PAIRS =
-        "SELECT id1, id2, @" + 
+        "SELECT id1, id2, @" +
         " FROM ##pairs_00 WHERE ((id1 = 'ZZ') OR (id2 = 'ZZ')) " +
           " XX ORDER BY @ #";
 
-    public static ListHolder getPairs(Connection conn, 
+    public static ListHolder getPairs(Connection conn,
                            String id, String orient, String column,
-                           boolean invert, String direction, int limit, 
-                           Boolean kwdVal, Set<String> select) 
+                           boolean invert, String direction, int limit,
+                           Boolean kwdVal, Set<String> select)
             throws SQLException {
 
         if (id == null  ||  orient == null  ||  direction == null) {
@@ -744,7 +745,7 @@ kwds out for now
             }
 
             //log.info("Q [" + query + "]: " + lh.id2_l.size() + " skipped " + skipped);
-            
+
             return lh;
 
         } finally {
@@ -758,12 +759,12 @@ kwds out for now
             " WHERE ((a_d012 > ? AND a_d012 < ?) " +
                 " OR (a_d021 > ? AND a_d021 < ?))";
 
-    private static void getD0Neighbors2(Connection conn, String orient, 
+    private static void getD0Neighbors2(Connection conn, String orient,
                                             String curator,
                                             Set<String> select,
                                             SeenIds seenIds,
                                             int d0, int d0_lo, int d0_hi, int factor,
-                                            List<Pair> upList, List<Pair> downList) 
+                                            List<Pair> upList, List<Pair> downList)
             throws SQLException {
 
         String query = chooseDB(SQL_GET_D0_NBRS).replaceAll("00", orient);
@@ -843,16 +844,16 @@ kwds out for now
                     } else {
                         upList.add(p);
                     }
-                } 
+                }
             }
-            log.info("getD0Neighbors2 factor: " + factor + 
+            log.info("getD0Neighbors2 factor: " + factor +
                         " d0/range: " + d0 + "/" + d0_lo + "-" + d0_hi +
-                        " rows: " + row_count + 
-                        " skipped_ids: " + skipped_ids + 
+                        " rows: " + row_count +
+                        " skipped_ids: " + skipped_ids +
                         " pairs>d0: " + upList.size() +
                         " pairs<d0: " + downList.size() +
                         " seenIds: " + ("v".equals(orient) ?
-                                            seenIds.vertical : 
+                                            seenIds.vertical :
                                             seenIds.horizontal) +
                         " idSetSize: " + select.size()
                     );
@@ -862,13 +863,13 @@ kwds out for now
         }
     }
 
-    public static void getD0Neighbors(Connection conn, String orient, 
+    public static void getD0Neighbors(Connection conn, String orient,
                             String curator,
                             Set<String> select,
                             SeenIds seenIds,
                             String id1, String id2,
                             int circle,
-                            List<Pair> upList, List<Pair> downList) 
+                            List<Pair> upList, List<Pair> downList)
             throws SQLException {
 
         boolean vertical = "v".equals(orient);
@@ -968,19 +969,19 @@ kwds out for now
 
             }
 /*
-            log.info("getD0Neighbors factor: " + factor + 
+            log.info("getD0Neighbors factor: " + factor +
                         " range: " + d0_low + "-" + d0_high +
-                        " rows: " + row_count + 
-                        " skipped_ids: " + skipped_ids + 
+                        " rows: " + row_count +
+                        " skipped_ids: " + skipped_ids +
                         " pairs>d0: " + upList.size() +
                         " pairs<d0: " + downList.size() +
                         " seenIds: " + ("v".equals(orient) ?
-                                            seenIds.vertical : 
+                                            seenIds.vertical :
                                             seenIds.horizontal) +
                         " idSetSize: " + select.size()
                     );
 */
-            
+
         } finally {
             closeSQL(rs);
             closeSQL(ps);
@@ -1003,10 +1004,10 @@ kwds out for now
 
     final static int CUT_BAD = 200000;
 
-    public static void getD0Bad(Connection conn, String orient, 
+    public static void getD0Bad(Connection conn, String orient,
                             Set<String> select,
                             SeenIds seenIds,
-                            List<Pair> list) 
+                            List<Pair> list)
             throws SQLException {
 
         boolean vertical = "v".equals(orient);
@@ -1102,7 +1103,7 @@ kwds out for now
                 }
             }
 
-            log.info("getD0Bad " + start + "->" + list.size() + 
+            log.info("getD0Bad " + start + "->" + list.size() +
                         " skipped ids " + skipped_ids +
                         " dupes " + dupe_ids +
                         " cuts " + skipped_cuts);
@@ -1114,19 +1115,19 @@ kwds out for now
     }
 /*
     private static final String SQL_GET_PAIRS_D0_12 =
-        "SELECT id1, id2, @" + 
+        "SELECT id1, id2, @" +
         " FROM ##pairs_00 WHERE ((id1 = 'ZZ') OR (id2 = 'ZZ')) " +
           " XX ORDER BY @ #";
     private static final String SQL_GET_PAIRS_D0_21 =
-        "SELECT id2, id1, @" + 
+        "SELECT id2, id1, @" +
         " FROM ##pairs_00 WHERE ((id1 = 'ZZ') OR (id2 = 'ZZ')) " +
           " XX ORDER BY @ #";
 
-    public static ListHolder getPairsD0(Connection conn, 
+    public static ListHolder getPairsD0(Connection conn,
                            String id, boolean id_left,
                            String orient, String column,
-                           Boolean kwdVal, String direction, 
-                           int limit, Set<String> select) 
+                           Boolean kwdVal, String direction,
+                           int limit, Set<String> select)
             throws SQLException {
 
         if (id == null  ||  orient == null  ||  direction == null) {
@@ -1164,8 +1165,8 @@ kwds out for now
         }
         if (select == null  &&  limit != 0) {
             // will be double requested, w/ 12,21
-            query12 = query12 + " LIMIT " + limit; 
-            query21 = query21 + " LIMIT " + limit; 
+            query12 = query12 + " LIMIT " + limit;
+            query21 = query21 + " LIMIT " + limit;
         }
 
 //log.info("QQ [" + query1 + "\n  " + query2 "]");
@@ -1206,7 +1207,7 @@ kwds out for now
                 invertList(lh);
             }
 //log.info("Q [" + query + "]: " + lh.id2_l.size() + " skipped " + skipped);
-            
+
             return lh;
 
         } finally {
@@ -1221,7 +1222,7 @@ kwds out for now
         "SELECT id1, id2 FROM ##pairs_00 ORDER BY YY DESC " +
         " LIMIT ";
 
-    public static List<String[]> getTopPairs(Connection conn, 
+    public static List<String[]> getTopPairs(Connection conn,
                                                 String orient, int limit)
             throws SQLException {
 
@@ -1270,7 +1271,7 @@ kwds out for now
             while (rs.next()) {
                 ret.add(new String[] { rs.getString(2), rs.getString(1) } );
                 /*
-                if ("h".equals(orient)  &&  
+                if ("h".equals(orient)  &&
                         (ret.size() % 1000000 == 0  ||  ret.size() > 87000000)) {
                     log.info("COUNT: " + ret.size());
                 }
@@ -1302,9 +1303,9 @@ kwds out for now
         "SELECT id2, ppp21 FROM ##pairs_00 WHERE id1 = ? AND nnn21 < ? " +
         " ORDER BY ppp21 DESC";
 
-    public static ListHolder getTopPairsByNegCut(Connection conn, 
+    public static ListHolder getTopPairsByNegCut(Connection conn,
                                              String orient,
-                                             String root_id, boolean left, 
+                                             String root_id, boolean left,
                                              int d0nLimit, // 0..100% netreject
                                              int limit,
                                              String negCol, String posCol,
@@ -1388,11 +1389,10 @@ kwds out for now
             ListHolder ret = new ListHolder();
             for (int i=entries.size()-1; ret.id2_l.size()<limit && i>-1; i--) {
 
-                Map.Entry<Long, List<String>>  entry = 
-                    (Map.Entry<Long, List<String>>) entries.get(i);
+                Map.Entry<Long, List<String>>  entry = entries.get(i);
                 // log.info("e.key descends " + (Integer) entry.getKey());
-                Long val = (Long) entry.getKey();
-                List<String> l = (List<String>) entry.getValue();
+                long val = entry.getKey();
+                List<String> l = MiscUtil.objectToListString(entry.getValue());
                 for (String id2 : l) {
                     ret.id2_l.add(id2);
                     ret.value_l.add(val);
@@ -1406,11 +1406,11 @@ kwds out for now
         }
     }
 
-    public static ListHolder getPosPairsParallel(Connection conn, 
-                                            String orient, 
+    public static ListHolder getPosPairsParallel(Connection conn,
+                                            String orient,
                                             String curator,
                                             String posColumn,
-                                            List<String> root_ids, 
+                                            List<String> root_ids,
                                             boolean desc, // true=top pairs
                                             int limit,
                                             Set<String> picSet)
@@ -1531,15 +1531,15 @@ kwds out for now
                 lh.value_l.add(lh_max.value_l.get(i));
             }
         }
-        log.info("getPosPairsParallel haul " + lh.id2_l.size() + 
+        log.info("getPosPairsParallel haul " + lh.id2_l.size() +
                                    " msec " + (System.currentTimeMillis()-t0));
 
         return lh;
     }
 
-    public static ListHolder getPosPairs(Connection conn, 
+    public static ListHolder getPosPairs(Connection conn,
                                             String orient, String curator,
-                                            String posColumn, String root_id, 
+                                            String posColumn, String root_id,
                                             Boolean get_left, Boolean hasKwd,
                                             boolean desc, // true=top pairs
                                             int limit,
@@ -1565,7 +1565,7 @@ kwds out for now
             // should be true for desc==false
             log.info("int_getTopPosPairs get_left=" + get_left +
                                        " limit " + limit);
-            return int_getTopPosPairs(orient, curator, posColumn, root_id, 
+            return int_getTopPosPairs(orient, curator, posColumn, root_id,
                                         get_left, hasKwd, desc, limit, picSet);
         }
         // get_left is null
@@ -1665,7 +1665,7 @@ alternate reality / simplistic
 
     private static final String SQL_GET_D0_RIGHT_1 =
         "SELECT id1, d0p21 FROM ##pairs_00 WHERE id2 = ? " +
-        " KKK ORDER BY d0p21 DDD"; 
+        " KKK ORDER BY d0p21 DDD";
     private static final String SQL_GET_D0_RIGHT_2 =
         "SELECT id2, d0p12 FROM ##pairs_00 WHERE id1 = ? " +
         " KKK ORDER BY d0p12 DDD";
@@ -1675,7 +1675,7 @@ alternate reality / simplistic
                                             String orient,
                                             String curator,
                                             String posColumn,
-                                            String id, boolean get_left, 
+                                            String id, boolean get_left,
                                             Boolean hasKwd,
                                             boolean desc, // true=top pairs
                                             int limit,
@@ -1694,8 +1694,8 @@ alternate reality / simplistic
                                                     String orient,
                                                     String curator,
                                                     String posColumn,
-                                                    String id, 
-                                                    boolean get_left, 
+                                                    String id,
+                                                    boolean get_left,
                                                     Boolean hasKwd,
                                                     boolean desc, // true=top pairs
                                                     int limit,
@@ -1718,7 +1718,7 @@ alternate reality / simplistic
         }
         query1 = chooseDB(query1).replaceAll("POS", posColumn);
         query2 = chooseDB(query2).replaceAll("POS", posColumn);
-            
+
         String direction = "DESC";
         if (!desc) {
             direction = "ASC";
@@ -1874,12 +1874,11 @@ alternate reality / simplistic
         }
         for (int i=start; i!=end; i+=inc) {
 
-            Map.Entry<Long, List<String>>  entry = 
-                 (Map.Entry<Long, List<String>>) entries.get(i);
+            Map.Entry<Long, List<String>>  entry = entries.get(i);
                 // log.info("e.key descends " + (Integer) entry.getKey());
 
-            Long val = (Long) entry.getKey();
-            List<String> l = (List<String>) entry.getValue();
+            long val = entry.getKey();
+            List<String> l = entry.getValue();
             for (String id2 : l) {
                 if (curator != null) {
                     ApprovedPair ap = (get_left ?
@@ -1897,8 +1896,8 @@ alternate reality / simplistic
             }
         }
         log.info("ret size " + ret.size());
-                     //" v0 " + (ret.id2_l.size()==0 ? "skipped=" + skipped : 
-                     //          "" + ret.value_l.get(0) + 
+                     //" v0 " + (ret.id2_l.size()==0 ? "skipped=" + skipped :
+                     //          "" + ret.value_l.get(0) +
                      //          ".." + ret.value_l.get(ret.id2_l.size()-1)));
 
         if (curator != null) {
@@ -1915,8 +1914,8 @@ alternate reality / simplistic
 
     private static final int DELTA = 4;
 
-    public static ListHolder getPairsAtAngle(Connection conn, 
-                           String id, String orient, int angle, 
+    public static ListHolder getPairsAtAngle(Connection conn,
+                           String id, String orient, int angle,
                            Set<String> select, int limit)
         throws SQLException {
 
@@ -1989,7 +1988,7 @@ alternate reality / simplistic
                 }
                 l.add(oo);
             }
-            List<Map.Entry> entries = new ArrayList<>();
+            List<Map.Entry<Long, List<Object[]>>> entries = new ArrayList<>();
             for (Map.Entry<Long, List<Object[]>> entry : map.entrySet()) {
                 entries.add(entry);
             }
@@ -1997,13 +1996,14 @@ alternate reality / simplistic
             ListHolder lh = new ListHolder();
             for (int i=entries.size()-1; i>-1; i--) {
 
-                Map.Entry<Long, List<Object[]>>  entry = entries.get(i);
+                // unchecked.. write another unwrapper?
+                Map.Entry<Long, List<Object[]>> entry = entries.get(i);
                 // log.info("e.key descends " + (Integer) entry.getKey());
 
                 List<Object[]> l = entry.getValue();
                 for (Object[] oo : l) {
                     lh.id2_l.add((String)oo[0]);
-                    lh.value_l.add((long) oo[1]); 
+                    lh.value_l.add((long) oo[1]);
                     if (lh.id2_l.size() == limit) {
                         break;
                     }
@@ -2066,7 +2066,7 @@ alternate reality / simplistic
         boolean vertical = "v".equals(orient);
         tblChek("getMyAngle", vertical, true);
 
-        return getAngle(conn, id, orient, angleColumn, select, 
+        return getAngle(conn, id, orient, angleColumn, select,
                               SQL_GET_BY_MY_ANGLE);
     }
 
@@ -2088,7 +2088,7 @@ alternate reality / simplistic
                 query = query.replaceAll("XX", "AND (kwd = FALSE)");
             }
 */
-       
+
         //log.info("angle Q: " + query);
 
         PreparedStatement ps = null;
@@ -2145,8 +2145,8 @@ alternate reality / simplistic
     private static final String SQL_UPDATE_KWD =
         "UPDATE pairs SET kwd = ? WHERE id1 = ? AND id2 = ?";
 
-    public static void updateKwd(Connection conn, String id1, String id2, 
-                                 boolean val) 
+    public static void updateKwd(Connection conn, String id1, String id2,
+                                 boolean val)
             throws SQLException {
         PreparedStatement ps = null;
         try {
@@ -2174,7 +2174,7 @@ alternate reality / simplistic
     //  a_d012 val for pic when on left
     //  a_d021 val for pic when on right
     private static String SQL_QUERY_D0_SUMS_ID1 =
-        "SELECT a_d012,a_d021 FROM ##pairs_00" + 
+        "SELECT a_d012,a_d021 FROM ##pairs_00" +
         " WHERE id1 = ?";
 
     // id2:
@@ -2193,14 +2193,14 @@ alternate reality / simplistic
 /*
     // superseded by .pairs-based PairsBin
 
-    public static double[] getD0SumsLR(Connection conn, 
-                                        boolean vertical, 
-                                        String id) 
+    public static double[] getD0SumsLR(Connection conn,
+                                        boolean vertical,
+                                        String id)
             throws SQLException {
 
-        String query_id1 = chooseDB(SQL_QUERY_D0_SUMS_ID1).replaceAll("00", 
+        String query_id1 = chooseDB(SQL_QUERY_D0_SUMS_ID1).replaceAll("00",
                                                    vertical ? "v" : "h");
-        String query_id2 = chooseDB(SQL_QUERY_D0_SUMS_ID2).replaceAll("00", 
+        String query_id2 = chooseDB(SQL_QUERY_D0_SUMS_ID2).replaceAll("00",
                                                    vertical ? "v" : "h");
 
         //log.info("getD0SumsLR q's\n" + query_id1 + "\n" + query_id2);

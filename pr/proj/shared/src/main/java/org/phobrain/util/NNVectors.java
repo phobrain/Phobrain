@@ -44,7 +44,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class NNVectors extends Top implements Serializable {
+public class NNVectors extends Top { // implements Serializable
+
+    private static final long serialVersionUID = 1L;
 
     // veclen is the dimension, set in readVecs()
 

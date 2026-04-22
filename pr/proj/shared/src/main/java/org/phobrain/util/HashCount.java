@@ -35,8 +35,8 @@ public class HashCount {
 
         int ret = 0;
 
-        for (Map.Entry entry : map.entrySet()) {
-            ret += (Integer) entry.getValue();
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            ret += entry.getValue();
         }
 
         return ret;
@@ -74,9 +74,9 @@ public class HashCount {
     }
 
     public int add(HashCount hc) {
-        for (Map.Entry entry : hc.map.entrySet()) {
-            String key = (String) entry.getKey();
-            int value = (Integer) entry.getValue();
+        for (Map.Entry<String, Integer>  entry : hc.map.entrySet()) {
+            String key = entry.getKey();
+            int value =  entry.getValue();
 
             Integer i = map.get(key);
             if (i == null) {
@@ -112,10 +112,10 @@ public class HashCount {
         return map.keySet();
     }
 
-    public Map.Entry[] sortedMap() {
+    public Map.Entry<String,Integer>[] sortedMap() {
         Map<String, Integer> m = MapUtil.sortByValue(map);
         Set<Map.Entry<String, Integer>> es = m.entrySet();
-        Map.Entry sorted[] = new Map.Entry[es.size()];
+        Map.Entry<String, Integer>[] sorted = new Map.Entry[es.size()]; // TODO lint 'raw/unchecked' nightmare
         m.entrySet().toArray(sorted);
         return sorted;
     }
@@ -126,9 +126,8 @@ public class HashCount {
         }
         Map<String, Integer> m = MapUtil.sortByValue(map);
         Set<Integer> set = new HashSet<>();
-        for (Map.Entry pair : map.entrySet()) {
-            Integer val = (Integer) pair.getValue();
-            set.add(val);
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            set.add(entry.getValue());
         }
         return set.size();
     }
@@ -139,27 +138,29 @@ public class HashCount {
         }
         // in descending order
 
-        Map.Entry sorted[] = sortedMap();
+        Map.Entry<String, Integer> sorted[] = sortedMap();
 
         int max = (int) sorted[sorted.length-1].getValue();
 
-        Set<String> sets[] = new Set[max+1];
+        ArrayList<Set<String>> sets = new ArrayList<>();
+        for (int i=0; i<max+1; i++) sets.add(null);
 
-        for (Map.Entry pair : sorted) {
-            //System.out.println(" " + pair.getValue() + " " + pair.getKey());
-            int val = (int) pair.getValue();
-            if (sets[val] == null) {
-                sets[val] = new HashSet<>();
+        for (Map.Entry<String, Integer> entry : sorted) {
+            //System.out.println(" " + entry.getValue() + " " + entry.getKey());
+            int val = entry.getValue();
+            if (sets.get(val) == null) {
+                sets.set(val, new HashSet<>());
             }
-            sets[val].add((String) pair.getKey());
+            sets.get(val).add(entry.getKey());
         }
         StringBuilder sb = new StringBuilder();
         List<Set<String>> ret = new ArrayList<>();
         // in descending order
-        for (int i=sets.length-1; i>-1; i--) {
-            if (sets[i] != null) {
-                ret.add(sets[i]);
-                sb.append(i).append(": ").append(sets[i].size()).append(" ");
+        for (int i=sets.size()-1; i>-1; i--) {
+            Set<String> s = sets.get(i);
+            if (s != null) {
+                ret.add(s);
+                sb.append(i).append(": ").append(s.size()).append(" ");
             }
         }
         //System.out.println("Sets: " + sb);
@@ -175,10 +176,10 @@ public class HashCount {
         }
         return ret;
 
-        for (Map.Entry pair : sorted) {
-            System.out.println(" " + pair.getValue() + " " + pair.getKey());
+        for (Map.Entry<String, Integer> entry : sorted) {
+            System.out.println(" " + entry.getValue() + " " + entry.getKey());
         }
-        return (String) sorted[sorted.length-1].getKey();
+        return sorted[sorted.length-1].getKey();
 */
     }
 
@@ -213,11 +214,11 @@ public class HashCount {
 
             Map<String, Integer> m = MapUtil.sortByValue(map);
 
-            for (Map.Entry pair : m.entrySet()) {
+            for (Map.Entry<String, Integer> entry : m.entrySet()) {
                 sb.append(lineStart)
-                  .append(pair.getValue())
+                  .append(entry.getValue())
                   .append("\t")
-                  .append(pair.getKey());
+                  .append(entry.getKey());
                   //.append(lineStart);
             }
 
@@ -260,11 +261,11 @@ public class HashCount {
 
                 Map<String, Integer> m = new TreeMap<String, Integer>(map);
 
-                for (Map.Entry pair : m.entrySet()) {
+                for (Map.Entry<String, Integer> entry : m.entrySet()) {
                     sb.append(lineStart)
-                      .append(pair.getKey())
+                      .append(entry.getKey())
                       .append(": ")
-                      .append(pair.getValue());
+                      .append(entry.getValue());
                       //.append(lineStart);
                 }
             }

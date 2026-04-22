@@ -7,12 +7,12 @@ package org.phobrain.util;
  **/
 
 /**
- **  TopSelector - Select/output top N. 
+ **  TopSelector - Select/output top N.
  **
- **    For symmetric-valued pairs. TODO: consider binary (vs ascii) in-memory 
+ **    For symmetric-valued pairs. TODO: consider binary (vs ascii) in-memory
  **         approach like PairsBin, below.
  **
- **    ML/asymmetric pairs: Switched to doing it in python, at the source of 
+ **    ML/asymmetric pairs: Switched to doing it in python, at the source of
  **         the numbers, predtool.py -top.
  **         2023_03: Switched back to java for parallelism on common memory,
  **         method in new PairsBin.
@@ -41,7 +41,7 @@ public class TopSelector extends Stdio {
     private final boolean topDown;
     private final int targetPairs;
 
-    public TopSelector(PrintStream tout, String tag, int targetPairs, 
+    public TopSelector(PrintStream tout, String tag, int targetPairs,
                                          boolean topDown) {
         this.tout = tout;
         this.tag = tag;
@@ -75,7 +75,7 @@ public class TopSelector extends Stdio {
 
     private int lineCount = 0;
 
-    public void add(String id1, String id2, int val) 
+    public void add(String id1, String id2, int val)
             throws Exception {
 
         lineCount++;
@@ -185,8 +185,8 @@ public class TopSelector extends Stdio {
             //int otherid_as[] = IndexHolder.getArchSeq(iv.id);
 
             String[] oIds = ID.sortIds(id, iv.id);
-            tout.println(oIds[0] + "\t" + oIds[1] + "\t" + tag + "\t" + 
-                            (int)iv.value);
+            tout.println(oIds[0] + "\t" + oIds[1] + "\t" + tag + "\t" +
+                            iv.value);
         }
         idvals = null;
     }

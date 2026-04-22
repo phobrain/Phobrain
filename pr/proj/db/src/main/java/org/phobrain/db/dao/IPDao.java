@@ -30,7 +30,7 @@ public class IPDao extends DaoBase {
 
     public static boolean insertIP(Connection conn, String ip)
                                                   throws SQLException {
-        
+
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {

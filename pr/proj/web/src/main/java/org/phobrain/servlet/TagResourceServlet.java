@@ -6,11 +6,9 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  TagResourceServlet - view.html, curate.html picture-getter,
- **     using per-session tags via database,
- **     to hide identity of photos.
- **/
+//  TagResourceServlet - view.html, curate.html picture-getter,
+//     using per-session tags via database,
+//     to hide identity of photos when serving externally (always done).
 
 import org.phobrain.util.ConfigUtil;
 
@@ -34,11 +32,11 @@ import java.io.UnsupportedEncodingException;
 
 import java.nio.charset.StandardCharsets;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.WebServlet;
 
 import javax.naming.NamingException;
 
@@ -51,6 +49,8 @@ import org.slf4j.LoggerFactory;
 
 @WebServlet("/pr/images/*")
 public class TagResourceServlet extends StaticResourceServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private String imagesDir;
 
@@ -65,14 +65,14 @@ public class TagResourceServlet extends StaticResourceServlet {
         imagesDir = ConfigUtil.runtimeProperty("images.dir");
         File folder = new File(imagesDir);
         if (!folder.isDirectory()) {
-            log.error("CONFIG: images.dir [" + imagesDir + 
+            log.error("CONFIG: images.dir [" + imagesDir +
                                        "] IS NOT A DIRECTORY - EXITING");
             System.exit(1);
         }
     }
 
     @Override
-    protected StaticResource getStaticResource(HttpServletRequest request) 
+    protected StaticResource getStaticResource(HttpServletRequest request)
                throws IllegalArgumentException {
         String pathInfo = request.getPathInfo();
 
@@ -82,7 +82,7 @@ public class TagResourceServlet extends StaticResourceServlet {
 
         String name = null;
         try {
-            name = URLDecoder.decode(pathInfo.substring(1), 
+            name = URLDecoder.decode(pathInfo.substring(1),
                                      StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException uee) {
             throw new RuntimeException("Encoding: " + uee, uee);
@@ -111,22 +111,22 @@ public class TagResourceServlet extends StaticResourceServlet {
             conn = DaoBase.getConn();
             PictureMap pm = PictureMapDao.getPictureMap(conn, name);
             if (pm == null) {
-                log.error("DANGER: UNKNOWN HASH ATTACK [" + name + "] " + 
+                log.error("DANGER: UNKNOWN HASH ATTACK [" + name + "] " +
                       remoteHost); // maybe hash oil
                 // TODO - count up to 1000 incidents then block IP
                 return null;
             }
             // TODO - comment this log out:
-            log.info("TIME " + 
-                  (System.currentTimeMillis() - pm.createTime.getTime()) + 
+            log.info("TIME " +
+                  (System.currentTimeMillis() - pm.createTime.getTime()) +
                   " " + remoteHost);
 
             // not so much an issue since hash is only used for workbench
-            if (System.currentTimeMillis() - pm.createTime.getTime() > 
+            if (System.currentTimeMillis() - pm.createTime.getTime() >
                                          TimeUnit.DAYS.toMillis(14)) {
-                log.error("DANGER: OLD HASH ATTACK (>14 days) [" + 
-                      name + "] AGE " + 
-                      (System.currentTimeMillis() - pm.createTime.getTime()) + 
+                log.error("DANGER: OLD HASH ATTACK (>14 days) [" +
+                      name + "] AGE " +
+                      (System.currentTimeMillis() - pm.createTime.getTime()) +
                       " " + remoteHost);
                 // TODO - count up to 1000 incidents then block IP
                 return null;
@@ -137,12 +137,12 @@ public class TagResourceServlet extends StaticResourceServlet {
                 file = new File(imagesDir + "/" + p.archive + "/" + p.fileName);
 
             } else {
-                file = new File(imagesDir + "/" + 
+                file = new File(imagesDir + "/" +
                                    pm.archive + "/" + pm.fileName);
             }
 
             if (!file.exists()) {
-                log.error("Internal Error: Couldn't find: " + 
+                log.error("Internal Error: Couldn't find: " +
                                 file.getAbsolutePath());
                 return null;
             }
@@ -172,7 +172,7 @@ public class TagResourceServlet extends StaticResourceServlet {
             @Override
             public long getLastModified() {
                 // within last 22.21558 days :-)
-                return System.currentTimeMillis() - rand.nextInt(1919426112); 
+                return System.currentTimeMillis() - rand.nextInt(1919426112);
             }
             @Override
             public InputStream getInputStream() throws IOException {
@@ -180,7 +180,7 @@ public class TagResourceServlet extends StaticResourceServlet {
             }
             @Override
             public String getFileName() {
-                return "resized_" + rand.nextInt(7) + "_" + 
+                return "resized_" + rand.nextInt(7) + "_" +
                        rand.nextInt(100000) + ".jpg"; // :-)
             }
             @Override

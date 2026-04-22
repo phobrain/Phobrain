@@ -54,7 +54,7 @@ public class CommentDao extends DaoBase {
             if (generatedKeys.next()) {
                 com.id = generatedKeys.getLong(1);
                 return com.id;
-            } 
+            }
             throw new SQLException( "Creating comment failed, no ID obtained.");
 
         } finally {
@@ -96,7 +96,7 @@ public class CommentDao extends DaoBase {
             closeSQL(ps);
         }
     }
- 
+
     private final static String SQL_UPDATE_COMMENT_COUNT =
         "UPDATE pr.comment SET count = ? WHERE id = ?";
 

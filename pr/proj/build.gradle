@@ -9,20 +9,21 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 subprojects {
 
-    apply plugin: 'java'
+    apply plugin: "java"
 
-/*
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            options.compilerArgs << "-Xlint:-dangling-doc-comments"
+                // <<  "-Xlint:all"
+                // << "-Xlint:-dangling-doc-comments"
+                // << "-Xlint:unchecked" << "-Xlint:deprecation"
         }
     }
-*/
 
     repositories {
         mavenCentral()
         maven {
-            url "https://mvnrepository.com/artifact/"
+            url="https://mvnrepository.com/artifact/"
         }
 /*
         tensorflow-snapshots {
@@ -31,7 +32,7 @@ subprojects {
 */
     }
 
-    version = '1.0'
+    version = "1.0"
 }
 
 /*
@@ -41,27 +42,27 @@ tasks.withType<Jar> {
 */
 
 
-project(':import') {
+project(":import") {
     dependencies {
-        implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
-        implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+        implementation 'org.slf4j:slf4j-api:2.0.17:null'
+        // runtimeOnly "ch.qos.logback:logback-classic:1.5.32"
     }
 }
 
-project(':db') {
+project(":db") {
     dependencies {
-        implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
-        implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+        //implementation 'com.pgvector:pgvector:0.1.6'
+        //implementation "org.slf4j:slf4j-api:2.0.17"
+        // runtimeOnly "ch.qos.logback:logback-classic:1.5.32"
     }
 }
 
-project(':shared') {
+project(":shared") {
     dependencies {
-        implementation files('../lib/flanagan-1.0.jar')
-        implementation group: 'org.ddogleg', name: 'ddogleg', version: '0.22'
-        implementation "javax.servlet:javax.servlet-api:3.1.0"
-        implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
-        //implementation "jakarta.servlet:jakarta.servlet-api:6.0.0"
+        implementation files("../lib/flanagan-1.0.jar")
+        //implementation group: "org.ddogleg:ddogleg:0.22"
+        implementation "jakarta.servlet:jakarta.servlet-api:6.1.0"
+        implementation "org.slf4j:slf4j-api:2.0.17"
     }
 }
 

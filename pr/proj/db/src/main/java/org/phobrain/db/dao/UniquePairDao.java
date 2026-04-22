@@ -47,7 +47,7 @@ public class UniquePairDao extends DaoBase {
     private final static String SQL_INSERT =
         "INSERT INTO pr.pair_local (curator, id1, id2) VALUES (?, ?, ?)";
 
-    public static void insert(Connection conn, 
+    public static void insert(Connection conn,
                               String curator, String id1, String id2)
             throws SQLException {
 
@@ -81,7 +81,7 @@ public class UniquePairDao extends DaoBase {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-           
+
             ps = conn.prepareStatement(SQL_SEEN2); // approved_pair tbl bigger
 
             ps.setString(1, id1);
@@ -123,7 +123,7 @@ public class UniquePairDao extends DaoBase {
     private static final String SQL_GET_PICS_SEEN2 =
         "SELECT XX FROM approved_pair WHERE YY = ? AND (status=1 OR status=2)";
 
-    public static Set<String> getPicsSeen(Connection conn, 
+    public static Set<String> getPicsSeen(Connection conn,
                            String id, String column)
             throws SQLException {
 
@@ -168,7 +168,7 @@ public class UniquePairDao extends DaoBase {
             while (rs.next()) {
                 ret.add(rs.getString(1));
             }
-            
+
             return ret;
 
         } finally {
@@ -195,13 +195,13 @@ public class UniquePairDao extends DaoBase {
             List<ApprovedPair> ret = new ArrayList<>();
 
             while (rs.next()) {
-                ApprovedPair ap = new ApprovedPair(rs.getString(1), 
+                ApprovedPair ap = new ApprovedPair(rs.getString(1),
                                                    rs.getString(2));
                 ap.createTime = rs.getTimestamp(3);
                 ret.add(ap);
             }
             //log.info("Q [" + query + "]: " + ret.size());
-            
+
             return ret;
 
         } finally {
@@ -240,7 +240,7 @@ public class UniquePairDao extends DaoBase {
 
 
     private static Picture fnameTrans(Connection conn, int archive,
-                                    String fname, Set<String> noPicForFname) 
+                                    String fname, Set<String> noPicForFname)
             throws SQLException {
 
         try {
@@ -282,7 +282,7 @@ public class UniquePairDao extends DaoBase {
     private static Set<String> pSkipMap = new HashSet<>();
     private static Set<String> pExtraMap = new HashSet<>();
 
-    private static Picture getPic(Connection conn, 
+    private static Picture getPic(Connection conn,
                                     Map<String, String[]> multiX,
                                     String id, boolean vertical)
             throws SQLException {
@@ -294,7 +294,7 @@ public class UniquePairDao extends DaoBase {
         }
 
         Picture p = pMap.get(mapid);
-        
+
         if (p != null) {
             return p;
         }
@@ -307,7 +307,7 @@ public class UniquePairDao extends DaoBase {
         }
 
         List<Picture> l = PictureDao.getPicturesByArchiveSequence(
-                                                    conn, 
+                                                    conn,
                                                     iid.arch, iid.seq);
         if (l == null  ||  l.size() == 0) {
             pNoMap.add(mapid);

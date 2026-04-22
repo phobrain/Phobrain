@@ -51,11 +51,11 @@ public class DaoBase extends Stdio {
 dbcp
     static {
         GenericObjectPool connectionPool = new GenericObjectPool(null);
-        ConnectionFactory connectionFactory = new 
+        ConnectionFactory connectionFactory = new
                                 DriverManagerConnectionFactory(
                                     "java:comp/env/jdbc/pr",
                                     "pr", "@@pr");
-         PoolableConnectionFactory poolableConnectionFactory = new 
+         PoolableConnectionFactory poolableConnectionFactory = new
                         PoolableConnectionFactory(connectionFactory,
                         connectionPool, null, null, false, true);
         PoolingDriver driver = new PoolingDriver();
@@ -128,7 +128,7 @@ dbcp
         throw new SQLException("DB CONN FAILURE");
     }
 
-    protected static Timestamp getTimestamp(ResultSet rs, int num) 
+    protected static Timestamp getTimestamp(ResultSet rs, int num)
             throws SQLException {
         return rs.getTimestamp(num);
     }
@@ -228,7 +228,7 @@ dbcp
             return;
         }
         try {
-            obj.close(); 
+            obj.close();
         } catch (Exception ignore) {}
     }
 

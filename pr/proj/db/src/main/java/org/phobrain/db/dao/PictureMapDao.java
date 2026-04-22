@@ -7,7 +7,7 @@ package org.phobrain.db.dao;
  **/
 
 /**
- **  PictureMapDao - hide real names of pics from web clients 
+ **  PictureMapDao - hide real names of pics from web clients
  **     using pr.picture_map table
  **/
 
@@ -74,7 +74,7 @@ public class PictureMapDao extends DaoBase {
                  } catch (Exception e) {
                     log.error("pr.picture_map insert: " + e);
                  }
-            } 
+            }
             throw new SQLException( "Creating pr.picture_map failed, 50 tries.");
 
         } finally {
@@ -84,10 +84,10 @@ public class PictureMapDao extends DaoBase {
     }
 
     private static final String SQL_GET_PICTURE_MAP =
-        "SELECT " + RECORD_FIELDS + PICTURE_MAP_FIELDS + 
+        "SELECT " + RECORD_FIELDS + PICTURE_MAP_FIELDS +
           " FROM pr.picture_map WHERE hash = ?";
 
-    public static PictureMap getPictureMap(Connection conn, String hash) 
+    public static PictureMap getPictureMap(Connection conn, String hash)
             throws SQLException {
 
         if ("undefined".equals(hash)) {
@@ -98,7 +98,7 @@ public class PictureMapDao extends DaoBase {
         ResultSet rs = null;
         try {
 
-            ps = conn.prepareStatement(SQL_GET_PICTURE_MAP, 
+            ps = conn.prepareStatement(SQL_GET_PICTURE_MAP,
                                        ResultSet.TYPE_SCROLL_INSENSITIVE,
                                        ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, hash);
@@ -106,7 +106,7 @@ public class PictureMapDao extends DaoBase {
             if (!rs.next()) {   // impossible?
                 throw new SQLException("getPictureMap: no result for hash: " + hash);
             }
-            
+
             PictureMap pm = new PictureMap();
             pm.id = rs.getLong(1);
             pm.createTime = rs.getTimestamp(2);

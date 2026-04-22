@@ -6,14 +6,11 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  FeelingMirror - main/live 'brain' of Phobrain.
- **     Serves photo pairs in response to 'drawing dots' 
- **     as a reading of feelings. 
- **     TODO - classify objects in pics, use names of objects
- **             that any dots highlight for a revival of the
- **             original keyword=based system.
- */
+//  FeelingMirror - Serves photo pairs
+//      in response to 'drawing dots' as a reading of feelings.
+//     TODO - classify objects in pics, use names of objects
+//             that any dots highlight for a revival of the
+//             original keyword-based system.
 
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.MathUtil;
@@ -23,6 +20,8 @@ import org.phobrain.util.ListHolder;
 import org.phobrain.util.HashCount;
 import org.phobrain.util.AtomSpec;
 import org.phobrain.util.SortDoubleStrings;
+
+import org.phobrain.webml.WebML;
 
 import org.phobrain.math.Higuchi;
 
@@ -48,11 +47,6 @@ import org.phobrain.db.record.HistoryPair;
 import org.phobrain.db.record.Pair;
 import org.phobrain.db.record.ApprovedPair;
 import org.phobrain.db.util.DBUtil;
-
-import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
 
 import java.util.Random;
 import java.util.Collections;
@@ -89,9 +83,6 @@ public class FeelingMirror extends MirrorJuice {
 
     private static final Logger log = LoggerFactory.getLogger(FeelingMirror.class);
 
-    private MultiLayerNetwork flowModel_vgg16_4;
-    private MultiLayerNetwork flowModel_nnl_7;
-
     @Override
     boolean checkSeen(Connection conn, long browserID, String id1, String id2)
             throws SQLException {
@@ -100,25 +91,25 @@ public class FeelingMirror extends MirrorJuice {
     }
 
     @Override
-    Set<String> getSeen(Connection conn, long browserID) 
+    Set<String> getSeen(Connection conn, long browserID)
             throws SQLException {
 
         return FeelingPairDao.getSeen(conn, browserID);
     }
 
     @Override
-    int countPairs(Connection conn, long browserID) 
+    int countPairs(Connection conn, long browserID)
             throws SQLException {
         return FeelingPairDao.countPairs(conn, browserID);
     }
     @Override
-    int countPairs(Connection conn, long browserID, String orient) 
+    int countPairs(Connection conn, long browserID, String orient)
             throws SQLException {
         return FeelingPairDao.countPairs(conn, browserID, orient);
     }
 
     @Override
-    List<HistoryPair> getLastPairs(Connection conn, long browserID, int n) 
+    List<HistoryPair> getLastPairs(Connection conn, long browserID, int n)
             throws SQLException {
         return FeelingPairDao.getLastPairs(conn, browserID, 10);
     }
@@ -182,7 +173,7 @@ public class FeelingMirror extends MirrorJuice {
         if (seenids.seen == null  ||  seenids.seen.size() == 0) {
             return 0;
         }
-        Set<String> picSet = data.getPicSet(viewNum, orient);
+        Set<String> picSet = ServletData.getPicSet(viewNum, orient);
         if (picSet == null  ||  picSet.size() == 0) {
             return -1;
         }
@@ -293,38 +284,26 @@ public class FeelingMirror extends MirrorJuice {
 
     @Override
     boolean haveFlow() {
-        if (flowModel_vgg16_4 == null  &&  flowModel_nnl_7 == null) {
-            return false;
-        }
-        return true;
+        log.info("Overridded haveFlow!");
+        return webML != null;
     }
 
-    private void setTmpVec(Picture p, String vector) {
+    private void setTmpVec(Picture p, String vector_name) {
 
-        if ("nnl_7".equals(vector)) {
+        if ("nnl_7".equals(vector_name)) {
             p.tmp_vec = p.nnl_7;
 /*
-        } else if ("vgg16_2".equals(vector)) {
+        } else if ("vgg16_2".equals(vector_name)) {
             p.tmp_vec = p.vgg16_2;
 */
-        } else if ("vgg16_4".equals(vector)) {
+        } else if ("vgg16_4".equals(vector_name)) {
             p.tmp_vec = p.vgg16_4;
-        } else if ("dense_4".equals(vector)) {
+        } else if ("dense_4".equals(vector_name)) {
             p.tmp_vec = p.dense_4;
         } else {
-            log.warn("Unknown vector: " + vector + " using vgg16_4");
+            log.warn("Unknown vector: " + vector_name + " using vgg16_4");
             p.tmp_vec = p.vgg16_4;
         }
-    }
-
-    final boolean doRev = false;
-
-    private double reverseByteOrder(double value) {
-
-        if (!doRev) return value;
-        long longBits = Double.doubleToLongBits(value);
-        long reversedBits = Long.reverseBytes(longBits);
-        return Double.longBitsToDouble(reversedBits);
     }
 
     /*
@@ -354,23 +333,17 @@ public class FeelingMirror extends MirrorJuice {
         int[] hist3 = dh.d3angleHist;
         int[] hist4 = dh.d2angleHist;
 
-        String vector = ((dh.dots1 + dh.dots2) % 2 == 0 ? "nnl_7" : "vgg16_4");
+        // decide which folded imagenet vector space to use
 
-        // gather the pic reps: previous pair for every case
+        String vector_name = ((dh.dots1 + dh.dots2) % 2 == 0 ? "nnl_7" : "vgg16_4");
+
+        // gather the pic reps: the previous pair will be
+        //      included with the movement data for every case
         //   leave pics handy for now
         Picture p_1_1 = PictureDao.getPictureById(conn, ids.get(0));
         Picture p_1_2 = PictureDao.getPictureById(conn, ids.get(1));
-        setTmpVec(p_1_1, vector);
-        setTmpVec(p_1_2, vector);
-
-        MultiLayerNetwork flowModel;
-        if ("vgg16_4".equals(vector)) {
-            flowModel = flowModel_vgg16_4;
-        } else if ("nnl_7".equals(vector)) {
-            flowModel = flowModel_nnl_7;
-        } else {
-            flowModel = flowModel_nnl_7;
-        }
+        setTmpVec(p_1_1, vector_name);
+        setTmpVec(p_1_2, vector_name);
 
         // gather picreps for candidates on left and right
 
@@ -380,7 +353,7 @@ public class FeelingMirror extends MirrorJuice {
 
         for (String id : lhs[0].id2_l) {
             Picture p = PictureDao.getPictureById(conn, id);
-            setTmpVec(p, vector);
+            setTmpVec(p, vector_name);
             if (p.tmp_vec == null) {
                 errors++;
                 continue;
@@ -392,7 +365,7 @@ public class FeelingMirror extends MirrorJuice {
             if (picreps.get(id) != null) continue;
 
             Picture p = PictureDao.getPictureById(conn, id);
-            setTmpVec(p, vector);
+            setTmpVec(p, vector_name);
             if (p.tmp_vec == null) {
                 errors++;
                 continue;
@@ -401,142 +374,179 @@ public class FeelingMirror extends MirrorJuice {
         }
 
         // pack the constants into data:
-        //      i.e. all data but the vectors of new pair
+        //      i.e. all data but the vectors of new pair:
         //          1st pair, histograms, 'db' data are constant
 
-        int DATA_SZ = hist1.length + hist2.length + hist3.length + hist4.length +
-                      4 * p_1_1.tmp_vec.length;
+        int DATA_SZ = 2 * p_1_1.tmp_vec.length + // vecs for pair the dots were drawn on - fixed
+                      hist1.length + hist2.length + hist3.length + hist4.length + // dots drawm - fixed
+                      2 * p_1_1.tmp_vec.length;  // for the MxN next-pair candidates - variable
 
-        double[] data = new double[DATA_SZ];
+        // the first row gets the fixed data, then copied to MxN
 
-        double data2d[][] = new double[1][];
-        data2d[0] = data;
+        double[] data1d = new double[DATA_SZ];
 
         int dix = 0;
         for (int i=0; i<p_1_1.tmp_vec.length; i++) {
-            data[dix++] = reverseByteOrder( (double) p_1_1.tmp_vec[i] );
+            data1d[dix++] = p_1_1.tmp_vec[i];
         }
         for (int i=0; i<p_1_2.tmp_vec.length; i++) {
-            data[dix++] = reverseByteOrder( (double) p_1_2.tmp_vec[i] );
+            data1d[dix++] = p_1_2.tmp_vec[i];
         }
         for (int i=0; i<hist1.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist1[i] );
+            data1d[dix++] = hist1[i];
         }
         for (int i=0; i<hist2.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist2[i] );
+            data1d[dix++] = hist2[i];
         }
         for (int i=0; i<hist3.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist3[i] );
+            data1d[dix++] = hist3[i];
         }
         for (int i=0; i<hist4.length; i++) {
-            data[dix++] = reverseByteOrder( (double) hist4[i] );
+            data1d[dix++] = hist4[i];
         }
 
-        // run the model over the NxM cases
+        final int fixed_dix = dix;  // beginning of variable data
+
+        // fixed data laid down, now copy
+        //      to build the NxM cases for batch
+
+        // lay out the memory for the whole batch
+
+        double[][] batch = new double[lhs[0].size() * lhs[1].size()][];
+
+        for (int i=0; i<batch.length; i++) {
+            batch[i] = data1d.clone();
+        }
+
+        // plug in the NxM vecs for eval pairs
+
+        int row = 0;
+
+        List<SortDoubleStrings> preds = new ArrayList<>();
+
+        for (int i=0; i<lhs[0].size(); i++) {
+
+            // get pic 1's array & reverse byte order
+
+            String lpic = lhs[0].id2_l.get(i);
+            float[] larr = picreps.get(lpic);
+
+            // copy pic i's array to |j rows|
+
+            int row_i = row;
+
+            for (int j=0; j<lhs[1].size(); j++) {
+                int dix2 = fixed_dix;
+                for (int c=0; c<larr.length; c++) {
+                    batch[row][dix2++] = larr[c];
+                }
+                row++;
+            }
+
+            // copy in the pic j's vecs
+
+            row = row_i;
+            for (int j=0; j<lhs[1].size(); j++) {
+
+                String rpic = lhs[1].id2_l.get(j);
+                float[] rarr = picreps.get(rpic);
+                int dix2 = fixed_dix + rarr.length;
+                for (int c=0; c<rarr.length; c++) {
+                    batch[row][dix2++] = rarr[c];
+                }
+                preds.add(new SortDoubleStrings(new String[] {lpic, rpic}));
+                row++;
+            }
+        }
+
+        double[] mpreds = null;
 
         try {
-
-            List<SortDoubleStrings> preds = new ArrayList<>();
-
-            for (int i=0; i<lhs[0].size(); i++) {
-
-                String lpic = lhs[0].id2_l.get(i);
-                float[] larr = picreps.get(lpic);
-                int dix2 = dix;
-                for (int c=0; c<larr.length; c++) {
-                    data[dix2++] = reverseByteOrder( (double) larr[c] );
-                }
-                for (int j=0; j<lhs[1].size(); j++) {
-
-                    String rpic = lhs[1].id2_l.get(j);
-                    float[] rarr = picreps.get(rpic);
-                    int dix3 = dix2;
-                    for (int c=0; c<rarr.length; c++) {
-                        data[dix3++] = reverseByteOrder( (double) rarr[c] );
-                    }
-
-                    INDArray aaa = Nd4j.create(data2d);
-                    double prediction = flowModel.output(aaa).getDouble(0);
-
-                    preds.add( new SortDoubleStrings(prediction, new String[] {lpic, rpic} ) );
-
-                    //if (true) { log.info("WWWX flow pred " + prediction + " from " + Arrays.toString(data)); }
-
-                }
-            }
-            Collections.sort(preds);
-
-            SortDoubleStrings sds0 = preds.get(0);
-            SortDoubleStrings sdsN = preds.get(preds.size()-1);
-
-            SortDoubleStrings sds;
-            String method = Integer.toString(p_1_1.tmp_vec.length);
-            if (dh.dots2 < dh.dots1) {
-                sds = sds0;
-                method += "min";
-            } else {
-                sds = sdsN;
-                method += "max";
-            }
-            if (lhs[0].size() == lhs[1].size()) {
-                method += lhs[0].size() + "|";
-            } else {
-                method += lhs[0].size() + "x" + lhs[1].size();
-            }
-            log.info("PRED " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
-            log.info("PREDrev " + method + " spread " + (reverseByteOrder(sdsN.value) - reverseByteOrder(sds0.value)) + " on " + preds.size());
-
-            PictureResponse pr1 = new PictureResponse();
-            pr1.p = PictureDao.getPictureById(conn, sds.strings[0]);
-            PictureResponse pr2 = new PictureResponse();
-            pr2.p = PictureDao.getPictureById(conn, sds.strings[1]);
-
-            pr1.method = method;
-            pr2.method = method;
-
-            if (false) {
-                Picture p1 = PictureDao.getPictureById(conn, sds0.strings[0]);
-                Picture p2 = PictureDao.getPictureById(conn, sds0.strings[1]);
-                log.info(
-                    "\nPRZ min " + p1.archive + "/" + p1.fileName + "  |  " +
-                    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sds0.value) +
-                    " rev " + String.format("%.5f", reverseByteOrder(sds0.value)));
-                p1 = PictureDao.getPictureById(conn, sdsN.strings[0]);
-                p2 = PictureDao.getPictureById(conn, sdsN.strings[1]);
-                log.info(
-                    "\nPRZ max " + p1.archive + "/" + p1.fileName + "  |  " +
-                    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sdsN.value) +
-                    " rev " + String.format("%.5f", reverseByteOrder(sdsN.value)));
-                double diff = sdsN.value-sds0.value;
-                log.info(
-                    "\nPRZ     " + String.format("%.0e", diff) + " / " + preds.size() +
-                    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
-                    vector + " " + (sds == sds0 ? " min" : " max") );
-                diff=reverseByteOrder(sdsN.value) - reverseByteOrder(sds0.value);
-                log.info(
-                    "\nPRZ2     " + String.format("%.0e", diff) + " / " + preds.size() +
-                    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
-                    vector + " " + (sds == sds0 ? " min" : " max") );
-            }
-            List<Screen> scl = new ArrayList<>();
-
-            scl.add(new Screen(session.browserID,
-                                   1, "v", sds.strings[0],
-                                   pr1));
-            scl.add(new Screen(session.browserID,
-                                   2, "v", sds.strings[1],
-                                   pr2));
-            return scl;
-
+            mpreds = webML.predict(vector_name, batch);
         } catch (Exception e) {
             log.error("PREDICT " + e, e);
+            return null;
         }
-        return null;
+        if (mpreds.length != preds.size()) {
+
+            log.error("model preds " + mpreds.length +
+                        " != expected " + preds.size());
+        }
+        for (int i=0; i< mpreds.length; i++) {
+            preds.get(i).setVal(mpreds[i]);
+        }
+
+        Collections.sort(preds);
+
+        SortDoubleStrings sds0 = preds.get(0);
+        SortDoubleStrings sdsN = preds.get(preds.size()-1);
+
+        SortDoubleStrings sds;
+        String method = Integer.toString(p_1_1.tmp_vec.length);
+        if (dh.dots2 < dh.dots1) {
+            sds = sds0;
+            method += "min";
+        } else {
+            sds = sdsN;
+            method += "max";
+        }
+        if (lhs[0].size() == lhs[1].size()) {
+            method += lhs[0].size() + "|";
+        } else {
+            method += lhs[0].size() + "x" + lhs[1].size();
+        }
+        log.info("PRED " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
+        log.info("PREDrev " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
+
+        PictureResponse pr1 = new PictureResponse();
+        pr1.p = PictureDao.getPictureById(conn, sds.strings[0]);
+        PictureResponse pr2 = new PictureResponse();
+        pr2.p = PictureDao.getPictureById(conn, sds.strings[1]);
+
+        pr1.method = method;
+        pr2.method = method;
+
+        if (false) {
+            Picture p1 = PictureDao.getPictureById(conn, sds0.strings[0]);
+            Picture p2 = PictureDao.getPictureById(conn, sds0.strings[1]);
+            log.info(
+                    "\nPRZ min " + p1.archive + "/" + p1.fileName + "  |  " +
+                    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sds0.value) +
+                    " rev " + String.format("%.5f", sds0.value));
+            p1 = PictureDao.getPictureById(conn, sdsN.strings[0]);
+            p2 = PictureDao.getPictureById(conn, sdsN.strings[1]);
+            log.info(
+                    "\nPRZ max " + p1.archive + "/" + p1.fileName + "  |  " +
+                    p2.archive + "/" + p2.fileName + "   " + String.format("%.5f", sdsN.value) +
+                    " rev " + String.format("%.5f", sdsN.value));
+            double diff = sdsN.value-sds0.value;
+            log.info(
+                    "\nPRZ     " + String.format("%.0e", diff) + " / " + preds.size() +
+                    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
+                    vector_name + " " + (sds == sds0 ? " min" : " max") );
+            diff = sdsN.value - sds0.value;
+            log.info(
+                    "\nPRZ2     " + String.format("%.0e", diff) + " / " + preds.size() +
+                    " = " + String.format("%.0e", diff/preds.size()) + " per, " +
+                    vector_name + " " + (sds == sds0 ? " min" : " max") );
+        }
+        List<Screen> scl = new ArrayList<>();
+
+        scl.add(new Screen(session.browserID,
+                                   1, "v", sds.strings[0],
+                                   pr1));
+        scl.add(new Screen(session.browserID,
+                                   2, "v", sds.strings[1],
+                                   pr2));
+        return scl;
+
     }
+
+    // assuming one user per install? TODO
 
     private static FeelingMirror instance = null;
 
-    public static FeelingMirror getFeelingMirror() {
+    public static FeelingMirror getMirror() {
         synchronized(FeelingMirror.class) {
             if (instance == null) {
                 instance = new FeelingMirror();
@@ -545,108 +555,12 @@ public class FeelingMirror extends MirrorJuice {
         return instance;
     }
 
+    private WebML webML = null;
+
     private FeelingMirror() {
 
         super();
 
-        Connection conn = null;
-        try {
-            // conn = DaoBase.getConn();
-
-            long t1 = System.currentTimeMillis();
-
-// w/ ois
-//final String MODEL = "/home/epqe/new/models2/qiktry_val_63_roc_66_dim_7_softsign.keras";
-// no db
-//final String MODEL = "/home/epqe/new/models_no_db/qiktry_val_64_roc_70_dim_7_softsign.keras";
-            final String MODEL_vgg16_4 = "/home/epqe/new/models_no_db/qiktry_val_66_roc_71_dim_4_tanh.keras";
-            final String MODEL_nnl_7 = "/home/epqe/new/models_no_db/qiktry_val_66_roc_70_dim_7_tanh.keras";
-
-            log.info("Loading models " + MODEL_vgg16_4 + " " + MODEL_nnl_7);
-            flowModel_vgg16_4 = KerasModelImport.
-                    importKerasSequentialModelAndWeights(MODEL_vgg16_4, false);
-            log.info("Loaded MODEL " + MODEL_vgg16_4 + ":   " + flowModel_vgg16_4.summary());
-            flowModel_nnl_7 = KerasModelImport.
-                    importKerasSequentialModelAndWeights(MODEL_nnl_7, false);
-            log.info("Loaded MODEL " + MODEL_nnl_7 + ":   " + flowModel_nnl_7.summary());
-
-            if (false) {
-                BufferedReader in = new BufferedReader(new FileReader("/home/epqe/new/pypreds"));
-                String line;
-                double[] data = new double[202];
-                double data2d[][] = new double[1][];
-                data2d[0] = data;
-                while ((line = in.readLine()) != null) {
-
-                    if (line.startsWith("#")) {
-                        continue;
-                    }
-
-                    String ss[] = line.split("\\|");
-                    if (ss.length != 2) {
-                        log.error("LEN mismatch " + ss.length + " != 2");
-                        System.exit(1);
-                    }
-
-                    String sss[] = ss[0].split(",");
-                    if (sss.length != data.length) {
-                        log.error("LEN mismatch " + sss.length + ", " + data.length);
-                        System.exit(1);
-                    }
-                    for (int i=0; i<sss.length; i++) {
-                        data[i] = Double.parseDouble(sss[i]);
-                    }
-                    INDArray aaa = Nd4j.create(data2d);
-                    double prediction = flowModel_nnl_7.output(aaa).getDouble(0);
-                    log.info("WWW " + prediction + " " + ss[1]);
-                }
-            }
-
-            log.info("Load time: " + (System.currentTimeMillis()-t1) + " ms");
-            /*
-            initNNOpts(p.getProperty("n_pairtop_nn_v"),
-                       p.getProperty("n_pairtop_nn_h"));
-            log.info("Load time: " + (System.currentTimeMillis()-t1) + " ms");
-            */
-/*
-        } catch (NamingException ne) {
-            log.error("init: Naming", ne);
-        } catch (SQLException sqe) {
-            log.error("init: DB: " + sqe, sqe);
-*/
-        } catch (Exception e) {  // ? what types
-            log.error("Model load: " + e);
-        } finally {
-            // DaoBase.closeSQL(conn);
-        }
-        log.info("FeelingMirror Init OK");
+        webML = new WebML();
     }
-
-/* easy reference/old
-    public static class PictureResponse {
-        Picture p;
-        int value = -1;
-        String method;
-        boolean first = false;
-        ListHolder lh;
-        AtomSpec atoms = AtomSpec.NO_ATOM;
-        double factor = -1.0;
-    }
-    private enum AtomSpec {
-        NO_ATOM(0),
-        C_O2N3N4(1),
-        C_O2N3(2),
-        C_N3N4(3),
-        A_N1N6N7(4),
-        A_N1N6(5),
-        A_N6N7(6),
-        T_O2N3(7),
-        T_N3O4(8);
-        private int value;
-        private AtomSpec(int value) {
-            this.value = value;
-        }
-    }
-*/
-
 }

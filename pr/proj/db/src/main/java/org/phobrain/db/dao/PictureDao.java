@@ -77,7 +77,7 @@ public class PictureDao extends DaoBase {
         " block_display, block_reason, pref, " +
 	    " density, sum_d0, sum_d0_l, sum_d0_r, avg_ok_d0, " +
         " avg_bad_d0, d_ctr_rgb, d_ctr_ab, d_ctr_8d, ang_ab, " +
-        " d_ctr_27d, d_ctr_64d," + 
+        " d_ctr_27d, d_ctr_64d," +
         " vgg16_4, dense_4, mob_5, nnl_7," +
         " vec_l, vec_r";
 
@@ -200,11 +200,11 @@ public class PictureDao extends DaoBase {
             ps.setString(1, p.id);
             ps.setString(4, p.id);
             rows = 0;
-            for (Map.Entry pair : p.props.entrySet()) {
-                ps.setString(2, (String) pair.getKey());
-                ps.setString(3, (String) pair.getValue());
-                ps.setString(5, (String) pair.getKey());
-                ps.setString(6, (String) pair.getValue());
+            for (Map.Entry<String, String> entry : p.props.entrySet()) {
+                ps.setString(2, entry.getKey());
+                ps.setString(3, entry.getValue());
+                ps.setString(5, entry.getKey());
+                ps.setString(6, entry.getValue());
                 rows += ps.executeUpdate();
             }
             //log.info("Inserted " + rows + " props");
@@ -889,9 +889,9 @@ PGvector.addVectorType(conn);
         ResultSet rs = null;
         String query = null;
         try {
-            for (Map.Entry pair : archiveQueries.entrySet()) {
-                int archive = (Integer) pair.getKey();
-                StringBuilder sb = (StringBuilder) pair.getValue();
+            for (Map.Entry<Integer, StringBuilder> entry : archiveQueries.entrySet()) {
+                int archive = entry.getKey();
+                StringBuilder sb = entry.getValue();
                 // last comma becomes closing parenthesis
                 sb.replace(sb.length()-1, sb.length(), ")");
                 query = sb.toString();
@@ -922,17 +922,17 @@ PGvector.addVectorType(conn);
 
         long max = 0;
         if (invert) {
-            for (Map.Entry pair : map.entrySet()) {
-                max = (long) pair.getValue();
+            for (Map.Entry<String, Long> entry : map.entrySet()) {
+                max = entry.getValue();
                 // TODO use TreeMap to get last item
                 //break;
             }
         }
 
         ListHolder lh = new ListHolder();
-        for (Map.Entry pair : map.entrySet()) {
-            lh.id2_l.add((String)pair.getKey());
-            Long val = (Long) pair.getValue();
+        for (Map.Entry<String, Long> entry : map.entrySet()) {
+            lh.id2_l.add(entry.getKey());
+            long val = entry.getValue();
             if (invert) {
                 val = max - val;
             }
@@ -1355,7 +1355,7 @@ log.info("arr2 " +v);
             } else if (model.startsWith("histo_")) {
                 log.warn("Unexpected 1.histo_ model: " + model +
                             " parsing for dimension");
-            } 
+            }
 
             if (dim == -1) {
 
@@ -1462,7 +1462,7 @@ log.info("arr2 " +v);
                                                 int screen, String id,
                                                 String func, // cos.1.256..
                                                 int[] archives,
-                                                int limit, 
+                                                int limit,
                                                 Set<String> picSet,
                                                 SeenIds seen)
             throws SQLException {
@@ -1706,7 +1706,7 @@ log.info("arr2 " +v);
                                                 int[] archives,
                                                 String func,
                                                 String column,
-                                                int limit, 
+                                                int limit,
                                                 Set<String> picSet,
                                                 SeenIds seen)
             throws SQLException {
@@ -1811,10 +1811,10 @@ log.info("QV " + query);
     **                  return null if no unseen pics in listss.
     */
     public static ListHolder[] matchVectors(Connection conn,
-                                                String orient, 
+                                                String orient,
                                                 List<String> ids, String[] funcDims,
                                                 int[] archives,
-                                                int limit, 
+                                                int limit,
                                                 Set<String> picSet, SeenIds seen)
             throws SQLException {
 
@@ -1859,7 +1859,7 @@ log.info("QV " + query);
 
                 String[] ss = funcDims[i].split("\\.");
                 if (ss.length != 3) {
-                    log.error("Bad funcDim/3: " + 
+                    log.error("Bad funcDim/3: " +
                                 ss.length + " for " + funcDims[i]);
                     return null;
                 }
@@ -1963,7 +1963,7 @@ log.info("arr2 " +v);
         return lhs;
     }
 
-    private static boolean noEntries(List l) {
+    private static boolean noEntries(List<?> l) {
         return l == null  ||  l.size() == 0;
     }
 
@@ -2738,7 +2738,7 @@ might do this for slices of vector
             map.put(pic.id, pic);
         }
 
-        pout("updatePairVecsFromFiles: " +  files.size() + " files, " + 
+        pout("updatePairVecsFromFiles: " +  files.size() + " files, " +
                                             pics.size() +  " pics, " +
                                             nprocs +        " procs");
 
@@ -2746,7 +2746,7 @@ might do this for slices of vector
 
         for (File vecFile : files) {
 
-            pout("PictureDao.updatePairVecsFromFiles: Loading vecs for " + 
+            pout("PictureDao.updatePairVecsFromFiles: Loading vecs for " +
                             pics.size() + " pics from " + vecFile);
 
             int lines = 0;

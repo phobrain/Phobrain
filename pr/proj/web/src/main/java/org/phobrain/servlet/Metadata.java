@@ -6,10 +6,8 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  Metadata - Serving info on pair, pics
- **
- */
+//  Metadata - Serving info on pair, pics
+
 import org.phobrain.util.ConfigUtil;
 import org.phobrain.util.KwdUtil;
 import org.phobrain.util.MiscUtil;
@@ -39,11 +37,11 @@ import com.google.gson.Gson;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -55,6 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Metadata extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(Metadata.class);
 
@@ -91,9 +91,11 @@ public class Metadata extends HttpServlet {
     /*
     **  loadArchiveOwners - for multiple owners
     */
-    private Map<Integer, String> archiveOwners = new HashMap<>();
+    private transient Map<Integer, String> archiveOwners = null;
 
     private void loadArchiveOwners() {
+
+        archiveOwners = new HashMap<>();
 
         Set<Integer> archives = null;
 
@@ -129,6 +131,10 @@ public class Metadata extends HttpServlet {
 
         // TODO - make runtime config setting
         //          part of an intake procedure
+
+        if (archiveOwners == null) {
+            loadArchiveOwners();
+        }
 
         String cred = archiveOwners.get(archive);
         if (cred == null) {
@@ -487,7 +493,7 @@ public class Metadata extends HttpServlet {
         }
         String dim = selMethod.substring(3, ix);
 
-        return uitype + ": " + 
+        return uitype + ": " +
                  func + "(" + model + "." + dim + ")";
     }
 

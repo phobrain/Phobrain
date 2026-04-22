@@ -11,8 +11,9 @@ dependencies {
   implementation project(':shared')
   implementation project(':db')
   implementation files('../lib/postgresql-42.3.1.jar')
-  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6'
-  implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.5'
+
+  implementation 'org.slf4j:slf4j-api:2.0.17'
+  runtimeOnly 'ch.qos.logback:logback-classic:1.5.32'
 }
 
 task fatJar(type: Jar) {

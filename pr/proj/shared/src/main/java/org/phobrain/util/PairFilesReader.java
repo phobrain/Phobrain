@@ -8,7 +8,7 @@ package org.phobrain.util;
 
 /**
   *  PairFilesReader - singleton - read PairValues from a set of NN-generated
-  *     .pairs files 
+  *     .pairs files
   *
   *  Files' Format: id1 id2 val12 val21
   *
@@ -47,7 +47,6 @@ public class PairFilesReader extends Stdio {
     public static int readThreads;
 
     private static Thread readerThreads[] = null;
-    static LinkedBlockingQueue<PairValues[]> pvQs[];
 
     /**
       *  singleton
@@ -69,8 +68,8 @@ public class PairFilesReader extends Stdio {
         int lineNum = -1;
         String id1 = null;
         String id2 = null;
-        double[] arr = {0.0, 0.0}; // size 2, 
-                                    // pics right-left, left-right: 01, 10 
+        double[] arr = {0.0, 0.0}; // size 2,
+                                    // pics right-left, left-right: 01, 10
         PairValues(int lineNum) {
             this.lineNum = lineNum;
         }
@@ -92,7 +91,7 @@ public class PairFilesReader extends Stdio {
     private final Set<String> fnameSet = new HashSet<>();
 
     /**
-      *  indexFile() - add files to the singleton until ready 
+      *  indexFile() - add files to the singleton until ready
       *     to start reading, line-by-line across.
       */
     private static boolean initted = false;
@@ -120,7 +119,7 @@ public class PairFilesReader extends Stdio {
 
     // === init() stuff
 
-    // current line of per-file PV's, supplied by pvQs, 
+    // current line of per-file PV's, supplied by pvQs,
     //   which are started/incremented by next()
     private PairValues showPVs[] = null;
 
@@ -131,6 +130,8 @@ public class PairFilesReader extends Stdio {
       */
 
     private static long t0 = System.currentTimeMillis();
+
+    private static ArrayList<LinkedBlockingQueue<PairValues[]>> pvQs = new ArrayList<>();
 
     public static void init() {
 
@@ -143,11 +144,11 @@ public class PairFilesReader extends Stdio {
         if (files.size() < readThreads) {
             readThreads = files.size() / 2;
             if (readThreads == 0) readThreads = 1;
-            pout("PairFilesReader: few files, lowering readThreads to " + 
+            pout("PairFilesReader: few files, lowering readThreads to " +
                         readThreads);
         } else if (readThreads > files.size() / 5) {
             readThreads = files.size() / 5;
-            pout("PairFilesReader: few files, lowering readThreads to " + 
+            pout("PairFilesReader: few files, lowering readThreads to " +
                         readThreads);
         }
         if (readThreads == 0) {
@@ -158,10 +159,8 @@ public class PairFilesReader extends Stdio {
                                     " at " + new Date());
 
 
-        pvQs = new LinkedBlockingQueue[readThreads];
-
         for (int i=0; i<readThreads; i++) {
-            pvQs[i] = new LinkedBlockingQueue<>(READAHEAD_QUEUE_SIZE);
+            pvQs.add(new LinkedBlockingQueue<>(READAHEAD_QUEUE_SIZE));
         }
 
         readerThreads = new Thread[readThreads];
@@ -175,8 +174,8 @@ public class PairFilesReader extends Stdio {
                                     : (int) ((i+1) * filesPerThread)
                             );
 
-            //pout("PairFilesReader thread " + i + 
-            //                        " start " + start + 
+            //pout("PairFilesReader thread " + i +
+            //                        " start " + start +
             //                        " end " + end);
 
             readerThreads[i] = new Thread(
@@ -205,10 +204,10 @@ public class PairFilesReader extends Stdio {
 
                     int lineNum = 0;
                     try {
-                        while (readLineAcrossAndQueue(in, 
+                        while (readLineAcrossAndQueue(in,
                                                       in_lines, split_lines,
                                                       reader, ++lineNum,
-                                                      start, end)); 
+                                                      start, end));
                                                 // blocks on queueing
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -225,11 +224,11 @@ public class PairFilesReader extends Stdio {
 
     private int next_count = 0;
 
-    public boolean next(int lineNum, String id1, String id2) 
+    public boolean next(int lineNum, String id1, String id2)
             throws Exception {
 
         if (next_count != 0  &&  nextLinedFiles.size() != files.size()) {
-            pout("WARN - calling next() with readLines on only " + 
+            pout("WARN - calling next() with readLines on only " +
                     nextLinedFiles.size() + " of " + files.size() + " files");
         }
 
@@ -238,8 +237,8 @@ public class PairFilesReader extends Stdio {
 
         int endedReaders = 0;
 
-        for (int i=0; i<pvQs.length; i++) {
-            PairValues[] reader_pvs = pvQs[i].take();  // blocks
+        for (int i=0; i<pvQs.size(); i++) {
+            PairValues[] reader_pvs = pvQs.get(i).take();  // blocks
 
             if (reader_pvs.length == 0) {
                 endedReaders++;
@@ -249,28 +248,28 @@ public class PairFilesReader extends Stdio {
             PairValues pv0 = reader_pvs[0];
 
             if (pv0.lineNum != lineNum) {
-                throw new Exception("PairFilesReader.next():" + 
+                throw new Exception("PairFilesReader.next():" +
                                 " caller/reader lineNum mismatch," +
-                                " caller expected " + lineNum + 
+                                " caller expected " + lineNum +
                                 " [" + id1 + " " + id2 + "] " +
                                 " at line " + pv0.lineNum +
-                                " Q size " + pvQs[i].size() +
+                                " Q size " + pvQs.get(i).size() +
                                 " EOFs " + nullCt + "/" + files.size() +
                                 " file " + files.get(i).getPath());
             }
 
-            if (pv0.id1 == null  ||  pv0.id2 == null) { 
+            if (pv0.id1 == null  ||  pv0.id2 == null) {
                 pout("returning false on null id(s) line " + pv0.lineNum);
                 return false;
             }
 
             if (!pv0.id1.equals(id1)  ||  !pv0.id2.equals(id2)) {
-                throw new Exception("PairFilesReader.next():" + 
+                throw new Exception("PairFilesReader.next():" +
                                     " caller/reader id mismatch," +
                                     " expected [" + id1 + " "+ id2 +
                                     "] got [" + pv0.id1 + " " + pv0.id2 +
                                     "] at line " + pv0.lineNum +
-                                    " Q size " + pvQs[i].size() +
+                                    " Q size " + pvQs.get(i).size() +
                                     " EOFs " + nullCt + "/" + files.size() +
                                     " file " + files.get(i).getPath());
             }
@@ -280,11 +279,11 @@ public class PairFilesReader extends Stdio {
             }
         }
 
-        if (endedReaders == readerThreads.length) {  
+        if (endedReaders == readerThreads.length) {
 
             // all reader_pvs.length == 0
 
-            for (int i=0; i<pvQs.length; i++) {
+            for (int i=0; i<pvQs.size(); i++) {
                 readerThreads[i].join();
                 readerThreads[i] = null;
             }
@@ -293,7 +292,7 @@ public class PairFilesReader extends Stdio {
         }
 
         if (ix != files.size()) {
-            err("FilesReader.next(lineNum=" + lineNum + 
+            err("FilesReader.next(lineNum=" + lineNum +
                     ": ix " + ix + " files " + files.size());
         }
         showPVs = pvs;
@@ -305,11 +304,11 @@ public class PairFilesReader extends Stdio {
     }
 
     /**
-      *  readLine() - call on all files any number of times 
+      *  readLine() - call on all files any number of times
       *     after init() and next() have been called.
       */
 
-    public double[] readLine(int fileIndex) 
+    public double[] readLine(int fileIndex)
             throws Exception {
 
         if (showPVs == null) {
@@ -331,12 +330,12 @@ public class PairFilesReader extends Stdio {
     public void done() {
 
         try {
-            System.out.print("PairFilesReader: check if done on pvQs: "); 
-            for (int i=0; i<pvQs.length; i++) {
+            System.out.print("PairFilesReader: check if done on pvQs: ");
+            for (int i=0; i<pvQs.size(); i++) {
                 // pout in case it hangs
-                //pout("PairFilesReader: check if done on pvQs " + i); 
+                //pout("PairFilesReader: check if done on pvQs " + i);
                 System.out.print(" " + i);
-                PairValues[] reader_pvs = pvQs[i].take();  // blocks
+                PairValues[] reader_pvs = pvQs.get(i).take();  // blocks
                 if (reader_pvs.length > 0) {
                     err("PairReaders pvQs[" + i + "].length is " + reader_pvs);
                 }
@@ -363,13 +362,13 @@ public class PairFilesReader extends Stdio {
 
     @Override
     public String toString() {
-        return "PairFilesReader, reader threads " + readerThreads + 
+        return "PairFilesReader, reader threads " + readerThreads +
                     " files: " + files.size();
     }
 
     /**
-      * readLineAcrossAndQueue() - puts PairValues[] in pvQ 
-      *     return true if EOFs not seen; 
+      * readLineAcrossAndQueue() - puts PairValues[] in pvQ
+      *     return true if EOFs not seen;
       *            false if EOFs seen, and put empty PV[] array in pvQs[reader].
       */
 
@@ -377,7 +376,7 @@ public class PairFilesReader extends Stdio {
                                                   String[] in_lines,
                                                   String[][] split_lines,
                                                   int reader, int lineNum,
-                                                  int start, int end) 
+                                                  int start, int end)
             throws Exception {
 
 boolean NEW = false;
@@ -409,11 +408,11 @@ boolean NEW = false;
         //  sync error 1: ending
         if (nonnulls.size() == 0) { // all null
             pout("PairFilesReader reader " + reader +
-                    " internally done reading at line " + lineNum + 
-                    " Q size is " + pvQs[reader].size());
-            pvQs[reader].put(new PairValues[0]); // blocks - empty array
+                    " internally done reading at line " + lineNum +
+                    " Q size is " + pvQs.get(reader).size());
+            pvQs.get(reader).put(new PairValues[0]); // blocks - empty array
             return false;
-        } 
+        }
         if (nulls.size() > 0) {
             StringBuilder sb = new StringBuilder("nulls: ");
             for (int i : nulls) {
@@ -430,10 +429,10 @@ boolean NEW = false;
                   .append('\n');
             }
 
-            err("PairFilesReader: reader " + reader + 
+            err("PairFilesReader: reader " + reader +
                     " Uneven end on " + nullCt + "/" + (end - start) +
-                    " files, line " + lineNum + 
-                    " Q size " + pvQs[reader].size() +
+                    " files, line " + lineNum +
+                    " Q size " + pvQs.get(reader).size() +
                     ":\n" + sb);
         }
 
@@ -445,7 +444,7 @@ if (in_lines[i] == null) err("in line null at " + i);
             split_lines[i] = in_lines[i].split(" ");
             if (split_lines[i].length != 4) {
                 err("PairFilesReader reader " + reader +
-                        " Not 4 fields: " + files.get(i) + 
+                        " Not 4 fields: " + files.get(i) +
                         " line " + lineNum + ":\n" + in_lines[i]);
             }
             if (swapColonSeparator) {
@@ -478,9 +477,9 @@ if (in_lines[i] == null) err("in line null at " + i);
                 err += " id2";
             }
             if (!"".equals(err)) {
-                err("PairFilesReader: reader " + reader + ": " + err + "\n" + 
-                             files.get(ix) + 
-                             ": File " + ix + 
+                err("PairFilesReader: reader " + reader + ": " + err + "\n" +
+                             files.get(ix) +
+                             ": File " + ix +
                              ": mismatch: line " + pv0.lineNum +
                              "\nexpected: [" + pv0.id1 +" "+ pv0.id2 +
                              "]\nGot:      [" + split_lines[i][0] + " " +
@@ -513,12 +512,12 @@ if (in_lines[i] == null) err("in line null at " + i);
             nfe.printStackTrace();
             err("Number prob file=" + (start+i) + " line " + lineNum +
                     " " + pv0.id1 + " " + pv0.id2 +
-                    "\nreader_file " + i + ":\n  " + 
+                    "\nreader_file " + i + ":\n  " +
                     files.get(start+i).getAbsolutePath() +
                     "\n  [" + in_lines[i] + "]");
         }
 
-        pvQs[reader].put(pvs); // blocks
+        pvQs.get(reader).put(pvs); // blocks
 
         return true;
     }

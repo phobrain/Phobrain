@@ -6,10 +6,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-/**
- **  LogApproval - web.xml=logap - curate.html, mnbpair.html, others?
- **
- */
+//  LogApproval - web.xml=logap - curate.html, mnbpair.html, others?
 
 import org.phobrain.util.ID;
 import org.phobrain.util.HashCount;
@@ -47,11 +44,11 @@ import java.io.PrintWriter;
 
 import javax.naming.NamingException;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -61,7 +58,9 @@ import org.slf4j.LoggerFactory;
 
 public class LogApproval extends HttpServlet {
 
-    private static final Logger log = 
+    private static final long serialVersionUID = 1L;
+
+    private static final Logger log =
                          LoggerFactory.getLogger(LogApproval.class);
 
     @Override
@@ -116,7 +115,7 @@ public class LogApproval extends HttpServlet {
         String p1 = req.getParameter("p1");
         String p2 = req.getParameter("p2");
         String st = req.getParameter("st");
-        if (p1 == null  ||  "none".equals(p1)  ||  
+        if (p1 == null  ||  "none".equals(p1)  ||
             p2 == null  ||  "none".equals(p2)  ||
             st == null  ||  "none".equals(st)) {
 
@@ -166,7 +165,7 @@ public class LogApproval extends HttpServlet {
             }
             if (!session.user.startsWith("cu_")  &&
                 !"ripplay".equals(session.user)) {
-                log.error("User not 'cu_'/'ripplay' for session tag " + 
+                log.error("User not 'cu_'/'ripplay' for session tag " +
                           sessionTag + ": " + session.user);
                 res.sendError(500, "Internal Error. Call Help.");
                 return;
@@ -209,7 +208,7 @@ public class LogApproval extends HttpServlet {
                     res.sendError(500, "Internal error");
                     return;
                 }
-                if (screen1 < 1  ||  screen2 > 2  ||  
+                if (screen1 < 1  ||  screen2 > 2  ||
                     showing1 < 0  ||  showing2 > 1) {
 
                     log.error("OOBounds p's: " + p1 + " " + p2 + " ");
@@ -227,20 +226,20 @@ public class LogApproval extends HttpServlet {
                 }
                 Screen s2 = session.getScreen(screen2, showing2);
                 if (s2 == null) {
-                    log.error("No screen '2': using Screen id/showing: " + 
+                    log.error("No screen '2': using Screen id/showing: " +
                                         screen2 + "/" + showing2);
                     res.sendError(500, "Internal error");
                     return;
                 }
 
-                log.info("Screens: userName: " + userName + 
+                log.info("Screens: userName: " + userName +
                         " sessionId/0 " + session.id + "/" + s1.sessionId +
                         " browser_ids: " + s1.browserId + "/" + s2.browserId);
 
                 id1 = s1.id_s;
                 id2 = s2.id_s;
             }
-         
+
             String retMsg = null;
 
             switch (status) {
@@ -256,22 +255,22 @@ public class LogApproval extends HttpServlet {
                     break;
 
                 case 11:
-                    ApprovedPair ap = ApprovalDao.getApprovedPair(conn, 
+                    ApprovedPair ap = ApprovalDao.getApprovedPair(conn,
                                                                   id1, id2);
                     if (ap == null) {
-                        retMsg = insertPair(conn, userName, session, 2, 
+                        retMsg = insertPair(conn, userName, session, 2,
                                                   id1, id2);
 
-                        if (retMsg != null  &&  
+                        if (retMsg != null  &&
                             retMsg.startsWith("Verticals")) {
 
                             res.sendError(500, "Verticals !=");
                             return;
                         }
                     } else {
-                        log.info("LOG Update " + id1 + " " + id2 + 
+                        log.info("LOG Update " + id1 + " " + id2 +
                                  " status " + ap.status + " -> 2");
-                        retMsg = ApprovalDao.update(conn, userName, 
+                        retMsg = ApprovalDao.update(conn, userName,
                                                           2, id1, id2);
                     }
 
@@ -279,7 +278,7 @@ public class LogApproval extends HttpServlet {
 
                 case -99:
                     log.info("LOG extrapolate " + userName + " " +
-                              session.browserID + " " + 
+                              session.browserID + " " +
                               id1 + " " + id2);
 
                     Set<String> k1set = new HashSet<>();
@@ -330,25 +329,25 @@ public class LogApproval extends HttpServlet {
 
                 default:
                     log.info("LOG update " + userName + " " +
-                              session.browserID + " " + 
+                              session.browserID + " " +
                               id1 + " " + id2 + " -> " + status);
-                    retMsg = ApprovalDao.update(conn, userName, status, 
+                    retMsg = ApprovalDao.update(conn, userName, status,
                                                         id1, id2);
                     if (retMsg != null  &&  status == 1  &&
                         retMsg.startsWith("No update: ")) {
                         log.info("Re-adding for presumed bulk delete " +
                                  "while in mnbpair");
-                        retMsg = insertPair(conn, userName, session, 4, 
+                        retMsg = insertPair(conn, userName, session, 4,
                                                         id1, id2);
                         if (retMsg != null) {
                             retMsg = "Was deleted. Reinsert err: " + retMsg;
                         } else {
-                            retMsg = ApprovalDao.update(conn, userName, status, 
+                            retMsg = ApprovalDao.update(conn, userName, status,
                                                         id1, id2);
                         }
                     }
                     break;
-            } 
+            }
 
             res.setContentType( "text" );
             PrintWriter out = res.getWriter();
@@ -373,8 +372,8 @@ public class LogApproval extends HttpServlet {
         }
     }
 
-    private String approve(Connection conn, ApprovedPair ap, 
-                                                  // boolean hasKwd, 
+    private String approve(Connection conn, ApprovedPair ap,
+                                                  // boolean hasKwd,
                                                   Picture pic1, Picture pic2)
             throws SQLException {
 
@@ -416,10 +415,10 @@ public class LogApproval extends HttpServlet {
 
     private void procPairs(Connection conn, StringBuilder sb, boolean doit,
                                             Session session, String userName,
-                                            List<String> kwds) 
+                                            List<String> kwds)
             throws SQLException {
 
-        Set verticals = PictureDao.getPicsBool(conn, "vertical", true);
+        Set<String> verticals = PictureDao.getPicsBool(conn, "vertical", true);
 
         int maxKwdLen = 0;
         for (String kwd : kwds) {
@@ -431,7 +430,7 @@ public class LogApproval extends HttpServlet {
         // get all ids with all the kwds in common between current pair
 
         HashCount counts = new HashCount();
-        Map<String, List> kwdMap = new HashMap<>();
+        //? Map<String, List<String>> kwdMap = new HashMap<>();
         for (String kwd : kwds) {
             List<String> ids = KeywordsDao.getIdsCoderKwd(conn, "m", kwd);
             for (String id : ids) {
@@ -463,7 +462,7 @@ public class LogApproval extends HttpServlet {
         ap.browserID = session.browserID;
         ap.curator = userName;
         ap.status = 4; // bulk approve
-            
+
         for (int i=0; i<ids.size(); i++) {
             String id1 = ids.get(i);
             Picture pic1 = null;
@@ -502,7 +501,7 @@ public class LogApproval extends HttpServlet {
                             ap.id2 = id2;
                             ap.idP = ap.id1 + "|" + ap.id2;
 
-                            String s = approve(conn, ap, // true, 
+                            String s = approve(conn, ap, // true,
                                                      pic1, pic2);
                             if (s == null) {
                                 approved_now++;
@@ -518,7 +517,7 @@ public class LogApproval extends HttpServlet {
                 isSeen = UniquePairDao.seenPair(conn, id2, id1);
                 if (isSeen) {
                     seen++;
-                }   
+                }
                 if (ApprovalDao.any(conn, id2, id1)) {
                     approved++;
                 } else {
@@ -537,7 +536,7 @@ public class LogApproval extends HttpServlet {
                             ap.id2 = id1;
                             ap.idP = ap.id1 + "|" + ap.id2;
 
-                            String s = approve(conn, ap, // true, 
+                            String s = approve(conn, ap, // true,
                                                      pic2, pic1);
                             if (s == null) {
                                 approved_now++;
@@ -556,7 +555,7 @@ public class LogApproval extends HttpServlet {
             }
             sb.append("Newly approved: ").append(approved_now).append('\n');
             if (collisions.size() > 0) {
-                  log.error("Prev approved by other: " + 
+                  log.error("Prev approved by other: " +
                                   collisions.toString());
             }
         } else {
@@ -576,7 +575,7 @@ public class LogApproval extends HttpServlet {
         }
     }
 
-    private String insertPair(Connection conn, 
+    private String insertPair(Connection conn,
                               String userName, Session session,
                               int status, String id1, String id2)
             throws SQLException {
@@ -587,7 +586,7 @@ public class LogApproval extends HttpServlet {
             return msg;
         }
 
-        log.info("LOG insert: " + userName + " " + session.browserID + 
+        log.info("LOG insert: " + userName + " " + session.browserID +
                                  " status " + status + " " +
                                  id1 + " " + id2);
 
@@ -604,10 +603,10 @@ public class LogApproval extends HttpServlet {
         boolean hasKwd = false;
 
         try {
-            hasKwd = PairDao.hasKwd(conn, id1, id2, 
+            hasKwd = PairDao.hasKwd(conn, id1, id2,
                                             (pic1.vertical ? "v" : "h"));
         } catch (SQLException sqe) {
-            String msg = "Getting hasKwd: " + 
+            String msg = "Getting hasKwd: " +
                             "[" + id1 + " " + id2 + "]: " +
                             sqe;
             log.error(msg);
@@ -619,7 +618,7 @@ public class LogApproval extends HttpServlet {
         ap.browserID = session.browserID;
         ap.curator = userName;
         ap.status = status;
-        return approve(conn, ap, // hasKwd, 
+        return approve(conn, ap, // hasKwd,
                              pic1, pic2);
     }
 

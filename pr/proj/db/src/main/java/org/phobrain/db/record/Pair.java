@@ -6,7 +6,7 @@ package org.phobrain.db.record;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-public class Pair implements Comparable {
+public class Pair implements Comparable<Pair> {
 
     public String id1;
     public String id2;
@@ -26,11 +26,8 @@ public class Pair implements Comparable {
     }
 
     @Override
-    public int compareTo(Object oo) {
-        Pair ap = (Pair) oo;
-        if (this.sortVal > ap.sortVal) return 1;
-        if (this.sortVal < ap.sortVal) return -1;
-        return 0;
+    public int compareTo(Pair ap) {
+        return Long.compare(this.sortVal, ap.sortVal);
     }
 }
 

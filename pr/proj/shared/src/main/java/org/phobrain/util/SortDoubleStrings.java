@@ -9,9 +9,9 @@ package org.phobrain.util;
 import java.lang.Comparable;
 import java.util.Arrays;
 
-public class SortDoubleStrings implements Comparable {
+public class SortDoubleStrings implements Comparable<SortDoubleStrings> {
 
-    public double value;
+    public double value = -111.111;
     public String[] strings;
 
     @Override
@@ -24,11 +24,16 @@ public class SortDoubleStrings implements Comparable {
         this.strings = strings;
     }
 
+    public SortDoubleStrings(String... strings) {
+        this.strings = strings;
+    }
+
+    public void setVal(double d) {
+        this.value = d;
+    }
+
     @Override
-    public int compareTo(Object oo) {
-        SortDoubleStrings o = (SortDoubleStrings) oo;
-        if (this.value > o.value) return 1;
-        if (this.value < o.value) return -1;
-        return 0;
+    public int compareTo(SortDoubleStrings o) {
+        return Double.compare(value, o.value);
     }
 }

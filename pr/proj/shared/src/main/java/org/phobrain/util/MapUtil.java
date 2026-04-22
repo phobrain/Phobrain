@@ -17,15 +17,15 @@ import java.util.LinkedHashMap;
 
 public class MapUtil {
 
-    public static 
+    public static
         <K, V extends Comparable<? super V>> Map<K, V>
         sortByValue( Map<K, V> map) {
 
         return ( sortByValue(map, false) );
     }
 
-    public static 
-        <K, V extends Comparable<? super V>> Map<K, V> 
+    public static
+        <K, V extends Comparable<? super V>> Map<K, V>
         sortByValue( Map<K, V> map, boolean reverse )
     {
         List<Map.Entry<K, V>> list =

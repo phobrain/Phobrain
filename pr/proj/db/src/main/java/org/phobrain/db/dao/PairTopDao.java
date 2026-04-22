@@ -12,7 +12,7 @@ package org.phobrain.db.dao;
  **     Inserts are done via table load
  **
  **     Symmetric pairtops have ids in canonical
- **     order, asymmetric ones (nn) have ids in 
+ **     order, asymmetric ones (nn) have ids in
  **     screen order.
  **/
 
@@ -72,7 +72,7 @@ public class PairTopDao extends DaoBase {
             return "v".equals(orient) ? have_nn_v : have_nn_h;
         } else {
             log.error("Expected 'col' or 'nn': " + colnn);
-            System.exit(1);       
+            System.exit(1);
         }
         return null;
     }
@@ -130,16 +130,16 @@ public class PairTopDao extends DaoBase {
     }
 
     private static final String SQL_GET_PAIRTOP =
-        "SELECT id1, id2, val" + 
+        "SELECT id1, id2, val" +
           " FROM ##pairtop_CCC_00 WHERE tag='TT'" +
             " AND ((id1 = 'ZZ') OR (id2 = 'ZZ')) " +
           " ORDER BY val #";
 
-    public static ListHolder getPairtopSymm(Connection conn, 
+    public static ListHolder getPairtopSymm(Connection conn,
                             String type,  // 'col' or 'vec'
                             String orient, String id, String column,
-                            boolean invert, String direction, int limit, 
-                            Set<String> select) 
+                            boolean invert, String direction, int limit,
+                            Set<String> select)
             throws SQLException {
 
         if ("col".equals(type)) {
@@ -206,7 +206,7 @@ public class PairTopDao extends DaoBase {
             if (invert) {
                 lh.value_l = Lists.invertDistribution(lh.value_l);
             }
-            
+
             return lh;
 
         } finally {
@@ -215,11 +215,11 @@ public class PairTopDao extends DaoBase {
         }
     }
 
-    public static ListHolder[] getPairtopLR(Connection conn, 
-                            String orient, 
+    public static ListHolder[] getPairtopLR(Connection conn,
+                            String orient,
                             List<String> ids, String columns[], // l->l', r->r'
-                            boolean invert, String direction, int limit, 
-                            Set<String> select) 
+                            boolean invert, String direction, int limit,
+                            Set<String> select)
             throws SQLException {
 
         if ( ("v".equals(orient) &&  !have_col_v)  ||
@@ -284,9 +284,9 @@ public class PairTopDao extends DaoBase {
                 if (invert) {
                     lh.value_l = Lists.invertDistribution(lh.value_l);
                 }
-            
+
                 ret[i] = lh;
-        
+
             } finally {
                 closeSQL(rs);
                 closeSQL(ps);
@@ -298,15 +298,15 @@ public class PairTopDao extends DaoBase {
     }
 
     private static final String SQL_GET_PAIRTOP_ASYM =
-        "SELECT id1, id2, val" + 
+        "SELECT id1, id2, val" +
           " FROM ##pairtop_nn_00 WHERE tag=? AND XX=?" +
           " ORDER BY val ";
 
-    public static ListHolder getPairtopAsym(Connection conn, 
-                           String orient, String id, boolean first, 
+    public static ListHolder getPairtopAsym(Connection conn,
+                           String orient, String id, boolean first,
                            String tag, // like column in pairs table
                            boolean invert, String direction, int limit,
-                           Set<String> select) 
+                           Set<String> select)
             throws SQLException {
 
         if ( ("v".equals(orient) &&  !have_nn_v)  ||
@@ -319,7 +319,7 @@ public class PairTopDao extends DaoBase {
         String query = chooseDB(SQL_GET_PAIRTOP_ASYM)
                                 .replaceAll("00", orient)
                                 .replaceAll("#", direction)
-                                .replaceAll("XX", 
+                                .replaceAll("XX",
                                     (first ? "id1" : "id2"));
 
         query += direction;
@@ -375,7 +375,7 @@ public class PairTopDao extends DaoBase {
             if (invert) {
                 lh.value_l = Lists.invertDistribution(lh.value_l);
             }
-            
+
             return lh;
 
         } finally {
@@ -388,10 +388,10 @@ public class PairTopDao extends DaoBase {
         "SELECT tag FROM pr.pairtop_nn_00_tags_file " +
             "WHERE fname LIKE '%XX%'";
 
-    public static ListHolder randomPairtopAsymByFileStr(Connection conn, 
-                            String orient, String id, boolean first, 
+    public static ListHolder randomPairtopAsymByFileStr(Connection conn,
+                            String orient, String id, boolean first,
                             String file_strs[], // substr match vs. all .top
-                            Set<String> select) 
+                            Set<String> select)
             throws SQLException {
 
         if ( ("v".equals(orient) && !have_nn_v)  ||
@@ -404,7 +404,7 @@ public class PairTopDao extends DaoBase {
         Set<String> tags = new HashSet<>();
 
         for (String s : file_strs) {
-        
+
             String query = chooseDB(SQL_GET_TAGS_FOR_FNAME)
                                 .replaceAll("00", orient)
                                 .replaceAll("XX", s);
@@ -443,7 +443,7 @@ public class PairTopDao extends DaoBase {
             ListHolder lh = getPairtopAsym(conn, orient, id, first, tag,
                                                 false, "ASC", 200,
                                                 select);
-        
+
             log.info("TAGTAGTAG " + tag + " Got " + lh.size());
 
             return lh;
