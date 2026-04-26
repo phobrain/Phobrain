@@ -705,7 +705,7 @@ public class Metadata extends HttpServlet {
                         log.info("do nothing/true");
                     } else {
                         SessionDao.toggleRepeatPics(conn, session);
-                        GetEngine.clearBrowserSeen(session.browserID);
+                        ConceptMirror.clearBrowserSeen(session.browserID);
                     }
                 } else if ("false".equals(pr)) {
                     if (session.repeatPics) {

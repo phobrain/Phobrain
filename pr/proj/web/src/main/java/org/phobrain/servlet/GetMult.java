@@ -6,7 +6,7 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-//  GetMult - web interface for GetEngine.
+//  GetMult - web interface for ConceptMirror.
 //     Potentially get more than pairs,
 //     e.g. number of walls in room.
 
@@ -119,7 +119,7 @@ public class GetMult extends HttpServlet {
 
     private static final Random rand = new Random();
 
-    private static final GetEngine engine = GetEngine.getEngine();
+    private static final ConceptMirror mirror = ConceptMirror.getMirror();
 
     private static String IMAGE_DIR;
     private static boolean WEBP = false;  // on load, replace dbase pr..picture.fileName
@@ -904,16 +904,16 @@ toggleTStr = null;
                         return;
                     }
 
-                    SeenIds seenIds = engine.getSeen(conn, session);
+                    SeenIds seenIds = mirror.getSeen(conn, session);
                     seenIds.exclude.add(scr.id_s); // need to see a change
 
                     if (r == 4) {
-                        pr = engine.getNeuralMatch(conn, viewNum, orient, session,
+                        pr = mirror.getNeuralMatch(conn, viewNum, orient, session,
                                                   last, nbr_screen.id_s,
                                                   nbr_screenId);
                     } else if (r == 5) {
 
-                        pr = engine.replacePicOnClick(conn, viewNum, orient, session,
+                        pr = mirror.replacePicOnClick(conn, viewNum, orient, session,
                                                         last, scr.id, clickLoc, locspec,
                                                         nbr_screen.id_s, scr.id_s);
 
@@ -949,7 +949,7 @@ toggleTStr = null;
                     HistoryPair sp = new HistoryPair();
                     sp.browserID = browserID;
                     sp.callCount = callCount;
-                    sp.orderInSession = engine.getOrderInSession(conn,
+                    sp.orderInSession = mirror.getOrderInSession(conn,
                                                                 browserID);
                     sp.mouseDownTime = mouseDownTime;
                     if (scr.id == 0) {
@@ -983,7 +983,7 @@ toggleTStr = null;
                     scr.id_s = pr.p.id;
                     scr.selMethod = pr.method;
 
-                    engine.addSeen(conn, browserID, orient, scr.id_s);
+                    mirror.addSeen(conn, browserID, orient, scr.id_s);
 
                     SessionDao.updateSessionScreen(conn, scr);
 
@@ -999,7 +999,7 @@ toggleTStr = null;
                     } else {
                         tag = "RL: ";
                     }
-                    if (engine.KEYWORDS) {
+                    if (mirror.KEYWORDS) {
                         log.info(tag + DBUtil.kwdCompare(conn, kwdCoder, scr.id_s,
                                                              nbr_screen.id_s));
                     }
@@ -1033,7 +1033,7 @@ toggleTStr = null;
                          "==> " + pr.p.archive + "/" + pr.p.fileName +
                             " " + pr.method +
                         "]\nn: " + + sp.orderInSession +
-                           " pct: " + engine.getPctSeen(conn, session,
+                           " pct: " + mirror.getPctSeen(conn, session,
                                                         viewNum, orient) +
                            " count: " + callCount +
                         " time " + t1 + " sel: " + sp.selMethod1 + "::" +
@@ -1144,12 +1144,14 @@ toggleTStr = null;
                 List<Screen> screens = null;
                 try {
 
-                    screens = engine.getScreens(conn, viewNum, orient,
-                                                        kwdCoder,
-                                                        session, r, cmdMod,
-                                                        2, ids,
-                                                        screenId1, screenId2,
-                                                        lastBig, last);
+                    screens = mirror.getScreens(conn, 
+                                                session, 
+                                                viewNum, orient,
+                                                ids,
+                                                screenId1, screenId2,
+                                                lastBig, last,
+                                                r, cmdMod);
+
                 } catch (Exception e) {
                     log.error("Engine: " + e.getMessage(), e);
                     throw e;
@@ -1206,7 +1208,7 @@ toggleTStr = null;
                 }
                 sp.callCount = callCount;
                 sp.mouseDownTime = mouseDownTime;
-                sp.orderInSession = engine.getOrderInSession(conn, browserID);
+                sp.orderInSession = mirror.getOrderInSession(conn, browserID);
                 sp.bigStime = (int) t1;
                 sp.atomImpact = AtomSpec.NO_ATOM;
 
@@ -1217,7 +1219,7 @@ toggleTStr = null;
                 screens.get(0).sessionId = session.id;
                 screens.get(1).sessionId = session.id;
 
-                engine.addSeen(conn, browserID, orient, sp.id1, sp.id2);
+                mirror.addSeen(conn, browserID, orient, sp.id1, sp.id2);
 
                 for (Screen scr : screens) {
                     SessionDao.updateSessionScreen(conn, scr);
@@ -1269,7 +1271,7 @@ toggleTStr = null;
                            "\n==> " +
                            sp.id2 + " " + sp.fileName2 + " " + sp.selMethod2 +
                         "]\nn: " + + sp.orderInSession +
-                           " pct: " + engine.getPctSeen(conn, session,
+                           " pct: " + mirror.getPctSeen(conn, session,
                                                         viewNum, orient) +
                            " count: " + callCount +
                         " rating: " + r + " nextDraw " + nextDrawStyle +
@@ -1322,14 +1324,14 @@ toggleTStr = null;
 
                 if (r == 10) {
                     // TODO - has 2-min block on restarting for now, needs complication
-                    engine.cacheNeighborsThread(session, viewNum, orient, screens, 0);
+                    mirror.cacheNeighborsThread(session, viewNum, orient, screens, 0);
                 } else if (r == 20) {
                     // curate.html Sigma0 (slow) - cache d0-local pairs for next time?
-                    engine.cacheNeighborsThread(session, viewNum, orient, screens, 1);
+                    mirror.cacheNeighborsThread(session, viewNum, orient, screens, 1);
                 } else if (r == 0) {
                     // curate.html neg/- (slow) - cache d0-local pairs for next time?
                     //log.info("NEW cache thread");
-                    engine.cacheD0BadThread(session, viewNum, orient);
+                    mirror.cacheD0BadThread(session, viewNum, orient);
                 }
 
                 return;

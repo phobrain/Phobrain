@@ -89,9 +89,8 @@ public class GetSession extends HttpServlet {
     }
 */
 
-    private static final GetEngine pairEngine = GetEngine.getEngine();
-    //private static final FeelEngine feelEngine = FeelEngine.getEngine();
-    private static final FeelingMirror feelEngine = FeelingMirror.getMirror();
+    private static final ConceptMirror conceptMirror = ConceptMirror.getMirror();
+    private static final FeelingMirror feelingMirror = FeelingMirror.getMirror();
 
     @Override
     public void init (ServletConfig config) throws ServletException {
@@ -465,7 +464,7 @@ screenCode = "1";
                     session.browserID = browser.id;
                     session.repeatPics = true; // superstition
                     if ("skooser".equals(userName)) {
-                        screens = feelEngine.getScreens(conn,
+                        screens = feelingMirror.getScreens(conn,
                                                     session,
                                                     viewNum, orient,
                                                     null, // prev ids
@@ -473,16 +472,16 @@ screenCode = "1";
                                                     0, null, // lastBig, HistoryPair last,
                                                     -1, null); // option, cmdMod
                     } else {
-                        screens = pairEngine.getScreens(conn,
-                                                    viewNum, orient, kwdCoder,
+                        screens = conceptMirror.getScreens(conn,
                                                     session,
-                                                    /* option: */ -2, null,
-                                                    2, null,
-                                                    /* screenIds */ 1, 2,
-                                                    -1, null);
+                                                    viewNum, orient,
+                                                    null,  // prev ids
+                                                    1, 2,  // screen ids
+                                                    0, null, // lastBig, HistoryPair last,
+                                                    -2, null);
                     }
                     if (screens == null) {
-                        log.error("engine.getScreens null");
+                        log.error("mirror.getScreens null");
                     }
 
                     PictureResponse pr1 = (PictureResponse) screens.get(0).pr;
@@ -508,11 +507,11 @@ screenCode = "1";
                     screens.get(1).showingId = sp.id;
 
                     if ("skooser".equals(userName)) {
-                        feelEngine.addSeen(conn, browser.id, sp.id1, orient);
-                        feelEngine.addSeen(conn, browser.id, sp.id2, orient);
+                        feelingMirror.addSeen(conn, browser.id, sp.id1, orient);
+                        feelingMirror.addSeen(conn, browser.id, sp.id2, orient);
                     } else {
-                        pairEngine.addSeen(conn, browser.id, sp.id1, orient);
-                        pairEngine.addSeen(conn, browser.id, sp.id2, orient);
+                        conceptMirror.addSeen(conn, browser.id, sp.id1, orient);
+                        conceptMirror.addSeen(conn, browser.id, sp.id2, orient);
                     }
                 }
 

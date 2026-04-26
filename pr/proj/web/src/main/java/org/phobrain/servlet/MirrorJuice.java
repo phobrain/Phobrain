@@ -853,8 +853,10 @@ public abstract class MirrorJuice {
         double factor = -1.0;
     }
 */
-    public int INTRO_FIRSTS = 10;
-    public int INTRO_PREF_IMAGES = 100;
+
+    // testing for removal
+    //public int INTRO_FIRSTS = 10;
+    //public int INTRO_PREF_IMAGES = 100;
 
     public final int SPEEDUP_COMPARE = 4;
 
@@ -1141,9 +1143,6 @@ public abstract class MirrorJuice {
         d0NextNbrCache.remove(browserID);// seems like a good idea
         // TODO: trim old nbr cache
     }
-
-
-
 
     public int getPctSeen(Connection conn, Session session,
                                            int viewNum, String orient)
@@ -2389,8 +2388,6 @@ assume list is sorted.. couldn't go too wrong
             bak_id_l.clear();
         }
     }
-
-
 
     private ListHolder reverseList(ListHolder lh, double skew,
                                    boolean stratify) {

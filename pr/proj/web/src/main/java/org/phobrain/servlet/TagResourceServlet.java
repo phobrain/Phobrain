@@ -58,8 +58,6 @@ public class TagResourceServlet extends StaticResourceServlet {
                                                     TagResourceServlet.class);
     private static final Random rand = new Random();
 
-    private static final GetEngine engine = GetEngine.getEngine();
-
     @Override
     public void init() throws ServletException {
         imagesDir = ConfigUtil.runtimeProperty("images.dir");

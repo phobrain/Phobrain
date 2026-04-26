@@ -166,6 +166,7 @@ public class FeelingMirror extends MirrorJuice {
         return ret;
     }
 
+    // TODO - could be in MirrorJuice?
     public int getPctSeen(Connection conn, Session session,
                                            int viewNum, String orient)
             throws SQLException {
@@ -306,6 +307,8 @@ public class FeelingMirror extends MirrorJuice {
         }
     }
 
+    private Map<Integer, double[][]> batches = new HashMap<>();
+
     /*
      *  modelMatch() - MxN on lhs[2] using flowModel
      */
@@ -314,6 +317,8 @@ public class FeelingMirror extends MirrorJuice {
                                     UserProfile up, int viewNum, String orient,
                                     Session session, List<String> ids, ListHolder lhs[])
             throws SQLException {
+
+        long t0 = System.currentTimeMillis();
 
         HistoryPair last = up.last;
 
@@ -381,17 +386,13 @@ public class FeelingMirror extends MirrorJuice {
                       hist1.length + hist2.length + hist3.length + hist4.length + // dots drawm - fixed
                       2 * p_1_1.tmp_vec.length;  // for the MxN next-pair candidates - variable
 
+        int ROWS = lhs[0].size() * lhs[1].size();
+
         // the first row gets the fixed data, then copied to MxN
 
         double[] data1d = new double[DATA_SZ];
 
         int dix = 0;
-        for (int i=0; i<p_1_1.tmp_vec.length; i++) {
-            data1d[dix++] = p_1_1.tmp_vec[i];
-        }
-        for (int i=0; i<p_1_2.tmp_vec.length; i++) {
-            data1d[dix++] = p_1_2.tmp_vec[i];
-        }
         for (int i=0; i<hist1.length; i++) {
             data1d[dix++] = hist1[i];
         }
@@ -405,6 +406,13 @@ public class FeelingMirror extends MirrorJuice {
             data1d[dix++] = hist4[i];
         }
 
+        for (int i=0; i<p_1_1.tmp_vec.length; i++) {
+            data1d[dix++] = p_1_1.tmp_vec[i];
+        }
+        for (int i=0; i<p_1_2.tmp_vec.length; i++) {
+            data1d[dix++] = p_1_2.tmp_vec[i];
+        }
+
         final int fixed_dix = dix;  // beginning of variable data
 
         // fixed data laid down, now copy
@@ -412,10 +420,34 @@ public class FeelingMirror extends MirrorJuice {
 
         // lay out the memory for the whole batch
 
-        double[][] batch = new double[lhs[0].size() * lhs[1].size()][];
+        double[][] batch = batches.get(DATA_SZ);
 
-        for (int i=0; i<batch.length; i++) {
-            batch[i] = data1d.clone();
+        if (batch == null) {
+
+            batch = new double[ROWS][];
+            for (int i=0; i<batch.length; i++) {
+                batch[i] = data1d.clone();
+            }
+            batches.put(DATA_SZ, batch);
+
+        } else if (batch.length < ROWS) {
+
+            batches.remove(DATA_SZ);
+
+            batch = new double[ROWS][];
+            for (int i=0; i<batch.length; i++) {
+                batch[i] = data1d.clone();
+            }
+            batches.put(DATA_SZ, batch);
+
+        } else {
+
+            // batch is ok and now is time to
+            // copy instead of cloning
+            log.info("Reusing for model");
+            for (int i=0; i<batch.length; i++) {
+                System.arraycopy(data1d, 0, batch[i], 0, fixed_dix);
+            }
         }
 
         // plug in the NxM vecs for eval pairs
@@ -472,14 +504,32 @@ public class FeelingMirror extends MirrorJuice {
             log.error("model preds " + mpreds.length +
                         " != expected " + preds.size());
         }
-        for (int i=0; i< mpreds.length; i++) {
+        // unsorted log.info("PREDS: " + Arrays.toString(mpreds));
+
+        for (int i=0; i<mpreds.length; i++) {
             preds.get(i).setVal(mpreds[i]);
         }
 
         Collections.sort(preds);
 
+        StringBuilder sb = new StringBuilder("\nSDS\n");
+        for (int i=0; i<5; i++) {
+            SortDoubleStrings sds = preds.get(i);
+            sb.append("  ").append(sds.value).append(" ")
+                            .append(sds.strings[0]).append(" ").append(sds.strings[1]).append("\n");
+        }
+        sb.append(" ...\n");
+        for (int i=preds.size()-6; i<preds.size(); i++) {
+            SortDoubleStrings sds = preds.get(i);
+            sb.append("  ").append(sds.value).append(" ")
+                            .append(sds.strings[0]).append(" ").append(sds.strings[1]).append("\n");
+        }
+        log.info(sb.toString());
+
         SortDoubleStrings sds0 = preds.get(0);
         SortDoubleStrings sdsN = preds.get(preds.size()-1);
+
+        // choosable max or min while exploring/debugging
 
         SortDoubleStrings sds;
         String method = Integer.toString(p_1_1.tmp_vec.length);
@@ -495,8 +545,11 @@ public class FeelingMirror extends MirrorJuice {
         } else {
             method += lhs[0].size() + "x" + lhs[1].size();
         }
-        log.info("PRED " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
-        log.info("PREDrev " + method + " spread " + (sdsN.value - sds0.value) + " on " + preds.size());
+
+        double avg = (sdsN.value + sds0.value) / 2.0;
+
+        log.info("PRED " + method + " spread " + (sdsN.value - sds0.value) + 
+                            " avg " + avg + " N=" + preds.size());
 
         PictureResponse pr1 = new PictureResponse();
         pr1.p = PictureDao.getPictureById(conn, sds.strings[0]);
@@ -538,6 +591,9 @@ public class FeelingMirror extends MirrorJuice {
         scl.add(new Screen(session.browserID,
                                    2, "v", sds.strings[1],
                                    pr2));
+
+        log.info("modelMatch t=" + (System.currentTimeMillis() - t0));
+
         return scl;
 
     }

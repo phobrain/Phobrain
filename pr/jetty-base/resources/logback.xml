@@ -30,6 +30,10 @@ TODO: get log path from outside git tree, maybe an install dialog
     </encoder>
   </appender>
 
+  <!-- Set DL4J/ND4J logging levels -->
+  <logger name="org.deeplearning4j" level="WARN"/>
+  <logger name="org.nd4j" level="WARN"/>
+
   <root level="info">
     <!-- appender-ref ref="STDOUT" / -->
     <appender-ref ref="FILE" />
