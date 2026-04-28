@@ -11,7 +11,7 @@
     run.40G_site - works for site sized:
 
         /dev/vda1       155G   66G   90G  43% /
-        /dev/sda        199G  130G   60G  69% /mnt/volume_sfo2_01
+        /dev/sda        199G  130G   60G  69% /mnt/volume__01
 
         Where db is on /mnt/ and pics on /.
 

@@ -21,8 +21,8 @@ import os
 
 HOST = socket.gethostname()
 print('Config for host: ' + HOST)
-if HOST == 'phobrain-gpu1':
-    BASE = '/mnt/ssd/reep/home'
+if HOST == 'xxxx':
+    BASE = '~/home'
     JAVA2ML_BASE = BASE + '/ml/java2ml/'
     # THREADS for loading the training data
     THREADS = 10

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+#  SPDX-FileCopyrightText: 2022 Bill Ross <bross_phobrain@sonic.net>
 #
 #  SPDX-License-Identifier: AGPL-3.0-or-later
 #

@@ -6,8 +6,27 @@ package org.phobrain.servlet;
  **  SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
-//  FeelingMirror - Serves photo pairs
-//      in response to 'drawing dots' as a reading of feelings.
+//  FeelingMirror - Serves photo pairs in response to 'drawing dots' 
+//                  as a reading of feelings. 
+//
+//                  Adapting ConceptMirror's use in view.html for training 
+//                  a next generation of user-aware models.
+//
+//                  Includes code to use the new models so-trained, 
+//                  not enabled by default since the Java-CPP interface 
+//                  uses unsafe operations. NB: models remain to be
+//                  proven, and a simple imagenet vector distance-based
+//                  algorithm stands in and gives interesting results.
+//
+//                      Enabling model predictions:
+//                          In this file:
+//                              //import org.phobrain.predict.MLPredict;
+//                              //predict = new MLPredict();
+//                          In web/build.gradle:
+//                              //implementation project(':mlpredict')
+//                          In proj/settings.gradle:
+//                              include "shared", "db", ... "predict" //, "mlpredict"
+//
 //     TODO - classify objects in pics, use names of objects
 //             that any dots highlight for a revival of the
 //             original keyword-based system.
@@ -21,7 +40,11 @@ import org.phobrain.util.HashCount;
 import org.phobrain.util.AtomSpec;
 import org.phobrain.util.SortDoubleStrings;
 
-import org.phobrain.webml.WebML;
+import org.phobrain.predict.Predict;
+import org.phobrain.predict.SimplePredict;
+// for deeplearning4j/nn4j, uncomment MLPredict and use it below
+// also add mlpredict in settings.gradle
+//import org.phobrain.predict.MLPredict;
 
 import org.phobrain.math.Higuchi;
 
@@ -285,8 +308,7 @@ public class FeelingMirror extends MirrorJuice {
 
     @Override
     boolean haveFlow() {
-        log.info("Overridded haveFlow!");
-        return webML != null;
+        return predict != null;
     }
 
     private void setTmpVec(Picture p, String vector_name) {
@@ -382,9 +404,14 @@ public class FeelingMirror extends MirrorJuice {
         //      i.e. all data but the vectors of new pair:
         //          1st pair, histograms, 'db' data are constant
 
-        int DATA_SZ = 2 * p_1_1.tmp_vec.length + // vecs for pair the dots were drawn on - fixed
-                      hist1.length + hist2.length + hist3.length + hist4.length + // dots drawm - fixed
-                      2 * p_1_1.tmp_vec.length;  // for the MxN next-pair candidates - variable
+        final int len_fixed = 2 * p_1_1.tmp_vec.length +   // vecs for pair the dots were drawn on
+                          hist1.length + hist2.length + hist3.length + hist4.length; // dots drawn
+
+        final int DATA_SZ = len_fixed +
+                            2 * p_1_1.tmp_vec.length;  // for the next-pair candidates - variable
+
+        // TODO - train w/ all picvecs after dot histos
+        log.info("NB for picvec len " + p_1_1.tmp_vec.length + ", eval picvecs are at " + len_fixed);
 
         int ROWS = lhs[0].size() * lhs[1].size();
 
@@ -494,7 +521,7 @@ public class FeelingMirror extends MirrorJuice {
         double[] mpreds = null;
 
         try {
-            mpreds = webML.predict(vector_name, batch);
+            mpreds = predict.predict(vector_name, batch);
         } catch (Exception e) {
             log.error("PREDICT " + e, e);
             return null;
@@ -511,6 +538,18 @@ public class FeelingMirror extends MirrorJuice {
         }
 
         Collections.sort(preds);
+
+        if (preds.get(0).value > 1.0) {
+
+            // typical ~35.x with poincare distance in SimplePredict.
+            // Conforming somewhat to ML 0..1 for consistency.
+
+            double sub = Math.floor(preds.get(0).value);
+            log.info("Scaling off " + sub + " on min " + preds.get(0).value);
+            for (SortDoubleStrings sds : preds) {
+                sds.value -= sub;
+            }
+        }
 
         StringBuilder sb = new StringBuilder("\nSDS\n");
         for (int i=0; i<5; i++) {
@@ -611,12 +650,13 @@ public class FeelingMirror extends MirrorJuice {
         return instance;
     }
 
-    private WebML webML = null;
+    private Predict predict = null;
 
     private FeelingMirror() {
 
         super();
 
-        webML = new WebML();
+        predict = new SimplePredict();
+        //predict = new MLPredict();
     }
 }

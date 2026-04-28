@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-#  SPDX-FileCopyrightText: 2022 Bill Ross <phobrain@sonic.net>
+#  SPDX-FileCopyrightText: 2022 Bill Ross <bross_phobrain@sonic.net>
 #
 #  SPDX-License-Identifier: MIT-0
 #
@@ -14,8 +14,8 @@ import socket
 import os
 
 HOST = socket.gethostname()
-if HOST == 'phobrain-gpu1':
-    BASE = '/mnt/ssd/reep/home'
+if HOST == 'xxxxx':
+    BASE = '~/home'
     JAVA2ML_BASE = BASE + '/ml/java2ml/'
 else:
     BASE = '~'
@@ -343,5 +343,5 @@ while True:
 
 print('-- done ' + str(done))
 
-os.system('/home/epqe/bin/funwait.sh')
+os.system('funwait.sh')
 

@@ -9,7 +9,7 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 PHOB_LOCAL=`"$SCRIPTPATH"/get_phobrain_local.sh`
 
-PROPERTIES="PHOB_LOCAL"/build.properties
+PROPERTIES="$PHOB_LOCAL"/build.properties
 
 if [ ! -f "$PROPERTIES" ] ; then
     echo == $0 Error: No "$PROPERTIES"

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-DEST=/mnt/mx4t/epqe/image_desc/vec_geom/
+IMAGE_DESC=`phobrain_property.sh image.desc`
+DEST=$IMAGE_DESC//vec_geom/
 
 echo "== $0 calcing vec distancs"
 

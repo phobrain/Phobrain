@@ -65,7 +65,7 @@ echo width $WIDTH height $HEIGHT
 # resize opts
 #    https://legacy.imagemagick.org/Usage/resize/
 
-RESIZE_SIZE="-resize 1000x1000"
+RESIZE_SIZE="-resize 1600x1600"
 
 SIZESPACE=
 SIZESPACE="-colorspace LUV"
@@ -75,7 +75,7 @@ SHARP="-unsharp 1.5x1+0.7+0.02"
 
 
 RESIZE_OPTS=
-if [ "$WIDTH" -gt 1000 ] || [ "$HEIGHT" -gt 1000 ] ; then
+if [ "$WIDTH" -gt 1600 ] || [ "$HEIGHT" -gt 1600 ] ; then
     RESIZE_OPTS="$SIZESPACE $RESIZE_SIZE $SHARP"
 fi
 

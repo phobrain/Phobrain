@@ -29,8 +29,8 @@ real_img = PHOBRAIN_LOCAL + '/real_img_orient'
 HOST = socket.gethostname()
 print('== Config for host: ' + HOST + ' using ' + real_img)
 
-if HOST == 'phobrain-gpu1':
-    BASE = '/mnt/ssd/reep/home'
+if HOST == 'xxxxx':
+    BASE = '~/home'
     JAVA2ML_BASE = BASE + '/ml/java2ml/'
 else:
     BASE = '~'

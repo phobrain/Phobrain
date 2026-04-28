@@ -29,7 +29,7 @@ else
     if [[ "$1" != *".jpg" ]] && [[ "$1" != *".JPG" ]] ; then
         echo skipping non-jpg: $1
     else
-        DIM=`convert $1 -print "%w %h\n" /dev/null`
+        DIM=`convert "$1" -print "%w %h\n" /dev/null`
         WIDTH=`echo $DIM | awk '{print $1}'`
         HEIGHT=`echo $DIM | awk '{print $2}'`
         AREA=$(($WIDTH*$HEIGHT))

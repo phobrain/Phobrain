@@ -38,7 +38,7 @@ Picture table: Lab 'ab' angle and those radii dependent on avg/center
      and come from ../histogram: 
         run_pairtop_angles_only_tbl.sh <v|h>
 
-     /mnt/mx4t/epqe/image_desc/2_hist/pair_angle/h_b11_d_rgb3_len
+     /.../image_desc/2_hist/pair_angle/h_b11_d_rgb3_len
 
 Calcs RGB radii 
 
