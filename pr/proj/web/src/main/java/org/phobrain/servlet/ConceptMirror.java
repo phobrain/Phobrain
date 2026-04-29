@@ -9,71 +9,21 @@ package org.phobrain.servlet;
 //  ConceptMirror - Serves photo pairs or single photos.
 //      Inheritor of GetEngine - first 'brain'.
 
-import org.phobrain.util.ConfigUtil;
-import org.phobrain.util.MathUtil;
-import org.phobrain.util.MiscUtil;
 import org.phobrain.util.MiscUtil.SeenIds;
-import org.phobrain.util.ListHolder;
-import org.phobrain.util.HashCount;
-import org.phobrain.util.AtomSpec;
-import org.phobrain.util.SortDoubleStrings;
-
-import org.phobrain.math.Higuchi;
-
-import org.phobrain.db.dao.DaoBase;
-import org.phobrain.db.dao.SessionDao;
-import org.phobrain.db.dao.BrowserDao;
-import org.phobrain.db.dao.UserDao;
-import org.phobrain.db.dao.ShowingPairDao;
-import org.phobrain.db.dao.PictureDao;
-import org.phobrain.db.dao.KeywordsDao;
-import org.phobrain.db.dao.PictureMapDao;
-import org.phobrain.db.dao.PairDao;
-import org.phobrain.db.dao.PairTopDao;
-import org.phobrain.db.dao.UniquePairDao;
-import org.phobrain.db.dao.ApprovalDao;
 
 import org.phobrain.db.record.Session;
-import org.phobrain.db.record.Browser;
-import org.phobrain.db.record.Screen;
-import org.phobrain.db.record.User;
 import org.phobrain.db.record.HistoryPair;
-import org.phobrain.db.record.DotHistory;
-import org.phobrain.db.record.Picture;
-import org.phobrain.db.record.PictureResponse;
-import org.phobrain.db.record.Keywords;
-import org.phobrain.db.record.PictureMap;
-import org.phobrain.db.record.ApprovedPair;
-import org.phobrain.db.record.Pair;
-import org.phobrain.db.util.DBUtil;
+import org.phobrain.db.dao.ShowingPairDao;
 
-import java.util.Random;
-import java.util.Collections;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Vector;
-import java.util.Collections;
-import java.util.Properties;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.naming.NamingException;
 
 import java.sql.Connection;
-import java.sql.Timestamp;
 import java.sql.SQLException;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.PrintWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
